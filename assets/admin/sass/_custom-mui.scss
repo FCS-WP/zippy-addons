@@ -1,0 +1,41 @@
+.custom-mui {
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="datetime"],
+  input[type="email"],
+  input[type="month"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="text"],
+  input[type="time"],
+  input[type="url"],
+  input[type="week"] {
+    padding: 12px;
+    border: 0;
+    &:focus {
+      box-shadow: none;
+    }
+  }
+  .custom-input-filter {
+    input[type="text"] {
+      padding: 0 12px;
+      height: 40px;
+    }
+  }
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
+}
+
+body.zippy-bookings_page_products-booking {
+  background-color: #fff;
+}
+.weekday-table,
+.holiday-table {
+  padding: 0 !important;
+}
+.react-datepicker-wrapper{
+  width: 100% !important;
+}

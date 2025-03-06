@@ -1,0 +1,18 @@
+
+#zippy-booking-root, 
+#zippy-booking-history {
+    .Toastify__close-button {
+        padding: 0;
+        border: 0;
+        &:hover {
+          background: none;
+          color: #333;
+        }
+      }
+      .Toastify__toast {
+        font-size: 14px;
+      }
+      .Toastify__toast-container {
+        margin-top: 20px;
+      }
+}

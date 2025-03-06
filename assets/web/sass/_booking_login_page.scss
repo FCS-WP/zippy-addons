@@ -1,0 +1,68 @@
+.booking_login_page{
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    form{
+        box-shadow: 0 3px 20px 0px rgba(0, 0, 0, 0.1);
+        border-radius: 0 0 15px 15px;
+
+        h2{
+            font-size: 30px;
+            color: #fff;
+            text-align: center;
+            background-color: $primary;
+            padding-top: 30px;
+            padding-bottom: 20px;
+            border-radius: 15px 15px 0 0;
+            margin-bottom: 0px;
+        }
+
+        .register_label{
+            padding-bottom: 30px;
+
+            .register_label_span{
+                display: block;
+                text-align: center;
+            }
+
+            .register_label_link{
+                display: block;
+                text-align: center;
+                text-transform: uppercase;
+                font-weight: bolder;
+                color: $primary;
+            }
+        }
+
+        .box_input{
+            padding: 50px;
+            
+            input:focus{
+                color: $primary;
+                border-color: $primary;
+            }
+
+            input{
+                background: #ebebeb;
+                border-radius: 27px;
+                padding: 0 35px 0 35px;
+                font-size: 15px;
+                color: $primary;
+                height: 55px;
+                font-weight: bolder;
+                margin-bottom: 15px;
+            }
+
+            .button_submit_login{
+                input{
+                    display: block;
+                    width: 100%;
+                    background-color: $primary;
+                    color: #fff;
+                }
+            }
+        }
+    }
+}

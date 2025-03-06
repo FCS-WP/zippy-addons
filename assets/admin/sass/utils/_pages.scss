@@ -1,0 +1,17 @@
+.booking-page-title {
+  display: flex;
+  align-items: center;
+  min-height: 80px;
+  margin: -10px -20px 20px -20px !important;
+  background: #fff;
+  padding: 0px 40px !important;
+  box-shadow: 1px 2px 12px rgba(184, 193, 211, 0.4);
+}
+body {
+  &.bookings_page_calendar,
+  &.zippy-bookings_page_bookings,
+  &.toplevel_page_zippy-bookings,
+  &.zippy-bookings_page_settings {
+    background: #f4f7fb;
+  }
+}

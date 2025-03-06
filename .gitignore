@@ -1,0 +1,10 @@
+# Ignore thir-party
+package-lock.json
+
+node_modules
+
+yarn.lock
+
+assets/dist
+
+vendor

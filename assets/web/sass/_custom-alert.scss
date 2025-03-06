@@ -1,0 +1,13 @@
+.swal-input-email {
+    width: 90% !important;
+    margin: 1.5rem auto 0.5rem !important;
+}
+.swal2-confirm.swal-confirm-btn.swal2-styled{
+    background-color: #4A8875;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s linear;
+    &:hover {
+        background-color: #333;
+    }
+}

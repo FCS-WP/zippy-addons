@@ -1,0 +1,51 @@
+.custom-calendar {
+    position: relative;
+    .MuiPaper-root {
+        padding: 0 !important;
+        h2 {
+            font-weight: 600;
+        }
+        span.MuiTypography-root {
+            left: 0 !important;
+            text-align: end !important;
+        }
+    }
+
+    .rs__cell {
+        .MuiTypography-root.MuiTypography-body1.rs__multi_day.rs__hover__op.css-aotdgp-MuiTypography-root  {
+            left: 0;
+            text-align: end;
+            font-size: 13px !important;
+        }
+        .MuiTypography-root.MuiTypography-subtitle2.MuiTypography-noWrap {
+            color: white;
+        }
+    }
+  
+}
+.zippy-bookings_page_calendar {
+    #adminmenuwrap {
+        z-index: 1000;
+    }
+    .MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiDialog-paper {
+        overflow-y: scroll !important;
+    }
+}
+
+.event-dialog {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    
+    .box-product-info {
+        background-color: $primary-color;
+        padding: 10px 16px;
+        border-radius: 5px;
+        h6 {
+            font-size: 14px;
+            font-weight: 600;
+            color: $white;
+        }
+    }
+    
+}

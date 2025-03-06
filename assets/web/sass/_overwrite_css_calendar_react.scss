@@ -1,0 +1,124 @@
+.zippy-booking-popup {
+  z-index: 1000 !important;
+  .box_pop_up {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    &--content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 850px;
+
+      .continute_btn {
+        background: #000;
+        color: #fff;
+        width: 100%;
+        text-align: center;
+        padding: 5px;
+        border-radius: 5px;
+      }
+
+      .row_booking {
+        display: flex;
+        margin-bottom: 15px;
+
+        .col_booking_5 {
+          width: 50%;
+
+          .react-datepicker__day--in-range {
+            border-radius: 0;
+          }
+
+          .react-datepicker__day--range-start {
+            border-radius: 50% 0 0 50%;
+          }
+          .react-datepicker__day--range-end {
+            border-radius: 0 50% 50% 0;
+          }
+
+          .react-datepicker {
+            width: 90%;
+
+            .react-datepicker__month-container {
+              width: 100%;
+
+              h2 {
+                font-size: 20px;
+                color: $primary;
+              }
+              .react-datepicker__day {
+                width: 40px;
+                font-size: 12px;
+                padding: 7px 5px;
+                margin: 0px 3px;
+              }
+              .react-datepicker__day-name {
+                width: 40px;
+                font-size: 12px;
+                padding: 5px;
+              }
+            }
+          }
+        }
+
+        .col_booking_5 {
+          width: 50%;
+        }
+
+        .col_booking_6 {
+          width: 60%;
+        }
+      }
+      .react-datepicker__navigation-icon::before {
+        top: 10px;
+      }
+      .react-datepicker__navigation {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: none;
+        color: #ccc;
+        &:hover,
+        &:focus {
+          background-color: $primary;
+        }
+      }
+    }
+  }
+
+  .react-datepicker__day--selected {
+    background-color: $primary !important;
+  }
+  .react-datepicker-time__header {
+    font-size: 12px;
+  }
+  .react-datepicker__time-list-item {
+    font-size: 12px;
+  }
+
+  .react-datepicker__input-container {
+    margin-bottom: 15px;
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 12px;
+      border-radius: 4px !important;
+      border: 1px solid rgba(0, 0, 0, 0.5);
+      outline: 0px;
+      &:active,&:focus-visible {
+        border: 1px solid $primary;
+      }
+    }
+  }
+}
+.booking_success{
+  .swal2-confirm{
+    background: #40A944;
+    color: #fff;
+    border: 0px;
+  }
+}

@@ -1,0 +1,10 @@
+//
+@import "variables";
+@import "./utils/pages";
+// Import file tuỳ chỉnh sau cùng
+@import "admin-booking-dashboard";
+@import "react-datepicker/dist/react-datepicker.css";
+@import "custom-mui";
+@import "loader";
+@import "calendar";
+@import "./utils/datepicker";
