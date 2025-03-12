@@ -4,9 +4,10 @@ import ListProductsBooking from "../../Components/Products/ListProductsBooking";
 import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
-import CustomLoader from "../../../../web/js/components/CustomLoader";
 import { Box, Container } from "@mui/material";
 import Header from "../../Components/Layouts/Header";
+import AdminLoader from "../../Components/AdminLoader";
+
 const ProductsBooking = () => {
   const [mappingData, setMappingData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +41,7 @@ const ProductsBooking = () => {
         <SearchBox updateListMapping={updateListMapping} />
         {isLoading ? (
           <Box sx={{ position: "relative", marginRight: "3rem" }}>
-            <CustomLoader />
+            <AdminLoader />
           </Box>
         ) : (
           <ListProductsBooking
