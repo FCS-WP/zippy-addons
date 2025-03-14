@@ -55,4 +55,7 @@ export const Api = {
   async updateStore(params) {
     return await makeRequest("/stores", params, "PUT");
   },
+  async deleteStore(params) {
+    return await makeRequest("/stores", params, "DELETE");
+  },
 };

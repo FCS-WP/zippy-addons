@@ -66,7 +66,7 @@ class Zippy_Admin_Booking_Store_Controller
     public static function zippy_get_store(WP_REST_Request $request)
     {
         $store_id = $request['store_id'];
-    
+
         try {
             if ($store_id) {
                 $store_data = get_option($store_id);
@@ -74,24 +74,24 @@ class Zippy_Admin_Booking_Store_Controller
                     return Zippy_Response_Handler::error("Store not found");
                 }
                 $store_data = json_decode($store_data, true);
-    
+
                 if (!is_array($store_data) || !isset($store_data['store_name'])) {
                     return Zippy_Response_Handler::error("Invalid store data");
                 }
-    
+
                 // ✅ Thêm store_id vào dữ liệu trả về
                 $store_data['store_id'] = $store_id;
-    
+
                 Zippy_Log_Action::log('get_store', json_encode($store_data), 'Success', 'Store retrieved successfully.');
                 return Zippy_Response_Handler::success(["data" => $store_data]);
             } else {
                 $all_stores = [];
                 $options = wp_load_alloptions();
-    
+
                 foreach ($options as $key => $value) {
                     if (strpos($key, 'store_') === 0) {
                         $store_data = json_decode($value, true);
-    
+
                         if (is_array($store_data) && isset($store_data['store_name'])) {
                             // ✅ Thêm store_id vào mỗi store
                             $store_data['store_id'] = $key;
@@ -99,11 +99,11 @@ class Zippy_Admin_Booking_Store_Controller
                         }
                     }
                 }
-    
+
                 if (empty($all_stores)) {
                     return Zippy_Response_Handler::error("No stores found");
                 }
-    
+
                 Zippy_Log_Action::log('get_store', json_encode($all_stores), 'Success', 'All stores retrieved successfully.');
                 return Zippy_Response_Handler::success(["data" => $all_stores]);
             }
@@ -113,7 +113,7 @@ class Zippy_Admin_Booking_Store_Controller
             return Zippy_Response_Handler::error($message);
         }
     }
-    
+
     public static function zippy_update_store(WP_REST_Request $request)
     {
         $required_fields = [
@@ -164,6 +164,35 @@ class Zippy_Admin_Booking_Store_Controller
         } catch (\Throwable $th) {
             $error_message = $th->getMessage();
             Zippy_Log_Action::log('update_store', json_encode($request->get_params()), 'Failure', $error_message);
+            return Zippy_Response_Handler::error($error_message, 500);
+        }
+    }
+    public static function zippy_delete_store(WP_REST_Request $request)
+    {
+        try {
+            $store_id = sanitize_text_field($request->get_param('store_id'));
+
+            if (empty($store_id)) {
+                return Zippy_Response_Handler::error("Missing store_id parameter.", 400);
+            }
+
+            $existing_store = get_option($store_id);
+            if (!$existing_store) {
+                return Zippy_Response_Handler::error("Store not found.", 404);
+            }
+
+            // Delete store
+            if (!delete_option($store_id)) {
+                throw new \Exception("Failed to delete store.");
+            }
+
+            // Log action
+            Zippy_Log_Action::log('delete_store', json_encode(['store_id' => $store_id]), 'Success', 'Store deleted successfully.');
+
+            return Zippy_Response_Handler::success(['store_id' => $store_id], "Store deleted successfully.");
+        } catch (\Throwable $th) {
+            $error_message = $th->getMessage();
+            Zippy_Log_Action::log('delete_store', json_encode($request->get_params()), 'Failure', $error_message);
             return Zippy_Response_Handler::error($error_message, 500);
         }
     }

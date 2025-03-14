@@ -103,7 +103,7 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
         bgcolor="white"
         boxShadow={3}
         borderRadius={2}
-        width={400}
+        width={600}
         mx="auto"
         mt="10%"
       >
@@ -112,46 +112,54 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
         </Typography>
         {formData && (
           <>
-            <TextField
-              label="Store Name"
-              name="store_name"
-              value={formData.store_name || ""}
-              onChange={handleChange}
-              fullWidth
-            />
-            <TextField
-              label="Postal Code"
-              name="postal_code"
-              value={formData.postal_code || ""}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              disabled={loading}
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Choose an address</InputLabel>
-              <Select
-                value={formData.address || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                disabled={
-                  loading || (addressOptions.length === 0 && !formData.address)
-                }
-              >
-                {addressOptions.length === 0 && !formData.address ? (
-                  <MenuItem value="" disabled>
-                    No address available
-                  </MenuItem>
-                ) : (
-                  addressOptions.map((option, index) => (
-                    <MenuItem key={index} value={option.address}>
-                      {option.address}
+            <Box mb={2}>
+              <Typography variant="body1">Store Name</Typography>
+              <TextField
+                name="store_name"
+                value={formData.store_name || ""}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Box>
+            <Box mb={2}>
+              <Typography variant="body1">Postal Code</Typography>
+              <TextField
+                name="postal_code"
+                value={formData.postal_code || ""}
+                onChange={handleChange}
+                fullWidth
+                margin="normal"
+                disabled={loading}
+              />
+            </Box>
+            <Box mb={2}>
+              <Typography variant="body1">Address</Typography>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Choose an address</InputLabel>
+                <Select
+                  value={formData.address || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  disabled={
+                    loading ||
+                    (addressOptions.length === 0 && !formData.address)
+                  }
+                >
+                  {addressOptions.length === 0 && !formData.address ? (
+                    <MenuItem value="" disabled>
+                      No address available
                     </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+                  ) : (
+                    addressOptions.map((option, index) => (
+                      <MenuItem key={index} value={option.address}>
+                        {option.address}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </FormControl>
+            </Box>
           </>
         )}
         <Grid container spacing={2} mt={2}>

@@ -38,5 +38,11 @@ class Zippy_Admin_Booking_Store_Route extends Zippy_Booking_Router
             'callback' => array(Zippy_Admin_Booking_Store_Controller::class, 'zippy_update_store'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/stores', array(
+            'methods' => 'DELETE',
+            'callback' => array(Zippy_Admin_Booking_Store_Controller::class, 'zippy_delete_store'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        ));
+        
     }
 }

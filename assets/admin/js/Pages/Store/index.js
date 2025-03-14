@@ -10,9 +10,12 @@ import {
   Paper,
   Button,
 } from "@mui/material";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Api } from "../../api";
 import StoreForm from "../../Components/StoreForm";
 import FormEdit from "../../Components/FormEdit";
+
 
 const Store = () => {
   const [stores, setStores] = useState([]);
@@ -29,10 +32,10 @@ const Store = () => {
       if (response.data.status === "success") {
         setStores(response.data.data.data);
       } else {
-        console.error("Failed to fetch stores");
+        toast.error("Failed to fetch stores");
       }
     } catch (error) {
-      console.error("Error fetching stores:", error);
+      toast.error("Error fetching stores");
     }
   };
 
@@ -42,19 +45,18 @@ const Store = () => {
       const response = await Api.getStore({ store_id: storeId });
       if (response.data.status === "success") {
         const newStoreData = response.data.data.data || response.data.data;
-
         setEditStore((prev) =>
           JSON.stringify(prev) !== JSON.stringify(newStoreData)
             ? newStoreData
             : prev
         );
       } else {
-        console.error("Invalid store data:", response);
         setEditStore(null);
+        toast.error("Invalid store data");
       }
     } catch (error) {
-      console.error("Error fetching store details:", error);
       setEditStore(null);
+      toast.error("Error fetching store details");
     } finally {
       setLoading(false);
     }
@@ -62,6 +64,28 @@ const Store = () => {
 
   const handleEditClick = (store) => setEditStore(store);
   const handleCloseEditModal = () => setEditStore(null);
+
+  const handleDeleteClick = async (storeId) => {
+    if (!window.confirm("Are you sure you want to delete this store?")) return;
+
+    setLoading(true);
+    try {
+      const response = await Api.deleteStore({ store_id: storeId });
+
+      if (response.data.status === "success") {
+        setStores((prevStores) =>
+          prevStores.filter((store) => store.store_id !== storeId)
+        );
+        toast.success("Store deleted successfully!");
+      } else {
+        toast.error("Failed to delete store");
+      }
+    } catch (error) {
+      toast.error("Error deleting store");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -104,8 +128,18 @@ const Store = () => {
                         variant="contained"
                         color="primary"
                         size="small"
+                        sx={{ mr: 1 }}
                       >
                         Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteClick(s.store_id)}
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        disabled={loading}
+                      >
+                        Delete
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -123,6 +157,7 @@ const Store = () => {
         onClose={handleCloseEditModal}
         onSave={fetchStores}
       />
+      <ToastContainer />
     </Box>
   );
 };

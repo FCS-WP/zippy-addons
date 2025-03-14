@@ -9,6 +9,8 @@ import {
   FormControl,
   Typography,
 } from "@mui/material";
+import { toast } from "react-toastify";
+import { Api } from "../api";
 
 const StoreForm = ({ onAddStore, loading }) => {
   const [store, setStore] = useState({
@@ -59,7 +61,7 @@ const StoreForm = ({ onAddStore, loading }) => {
           setAddressOptions([]);
         }
       } catch (error) {
-        console.error("Error fetching address:", error);
+        toast.error("Failed to fetch address.");
         setAddressOptions([]);
       }
     } else {
@@ -80,17 +82,31 @@ const StoreForm = ({ onAddStore, loading }) => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validate()) {
-      onAddStore(store);
-      setStore({
-        store_name: "",
-        postal_code: "",
-        address: "",
-        latitude: "",
-        longitude: "",
-      });
-      setAddressOptions([]);
+      try {
+        const response = await Api.addStore(store);
+
+        if (response.data.status === "success") {
+          toast.success("Store created successfully!");
+          onAddStore();
+
+          setStore({
+            store_name: "",
+            postal_code: "",
+            address: "",
+            latitude: "",
+            longitude: "",
+          });
+
+          setAddressOptions([]);
+          setSelectedAddress(null);
+        } else {
+          toast.error(response.data.message || "Failed to create store");
+        }
+      } catch (error) {
+        toast.error("Error creating store");
+      }
     }
   };
 
