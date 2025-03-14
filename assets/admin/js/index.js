@@ -3,9 +3,9 @@ import ReactDOM from "react-dom/client";
 import Index from "./Pages/Bookings";
 import Dashboard from "./Pages/Dashboard";
 import Settings from "./Pages/Settings";
-import ProductsBooking from "./Pages/ProductsBooking";
-import Calendar from "./Pages/Calendar";
-
+// import ProductsBooking from "./Pages/ProductsBooking";
+// import Calendar from "./Pages/Calendar";
+import Store from "./Pages/Store";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../theme/theme";
@@ -14,12 +14,7 @@ function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
   const zippyDashboard = document.getElementById("zippy_dashboard");
   const zippySettings = document.getElementById("zippy_settings");
-  const zippyProductsBooking = document.getElementById(
-    "zippy_products_booking"
-  );
-  const zippyBookingScheduler = document.getElementById(
-    "zippy_booking_scheduler"
-  );
+  const zippyStore = document.getElementById("zippy_store_booking");
 
   if (zippyBookings) {
     const root = ReactDOM.createRoot(zippyBookings);
@@ -48,21 +43,12 @@ function initializeApp() {
       </ThemeProvider>
     );
   }
-  if (zippyProductsBooking) {
-    const root = ReactDOM.createRoot(zippyProductsBooking);
+  if (zippyStore) {
+    const root = ReactDOM.createRoot(zippyStore);
     root.render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <ProductsBooking />
-      </ThemeProvider>
-    );
-  }
-  if (zippyBookingScheduler) {
-    const root = ReactDOM.createRoot(zippyBookingScheduler);
-    root.render(
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Calendar />
+        <Store />
       </ThemeProvider>
     );
   }
