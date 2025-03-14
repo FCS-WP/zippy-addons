@@ -1,58 +1,81 @@
-import { Box, Button, Grid2, Input, TextField, Typography } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  FormControl,
+  Grid2,
+  Input,
+  InputLabel,
+  MenuItem,
+  NativeSelect,
+  Select,
+  styled,
+  Typography,
+} from "@mui/material";
+import LocationSearch from "./LocationSearch";
+import OutletSelect from "./OutletSelect";
+
+const CustomSelect = styled(Select)({
+  padding: "5px",
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#ccc", // Default border color
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#ec7265", // Outline color on hover
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline, &.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+    {
+      borderColor: "#ec7265", // Outline color on focus
+    },
+  "&.MuiOutlinedInput-root.Mui-focused": {
+    boxShadow: "none",
+    borderColor: "#ccc", // Default border color
+  },
+});
 
 const DeliveryForm = () => {
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  const onSelectLocation = (location) => {
+    setSelectedLocation(location);
+  };
+
+  const [age, setAge] = React.useState("");
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
+  };
+
   return (
     <Box>
       <Box className="method_shipping_popup">
         <Grid2 className="method_shipping_popup_section row_title_form">
           <Grid2 className="method_shipping_popup_back">
-            <Button>Back</Button>
+            <Button color="gray">Back</Button>
           </Grid2>
           <Grid2 className="method_shipping_popup_title">
-            <Typography variant="h2" fontSize={20} fontWeight={600}>Delivery Details</Typography>
+            <h4 variant="h2" fontSize={20} fontWeight={600}>
+              Delivery Details
+            </h4>
           </Grid2>
           <Grid2 className="method_shipping_popup_exit">
-            <Button>Exit</Button>
+            <Button color="gray">Exit</Button>
           </Grid2>
         </Grid2>
 
         <Box className="content_form_popup">
-          <Box className="method_shipping_popup_section">
-            <Typography>Delivery To</Typography>
-            <TextField
-              className="form-control"
-              name="input_address_1"
-              placeholder="Key in your address/postal code to proceed"
-              id="input-adress"
-              autocomplete="nope"
-            />
+          <Box>
+            <h5>Delivery to</h5>
+            <LocationSearch onSelectLocation={onSelectLocation} />
           </Box>
-
-          <div className="method_shipping_popup_section">
-            <label>Select an Outlet</label>
-            <select name="selectOutlet" id="selectOutlet">
-              <option value="JI XIANG ANG KU KUEH PTE LTD (Block1  Everton Park, 01-33)">
-                JI XIANG ANG KU KUEH PTE LTD (Block1 Everton Park, 01-33)
-              </option>
-            </select>
-          </div>
-          <div className="method_shipping_popup_section">
-            {/* <?php echo do_shortcode('[pickup_date_calander]'); ?> */}
-          </div>
-          <div className="method_shipping_popup_section">
-            <label>Select Delivery Time</label>
-            <select name="selectTakeAwayTime" id="selectTakeAwayTime">
-              <option value="11:00 AM to 12:00 PM">11:00 AM to 12:00 PM</option>
-              <option value="12:00 PM to 1:00 PM">12:00 PM to 1:00 PM</option>
-              <option value="1:00 PM to 2:00 PM">1:00 PM to 2:00 PM</option>
-              <option value="2:00 PM to 3:00 PM">2:00 PM to 3:00 PM</option>
-            </select>
-          </div>
+          <Box>
+            <OutletSelect />
+          </Box>
         </Box>
-        <div className="method_shipping_popup_section">
-          <button className="button_action_confirm">Confirm</button>
-        </div>
+
+        <Box className="method_shipping_popup_section">
+          <Button className="button_action_confirm">Confirm</Button>
+        </Box>
       </Box>
     </Box>
   );
