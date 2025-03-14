@@ -9,13 +9,14 @@ import {
   TableRow,
   Paper,
   Button,
+  CircularProgress,
+  Typography,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Api } from "../../api";
 import StoreForm from "../../Components/StoreForm";
 import FormEdit from "../../Components/FormEdit";
-
 
 const Store = () => {
   const [stores, setStores] = useState([]);
@@ -27,6 +28,7 @@ const Store = () => {
   }, [editStore]);
 
   const fetchStores = async () => {
+    setLoading(true);
     try {
       const response = await Api.getStore();
       if (response.data.status === "success") {
@@ -36,27 +38,6 @@ const Store = () => {
       }
     } catch (error) {
       toast.error("Error fetching stores");
-    }
-  };
-
-  const fetchStoreDetails = async (storeId) => {
-    setLoading(true);
-    try {
-      const response = await Api.getStore({ store_id: storeId });
-      if (response.data.status === "success") {
-        const newStoreData = response.data.data.data || response.data.data;
-        setEditStore((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(newStoreData)
-            ? newStoreData
-            : prev
-        );
-      } else {
-        setEditStore(null);
-        toast.error("Invalid store data");
-      }
-    } catch (error) {
-      setEditStore(null);
-      toast.error("Error fetching store details");
     } finally {
       setLoading(false);
     }
@@ -117,40 +98,61 @@ const Store = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {stores.map((s, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{s.store_name}</TableCell>
-                    <TableCell>{s.postal_code}</TableCell>
-                    <TableCell>{s.address}</TableCell>
-                    <TableCell>
-                      <Button
-                        onClick={() => handleEditClick(s)}
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        sx={{ mr: 1 }}
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        height="100%"
                       >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteClick(s.store_id)}
-                        variant="contained"
-                        color="error"
-                        size="small"
-                        disabled={loading}
-                      >
-                        Delete
-                      </Button>
+                        <CircularProgress />
+                      </Box>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : stores.length > 0 ? (
+                  stores.map((s, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{s.store_name}</TableCell>
+                      <TableCell>{s.postal_code}</TableCell>
+                      <TableCell>{s.address}</TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => handleEditClick(s)}
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          sx={{ mr: 1 }}
+                          disabled={loading}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteClick(s.store_id)}
+                          variant="contained"
+                          color="error"
+                          size="small"
+                          disabled={loading}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      No stores found.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
         </Box>
       </Box>
 
-      {/* FormEdit Component */}
       <FormEdit
         store={editStore}
         loading={loading}
