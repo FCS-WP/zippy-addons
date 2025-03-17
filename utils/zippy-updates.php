@@ -8,7 +8,7 @@
 
 namespace Zippy_Booking\Utils;
 
-require ZIPPY_BOOKING_DIR_PATH . 'vendor/plugin-update-checker/plugin-update-checker.php';
+require ZIPPY_ADDONS_DIR_PATH . 'vendor/plugin-update-checker/plugin-update-checker.php';
 
 
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
