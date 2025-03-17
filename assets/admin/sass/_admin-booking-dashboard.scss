@@ -35,6 +35,8 @@
     }}
   input{
     border: 0px !important;
+    padding: 6px;
+    padding-left: 20px;
   }
   .date-picker {
     position: relative;
@@ -49,4 +51,5 @@
       padding-left: 40px;
     }
   }
+
 }

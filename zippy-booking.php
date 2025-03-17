@@ -24,34 +24,34 @@ defined('ABSPATH') or die('°_°’');
  ------------------------------------------------------------------------ */
 /* Set plugin version constant. */
 
-if (!defined('ZIPPY_BOOKING_VERSION')) {
-  define('ZIPPY_BOOKING_VERSION', '4.0');
+if (!defined('ZIPPY_ADDONS_VERSION')) {
+  define('ZIPPY_ADDONS_VERSION', '4.0');
 }
 
 /* Set plugin name. */
 
-if (!defined('ZIPPY_BOOKING_NAME')) {
-  define('ZIPPY_BOOKING_NAME', 'Zippy Booking');
+if (!defined('ZIPPY_ADDONS_NAME')) {
+  define('ZIPPY_ADDONS_NAME', 'Zippy Addons');
 }
 
-if (!defined('ZIPPY_BOOKING_PREFIX')) {
-  define('ZIPPY_BOOKING_PREFIX', 'zippy_booking');
+if (!defined('ZIPPY_ADDONS_PREFIX')) {
+  define('ZIPPY_ADDONS_PREFIX', 'zippy_addons');
 }
 
-if (!defined('ZIPPY_BOOKING_BASENAME')) {
-  define('ZIPPY_BOOKING_BASENAME', plugin_basename(__FILE__));
+if (!defined('ZIPPY_ADDONS_BASENAME')) {
+  define('ZIPPY_ADDONS_BASENAME', plugin_basename(__FILE__));
 }
 
 /* Set constant path to the plugin directory. */
 
-if (!defined('ZIPPY_BOOKING_DIR_PATH')) {
-  define('ZIPPY_BOOKING_DIR_PATH', plugin_dir_path(__FILE__));
+if (!defined('ZIPPY_ADDONS_DIR_PATH')) {
+  define('ZIPPY_ADDONS_DIR_PATH', plugin_dir_path(__FILE__));
 }
 
 /* Set constant url to the plugin directory. */
 
-if (!defined('ZIPPY_BOOKING_URL')) {
-  define('ZIPPY_BOOKING_URL', plugin_dir_url(__FILE__));
+if (!defined('ZIPPY_ADDONS_URL')) {
+  define('ZIPPY_ADDONS_URL', plugin_dir_url(__FILE__));
 }
 
 /* Set constant enpoint to the plugin directory. */
@@ -151,7 +151,7 @@ date_default_timezone_set("Asia/Singapore");
 /* ------------------------------------------
 // Includes
  --------------------------- --------------------------------------------- */
-require ZIPPY_BOOKING_DIR_PATH . '/includes/autoload.php';
+require ZIPPY_ADDONS_DIR_PATH . '/includes/autoload.php';
 
 use  Zippy_Booking\Src\Admin\Zippy_Admin_Settings;
 
