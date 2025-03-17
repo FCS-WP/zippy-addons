@@ -11,6 +11,7 @@ namespace Zippy_Booking\Src\Web;
 defined('ABSPATH') or die();
 
 use Zippy_Booking\Utils\Zippy_Utils_Core;
+use DateTime;
 
 class Zippy_Booking_Web
 {
@@ -33,28 +34,33 @@ class Zippy_Booking_Web
     /* Set timezone SG */
     date_default_timezone_set('Asia/Singapore');
 
-    /* Shortcode add btn booking */
-    add_shortcode('btn_booking_form', array($this, 'btn_booking_on_single_product_page'));
+    /* Init Function */
+    // add_action('init', array($this, 'function_init'));
+    add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
 
-    /* Shortcode booking login page */
-    add_shortcode('booking_login_page', array($this, 'booking_login_page'));
+    /* Short Code Take Away Function */
+    add_shortcode('form_take_away', array($this, 'form_take_away'));
+
+    /* Short Code Delivery Function */
+    add_shortcode('form_delivery', array($this, 'form_delivery'));
+
+    
+    add_shortcode('pickup_date_calander', array($this, 'pickup_date_calander_callback'));
 
     /* Booking Assets  */
     add_action('wp_enqueue_scripts', array($this, 'booking_assets'));
-    add_shortcode('zippy_booking_form',  array($this, 'zippy_booking_form_shortcode'));
-    add_shortcode('zippy_booking_history',  array($this, 'zippy_booking_history_shortcode'));
-    add_action('pre_get_posts', array($this, 'exclude_products_by_category'));
   }
 
-  public function btn_booking_on_single_product_page()
-  {
-    global $product;
-
-    $product_id = $product->get_id();
-
-    echo "<div id='btn_booking' data-id-product='" . esc_attr($product_id) . "'></div>";
+  public function function_init(){
+    return;
   }
 
+  public function zippy_lightbox_flatsome(){
+    if (!is_admin()) {
+      echo do_shortcode('[lightbox id="takeaway" width="550px"][form_take_away][/lightbox]');
+      echo do_shortcode('[lightbox id="delivery" width="550px"][form_delivery][/lightbox]');
+    }
+  }
 
   public function booking_assets()
   {
@@ -71,42 +77,12 @@ class Zippy_Booking_Web
       'user_email' => $user_info->user_email
     ));
   }
-  function zippy_booking_form_shortcode()
-  {
-    // Output content for the shortcode
-    return '<div id="zippy-booking-root"></div>';
+
+  public function form_take_away(){
+    return '<div id="zippy-takeaway-form"></div>';
   }
 
-  function zippy_booking_history_shortcode()
-  {
-    // Output content for the shortcode
-    return '<div id="zippy-booking-history"></div>';
+  public function form_delivery(){
+    return '<div id="zippy-delivery-form"></div>';
   }
-
-  function exclude_products_by_category($query)
-  {
-    if (! is_admin() && $query->is_main_query() && is_post_type_archive('product')) {
-      $excluded_category_slugs = array('field', 'support-booking', 'test-support-booking');
-
-      $excluded_category_ids = array();
-      foreach ($excluded_category_slugs as $slug) {
-        $term = get_term_by('slug', $slug, 'product_cat');
-        if ($term) {
-          $excluded_category_ids[] = $term->term_id;
-        }
-      }
-
-      if (! empty($excluded_category_ids)) {
-        $query->set('tax_query', array_merge($query->get('tax_query', array()), array(
-          array(
-            'taxonomy' => 'product_cat',
-            'field'    => 'term_id',
-            'terms'    => $excluded_category_ids,
-            'operator' => 'NOT IN',
-          ),
-        )));
-      }
-    }
-  }
-
 }

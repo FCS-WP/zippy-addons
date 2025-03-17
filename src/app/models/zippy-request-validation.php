@@ -93,6 +93,12 @@ class Zippy_Request_Validation
                     return "$field must be T or F";
                 }
             }
+
+            //
+            if ($rules["data_type"] == "json" && !empty($request[$field])) {
+                json_decode($request[$field]);
+                return (json_last_error() === JSON_ERROR_NONE);
+            }
         }
     }
 

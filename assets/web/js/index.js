@@ -1,35 +1,23 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import BookingForm from "./BookingForm";
-import BookingHistory from "./components/BookingHistory";
-import BookingPopUp from "./BookingPopUpForm";
+import { DeliveryForm, TakeAwayForm } from "./components/zippy-forms";
+
+import "./calendar/old_calendar";
 
 document.addEventListener("DOMContentLoaded", function () {
-  const zippyMain = document.getElementById("zippy-booking-root");
+  const zippyMain = document.getElementById("zippy-delivery-form");
 
   if (typeof zippyMain != "undefined" && zippyMain != null) {
     const root = ReactDOM.createRoot(zippyMain);
-    root.render(<BookingForm />);
+    root.render(<DeliveryForm />);
   }
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-  const zippyMain = document.getElementById("zippy-booking-history");
+  const zippyMain = document.getElementById("zippy-takeaway-form");
 
   if (typeof zippyMain != "undefined" && zippyMain != null) {
     const root = ReactDOM.createRoot(zippyMain);
-    root.render(<BookingHistory />);
-  }
-});
-
-//Booking Pop Up Form
-document.addEventListener("DOMContentLoaded", function () {
-  const zippyMain = document.getElementById("btn_booking");
-
-  if (typeof zippyMain != "undefined" && zippyMain != null) {
-    const root = ReactDOM.createRoot(zippyMain);
-    root.render(
-      <BookingPopUp/>
-    );
+    root.render(<TakeAwayForm />);
   }
 });

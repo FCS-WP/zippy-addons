@@ -1,6 +1,6 @@
 import { Box, Grid2, InputAdornment, TextField } from "@mui/material";
 import { BsSearch } from "react-icons/bs";
-import FilterContainer from "../../../web/js/components/history/FilterContainer";
+import FilterContainer from "./bookings/FilterContainer"; 
 import React, { useEffect, useState } from "react";
 
 const BookingFilter = ({

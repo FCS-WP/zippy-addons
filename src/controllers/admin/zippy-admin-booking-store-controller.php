@@ -16,12 +16,151 @@ class Zippy_Admin_Booking_Store_Controller
      */
     public static function zippy_create_store(WP_REST_Request $request)
     {
+        $request = $request["request"];
         $required_fields = [
-            "store_name" => ["required" => true, "data_type" => "string"],
-            "postal_code" => ["required" => true, "data_type" => "string"],
-            "address" => ["required" => true, "data_type" => "string"],
-            "latitude" => ["required" => true, "data_type" => "float"],
-            "longitude" => ["required" => true, "data_type" => "float"],
+            "display" =>  ["required" => true, "data_type" => "boolean"],
+            "outlet_name" => ["required" => true, "data_type" => "string"],
+            "outlet_phone" => ["required" => true, "data_type" => "string"],
+            "outlet_address" => ["required" => true],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+
+        try {
+            /* insert data to config table */
+            global $wpdb;
+            $table_name = OUTLET_CONFIG_TABLE_NAME;
+
+            $response_data = [];
+
+            $insert_data = [
+                "id" => wp_generate_uuid4(),
+                "display" => $request["display"],
+                "outlet_name" => sanitize_text_field($request["outlet_name"]),
+                "outlet_phone" => sanitize_text_field($request["outlet_phone"]),
+                "outlet_address" => maybe_serialize($request["outlet_address"]),
+            ];
+
+            $insert_data["created_at"] = current_time('mysql');
+            $insert_data["updated_at"] = current_time('mysql');
+
+            $is_insert = $wpdb->insert($table_name, $insert_data);
+            if($is_insert){
+                return Zippy_Response_Handler::success($insert_data, "Store created successfully.");
+            }
+
+        } catch (\Throwable $th) {
+            $message = $th->getMessage();
+            Zippy_Log_Action::log('create_store', json_encode($request), 'Failure', $message);
+        }
+    }
+
+    public static function zippy_get_store(WP_REST_Request $request)
+    {
+        $required_fields = [
+            "outlet_id" =>  ["required" => true, "data_type" => "string"],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+        $outlet_id = $request['outlet_id'];
+
+        try {
+            global $wpdb;
+            $table_name = OUTLET_CONFIG_TABLE_NAME;
+            $query = "SELECT * FROM $table_name WHERE id ='" . $outlet_id . "'";
+            $outlet = $wpdb->get_results($query);
+            if(count($outlet) < 1){
+                return Zippy_Response_Handler::error("Outlet not exist");
+            }
+            $unserialze_fields = [
+                "outlet_address",
+                "operating_hours",
+                "closed_dates",
+                "takeaway",
+            ];
+
+            foreach ($unserialze_fields as $field) {
+                $outlet[0]->{$field} = maybe_unserialize($outlet[0]->{$field});
+            }
+            return Zippy_Response_Handler::success($outlet, "Outlet");
+        } catch (\Throwable $th) {
+            $message = $th->getMessage();
+            Zippy_Log_Action::log('get_store', json_encode(['store_id' => $outlet_id]), 'Failure', $message);
+        }
+    }
+
+    public static function zippy_update_store(WP_REST_Request $request)
+    {
+        $request = $request["request"];
+        $required_fields = [
+            "outlet_id" => ["required" => true, "data_type" => "string"] ,
+            "display" =>  ["required" => true, "data_type" => "boolean"],
+            "outlet_name" => ["required" => true, "data_type" => "string"],
+            "outlet_phone" => ["required" => true, "data_type" => "string"],
+            "outlet_address" => ["required" => true],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+
+        try {
+
+            global $wpdb;
+            $table_name = OUTLET_CONFIG_TABLE_NAME;
+
+            $outlet_id = $request['outlet_id'];
+            $query = "SELECT id FROM $table_name WHERE id ='" . $outlet_id . "'";
+            $is_outlet_exist = count($wpdb->get_results($query));
+            if($is_outlet_exist < 1){
+                return Zippy_Response_Handler::error("Outlet not exist!");
+            }
+            
+            $response_data = [];
+
+            $update_fields = [   
+                "display",
+                "outlet_name",
+                "outlet_phone",
+                "outlet_address",
+            ];
+
+            $update_data = [];
+            $res_data = [];
+            foreach ($update_fields as $field) {
+                $update_data[$field] = sanitize_text_field($request[$field]);
+                $res_data[$field] = $request[$field];
+            }
+
+            $update_data["updated_at"] = current_time('mysql');
+
+            $is_updated = $wpdb->update($table_name, $update_data, ["id" => $outlet_id]);
+
+            if($is_updated){
+                $response_data = array_merge($update_data, $res_data);
+                $response_data["updated_at"] = $update_data["updated_at"];
+                return Zippy_Response_Handler::success($response_data, "Outlet Updated");
+            }
+
+        } catch (\Throwable $th) {
+            $message = $th->getMessage();
+            Zippy_Log_Action::log('create_store', json_encode($request), 'Failure', $message);
+        }
+    }
+    public static function zippy_delete_store(WP_REST_Request $request)
+    {
+        $required_fields = [
+            "outlet_id" => ["required" => true, "data_type" => "string"] ,
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -30,170 +169,29 @@ class Zippy_Admin_Booking_Store_Controller
         }
 
         try {
-            $store_id_counter = get_option('store_id_counter', 1);
+            global $wpdb;
+            $table_name = OUTLET_CONFIG_TABLE_NAME;
 
-            $store_id = 'store_' . $store_id_counter;
-
-            $store_data = [
-                'store_name'  => sanitize_text_field($request['store_name']),
-                'postal_code' => sanitize_text_field($request['postal_code']),
-                'address'     => sanitize_text_field($request['address']),
-                'latitude'    => floatval($request['latitude']),
-                'longitude'   => floatval($request['longitude']),
-            ];
-
-            $success = add_option($store_id, json_encode($store_data));
-
-            if (!$success) {
-                throw new \Exception("Failed to add store option.");
+            $outlet_id = $request['outlet_id'];
+            $query = "SELECT id FROM $table_name WHERE id ='" . $outlet_id . "'";
+            $is_outlet_exist = count($wpdb->get_results($query));
+            if($is_outlet_exist < 1){
+                return Zippy_Response_Handler::error("Outlet not exist!");
             }
 
-            update_option('store_id_counter', $store_id_counter + 1);
+            $is_deleted = $wpdb->delete( $table_name, ["id" => $outlet_id ] );
 
-            Zippy_Log_Action::log('create_store', json_encode($store_data), 'Success', 'Store created successfully.');
-
-            return Zippy_Response_Handler::success([
-                'store_id'    => $store_id,
-                'store_data'  => $store_data
-            ], "Store created successfully.");
-        } catch (\Throwable $th) {
-            $message = $th->getMessage();
-            Zippy_Log_Action::log('create_store', json_encode($request), 'Failure', $message);
-            return Zippy_Response_Handler::error($message);
-        }
-    }
-
-    public static function zippy_get_store(WP_REST_Request $request)
-    {
-        $store_id = $request['store_id'];
-
-        try {
-            if ($store_id) {
-                $store_data = get_option($store_id);
-                if (!$store_data) {
-                    return Zippy_Response_Handler::error("Store not found");
-                }
-                $store_data = json_decode($store_data, true);
-
-                if (!is_array($store_data) || !isset($store_data['store_name'])) {
-                    return Zippy_Response_Handler::error("Invalid store data");
-                }
-
-                // ✅ Thêm store_id vào dữ liệu trả về
-                $store_data['store_id'] = $store_id;
-
-                Zippy_Log_Action::log('get_store', json_encode($store_data), 'Success', 'Store retrieved successfully.');
-                return Zippy_Response_Handler::success(["data" => $store_data]);
-            } else {
-                $all_stores = [];
-                $options = wp_load_alloptions();
-
-                foreach ($options as $key => $value) {
-                    if (strpos($key, 'store_') === 0) {
-                        $store_data = json_decode($value, true);
-
-                        if (is_array($store_data) && isset($store_data['store_name'])) {
-                            // ✅ Thêm store_id vào mỗi store
-                            $store_data['store_id'] = $key;
-                            $all_stores[] = $store_data;
-                        }
-                    }
-                }
-
-                if (empty($all_stores)) {
-                    return Zippy_Response_Handler::error("No stores found");
-                }
-
-                Zippy_Log_Action::log('get_store', json_encode($all_stores), 'Success', 'All stores retrieved successfully.');
-                return Zippy_Response_Handler::success(["data" => $all_stores]);
-            }
-        } catch (\Throwable $th) {
-            $message = $th->getMessage();
-            Zippy_Log_Action::log('get_store', json_encode(['store_id' => $store_id]), 'Failure', $message);
-            return Zippy_Response_Handler::error($message);
-        }
-    }
-
-    public static function zippy_update_store(WP_REST_Request $request)
-    {
-        $required_fields = [
-            "store_id"    => ["required" => true, "data_type" => "string"],
-            "store_name"  => ["required" => true, "data_type" => "string"],
-            "postal_code" => ["required" => true, "data_type" => "string"],
-            "address"     => ["required" => true, "data_type" => "string"],
-            "latitude"    => ["required" => true, "data_type" => "float"],
-            "longitude"   => ["required" => true, "data_type" => "float"],
-        ];
-
-        $validation_errors = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if (!empty($validation_errors)) {
-            return Zippy_Response_Handler::error($validation_errors);
-        }
-
-        try {
-            $store_id = sanitize_text_field($request->get_param('store_id'));
-            $existing_store = get_option($store_id);
-
-            if (!$existing_store) {
-                return Zippy_Response_Handler::error("Store not found.", 404);
+            if($is_deleted){
+                $response_data = [
+                    "outlet_id" => $outlet_id
+                ];
+                return Zippy_Response_Handler::success($response_data, "Outlet Deleted");
             }
 
-            $existing_store_data = json_decode($existing_store, true);
-            if (!is_array($existing_store_data)) {
-                return Zippy_Response_Handler::error("Invalid store data format.", 500);
-            }
 
-            $updated_store_data = [
-                'store_name'  => sanitize_text_field($request->get_param('store_name')),
-                'postal_code' => sanitize_text_field($request->get_param('postal_code')),
-                'address'     => sanitize_text_field($request->get_param('address')),
-                'latitude'    => floatval($request->get_param('latitude')),
-                'longitude'   => floatval($request->get_param('longitude')),
-            ];
-
-            if (!update_option($store_id, json_encode($updated_store_data))) {
-                throw new \Exception("Failed to update store.");
-            }
-
-            Zippy_Log_Action::log('update_store', json_encode($updated_store_data), 'Success', 'Store updated successfully.');
-
-            return Zippy_Response_Handler::success([
-                'store_id'    => $store_id,
-                'store_data'  => $updated_store_data
-            ], "Store updated successfully.");
-        } catch (\Throwable $th) {
-            $error_message = $th->getMessage();
-            Zippy_Log_Action::log('update_store', json_encode($request->get_params()), 'Failure', $error_message);
-            return Zippy_Response_Handler::error($error_message, 500);
-        }
-    }
-    public static function zippy_delete_store(WP_REST_Request $request)
-    {
-        try {
-            $store_id = sanitize_text_field($request->get_param('store_id'));
-
-            if (empty($store_id)) {
-                return Zippy_Response_Handler::error("Missing store_id parameter.", 400);
-            }
-
-            $existing_store = get_option($store_id);
-            if (!$existing_store) {
-                return Zippy_Response_Handler::error("Store not found.", 404);
-            }
-
-            // Delete store
-            if (!delete_option($store_id)) {
-                throw new \Exception("Failed to delete store.");
-            }
-
-            // Log action
-            Zippy_Log_Action::log('delete_store', json_encode(['store_id' => $store_id]), 'Success', 'Store deleted successfully.');
-
-            return Zippy_Response_Handler::success(['store_id' => $store_id], "Store deleted successfully.");
         } catch (\Throwable $th) {
             $error_message = $th->getMessage();
             Zippy_Log_Action::log('delete_store', json_encode($request->get_params()), 'Failure', $error_message);
-            return Zippy_Response_Handler::error($error_message, 500);
         }
     }
 }
