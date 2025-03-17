@@ -56,7 +56,7 @@ if (!defined('ZIPPY_ADDONS_URL')) {
 
 /* Set constant enpoint to the plugin directory. */
 if (!defined('ZIPPY_BOOKING_API_NAMESPACE')) {
-  define('ZIPPY_BOOKING_API_NAMESPACE', 'zippy-booking/v1');
+  define('ZIPPY_BOOKING_API_NAMESPACE', 'zippy-addons/v1');
 }
 
 /* Booking table name */
@@ -74,8 +74,8 @@ if (!defined('ZIPPY_BOOKING_OPTIONS_TABLE_NAME')) {
 }
 
 /* Booking Product Mapping table name */
-if (!defined('ZIPPY_BOOKING_PRODUCT_MAPPING_TABLE_NAME')) {
-  define('ZIPPY_BOOKING_PRODUCT_MAPPING_TABLE_NAME', 'fcs_data_products_booking');
+if (!defined('OUTLET_CONFIG_TABLE_NAME')) {
+  define('OUTLET_CONFIG_TABLE_NAME', 'fcs_data_zippy_addons_outlet');
 }
 
 /* Booking Product Mapping table name */

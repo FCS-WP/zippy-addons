@@ -37,34 +37,14 @@ class Zippy_Admin_Settings
     add_action('admin_enqueue_scripts', array($this, 'remove_default_stylesheets'));
     /* Register Assets Admin Part */
     add_action('admin_enqueue_scripts', array($this, 'admin_booking_assets'));
-    add_action('woocommerce_order_status_changed', array($this, 'update_booking_status_in_db_on_order_status_change'), 10, 3);
 
-
-
-    /* Create New Table For Booking */
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_booking_table'));
-
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_product_booking_table'));
-
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_booking_configs_table'));
 
     /* Create Zippy API Token */
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'generate_zippy_booking_api_token'));
 
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_zippy_booking_log_table'));
-
-    /* Delete Table Booking */
-    // register_deactivation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'delete_booking_table'));
-
-    // /* Delete Table Booking Config */
-    // register_deactivation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'delete_booking_config_table'));
-
-    // register_deactivation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'delete_product_booking_mapping'));
-
-    // register_deactivation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'delete_zippy_booking_log_table'));
-
-    // /* Delete Zippy API Token */
-    // register_deactivation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'remove_zippy_booking_api_token'));
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_log_table'));
+  
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_table'));
   }
 
   public function admin_booking_assets()
@@ -76,8 +56,6 @@ class Zippy_Admin_Settings
     // Pass the user ID to the script
     wp_enqueue_script('admin-booking-js', ZIPPY_ADDONS_URL . '/assets/dist/js/admin.min.js', [], $version, true);
     wp_enqueue_style('booking-css', ZIPPY_ADDONS_URL . '/assets/dist/css/admin.min.css', [], $version);
-
-
 
 
 
@@ -94,78 +72,6 @@ class Zippy_Admin_Settings
     add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
     add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
-  }
-
-  function create_booking_table()
-  {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'bookings';
-
-    $charset_collate = $wpdb->get_charset_collate();
-
-    // SQL query to create the table
-    $sql = "CREATE TABLE $table_name (
-      ID BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-      user_id BIGINT(20) UNSIGNED DEFAULT NULL,
-      email VARCHAR(255) NOT NULL,
-      product_id BIGINT(20) UNSIGNED NOT NULL,
-      order_id BIGINT(20) UNSIGNED NOT NULL,
-      booking_start_date DATE NOT NULL,
-      booking_start_time TIME NOT NULL,
-      booking_end_date DATE NOT NULL,
-      booking_end_time TIME NOT NULL,
-      booking_status VARCHAR(50) NOT NULL,
-      created_at DATETIME NOT NULL,
-      PRIMARY KEY  (ID),
-      KEY product_id (product_id),
-      FOREIGN KEY (order_id) REFERENCES {$wpdb->prefix}wc_orders(ID) ON DELETE CASCADE
-    ) $charset_collate;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-
-    dbDelta($sql);
-  }
-
-  function create_product_booking_table()
-  {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'products_booking';
-
-    if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-      $sql = "CREATE TABLE $table_name (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            items_id BIGINT(20) NOT NULL,
-            mapping_type VARCHAR(255) NOT NULL,
-            mapping_status VARCHAR(255) NOT NULL,
-            PRIMARY KEY  (id)
-        );";
-
-      require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-      dbDelta($sql);
-    }
-  }
-  function create_booking_configs_table()
-  {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'booking_configs';
-
-    if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-      $sql = "CREATE TABLE $table_name (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            weekday INT NOT NULL,
-            is_open VARCHAR(255) NOT NULL,
-            open_at TIME NULL,
-            close_at TIME NULL,
-            extra_time LONGTEXT NULL,
-            created_at DATETIME NULL,
-            updated_at DATETIME NULL,
-            PRIMARY KEY  (id)
-        );";
-
-      require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-      dbDelta($sql);
-    }
   }
 
   function delete_booking_table()
@@ -280,7 +186,7 @@ class Zippy_Admin_Settings
   }
 
 
-  function create_zippy_booking_log_table()
+  function create_log_table()
   {
     global $wpdb;
     $table_name = $wpdb->prefix . 'zippy_booking_log';
@@ -301,59 +207,31 @@ class Zippy_Admin_Settings
     dbDelta($sql);
   }
 
-  function delete_zippy_booking_log_table()
+
+
+  function create_outlet_table()
   {
     global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_addons_outlet';
 
-    $table_name = $wpdb->prefix . 'zippy_booking_log';
+    $charset_collate = $wpdb->get_charset_collate();
 
-    $wpdb->query("DROP TABLE IF EXISTS $table_name");
-  }
-  public function update_booking_status_in_db_on_order_status_change($order_id, $old_status, $new_status)
-  {
-    global $wpdb;
+    $sql = "CREATE TABLE $table_name (
+        id VARCHAR(255) NOT NULL,
+        outlet_name VARCHAR(255) NOT NULL,
+        display VARCHAR(255) NOT NULL,
+        outlet_phone VARCHAR(255) NOT NULL,
+        outlet_address LONGTEXT NOT NULL,
+        operating_hours LONGTEXT NOT NULL,
+        closed_dates LONGTEXT NULL,
+        delivery LONGTEXT NOT NULL,
+        takeaway LONGTEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
 
-    $order = wc_get_order($order_id);
-
-    $booking_status = '';
-    switch ($new_status) {
-      case 'on-hold':
-        $booking_status = 'pending';
-        break;
-      case 'pending':
-        $booking_status = 'approved';
-        break;
-      case 'completed':
-        $booking_status = 'completed';
-        break;
-      case 'cancelled':
-        $booking_status = 'cancelled';
-        break;
-      default:
-        return;
-    }
-
-
-    $booking_id = $order->get_meta('booking_id');
-    if (!$booking_id) {
-      error_log("Booking ID not found for order ID: " . $order_id);
-      return;
-    }
-
-    $table_name = $wpdb->prefix . 'bookings';
-
-    $wpdb->update(
-      $table_name,
-      array('booking_status' => $booking_status),
-      array('order_id' => $order_id),
-      array('%s'),
-      array('%d')
-    );
-
-    if ($wpdb->last_error) {
-      error_log("Error updating booking status for order ID " . $order_id . ": " . $wpdb->last_error);
-    } else {
-      error_log("Booking status updated to '$booking_status' for order ID " . $order_id);
-    }
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
   }
 }
