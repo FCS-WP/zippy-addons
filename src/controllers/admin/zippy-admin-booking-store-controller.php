@@ -50,9 +50,7 @@ class Zippy_Admin_Booking_Store_Controller
 
             $is_insert = $wpdb->insert($table_name, $insert_data);
             if($is_insert){
-                $response_data["created_at"] = $insert_data["created_at"];
-                $response_data["updated_at"] = $insert_data["updated_at"];
-                return Zippy_Response_Handler::success($response_data, "Store created successfully.");
+                return Zippy_Response_Handler::success($insert_data, "Store created successfully.");
             }
 
         } catch (\Throwable $th) {
@@ -79,6 +77,9 @@ class Zippy_Admin_Booking_Store_Controller
             $table_name = OUTLET_CONFIG_TABLE_NAME;
             $query = "SELECT * FROM $table_name WHERE id ='" . $outlet_id . "'";
             $outlet = $wpdb->get_results($query);
+            if(count($outlet) < 1){
+                return Zippy_Response_Handler::error("Outlet not exist");
+            }
             $unserialze_fields = [
                 "outlet_address",
                 "operating_hours",
@@ -89,7 +90,7 @@ class Zippy_Admin_Booking_Store_Controller
             foreach ($unserialze_fields as $field) {
                 $outlet[0]->{$field} = maybe_unserialize($outlet[0]->{$field});
             }
-            return $outlet;
+            return Zippy_Response_Handler::success($outlet, "Outlet");
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('get_store', json_encode(['store_id' => $outlet_id]), 'Failure', $message);
@@ -158,8 +159,6 @@ class Zippy_Admin_Booking_Store_Controller
     }
     public static function zippy_delete_store(WP_REST_Request $request)
     {
-
-        $request = $request["request"];
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"] ,
         ];
