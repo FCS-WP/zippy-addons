@@ -20,25 +20,34 @@ const Settings = () => {
   const [schedule, setSchedule] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
-  const [extraTimeSlots, setExtraTimeSlots] = useState(
+  const [deliveryTimeSlots, setdeliveryTimeSlots] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
-  const [duration, setDuration] = useState(5);
+  const [duration, setDuration] = useState(15);
   const [storeEmail, setStoreEmail] = useState("");
-  const [allowOverlap, setAllowOverlap] = useState(false);
-  const [bookingType, setBookingType] = useState("single");
-  const [defaultStatus, setDefaultStatus] = useState("pending");
   const [loading, setLoading] = useState(true);
-  const [extraTimeEnabled, setExtraTimeEnabled] = useState({});
+  const [deliveryTimeEnabled, setdeliveryTimeEnabled] = useState({});
   const [holidayEnabled, setHolidayEnabled] = useState(false);
   const [holidays, setHolidays] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState("");
 
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const response = await Api.getSettings();
-        const data = response.data.data;
+        const storesResponse = await Api.getStore();
+        const storesData = storesResponse.data.data || [];
+
+        setStores(storesData.data);
+        if (storesData.data.length > 0) {
+          setSelectedStore(storesData.data[0].store_id);
+        }
+        console.log(selectedStore);
+
+        const settingsResponse = await Api.getSettings();
+        const data = settingsResponse.data.data;
+
         if (
           data &&
           data.store_working_time &&
@@ -59,44 +68,40 @@ const Settings = () => {
                       },
                     ]
                   : [],
-              duration: parseInt(daySchedule?.duration) || 5,
-              extraTime: daySchedule?.extra_time || {
+              duration: parseInt(daySchedule?.duration) || 15,
+              deliveryTime: daySchedule?.delivery_time || {
                 is_active: "F",
                 data: [],
               },
             };
           });
+
           setSchedule(fetchedSchedule);
-          setExtraTimeEnabled(
+          setdeliveryTimeEnabled(
             fetchedSchedule.reduce(
               (acc, item) => ({
                 ...acc,
-                [item.day]: item.extraTime.is_active === "T",
+                [item.day]: item.deliveryTime.is_active === "T",
               }),
               {}
             )
           );
-          setExtraTimeSlots(
+          setdeliveryTimeSlots(
             fetchedSchedule.map((item) => ({
               day: item.day,
-              slots: item.extraTime.data || [],
+              slots: item.deliveryTime.data || [],
             }))
           );
-          setDuration(parseInt(data.store_working_time[0]?.duration) || 5);
-          setStoreEmail(data.store_email || "");
-          setAllowOverlap(data.allow_overlap === "T");
-          setBookingType(data.booking_type || "single");
-          setDefaultStatus(data.default_booking_status || "pending");
-          const fetchedHolidays = data.holiday || [];
-          setHolidays(fetchedHolidays);
-          setHolidayEnabled(fetchedHolidays.length > 0);
+          setDuration(parseInt(data.store_working_time[0]?.duration) || 15);
+          setHolidays(data.holiday || []);
+          setHolidayEnabled((data.holiday || []).length > 0);
         } else {
           setSchedule(daysOfWeek.map((day) => ({ day, slots: [] })));
           setHolidays([]);
           setHolidayEnabled(false);
         }
       } catch (error) {
-        console.error("Error fetching settings:", error);
+        console.error("Error fetching settings or stores:", error);
         setSchedule(daysOfWeek.map((day) => ({ day, slots: [] })));
         setHolidays([]);
         setHolidayEnabled(false);
@@ -104,16 +109,17 @@ const Settings = () => {
         setLoading(false);
       }
     };
+
     fetchSettings();
   }, []);
 
-  const handleExtraTimeToggle = (day, enabled) => {
-    setExtraTimeEnabled((prev) => ({
+  const handleDeliveryToggle = (day, enabled) => {
+    setdeliveryTimeEnabled((prev) => ({
       ...prev,
       [day]: enabled,
     }));
 
-    setExtraTimeSlots((prev) =>
+    setdeliveryTimeSlots((prev) =>
       prev.map((item) =>
         item.day === day
           ? {
@@ -154,28 +160,16 @@ const Settings = () => {
       )
     );
   };
-  const handleAddExtraTimeSlot = (day) => {
-    setExtraTimeSlots((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: [...item.slots, { from: "", to: "" }],
-            }
-          : item
-      )
-    );
-  };
 
-  const handleRemoveExtraTimeSlot = (day, slotIndex) => {
-    setExtraTimeSlots((prev) => {
-      const updatedExtraTimeSlots = prev.map((item) => {
+  const handleRemoveDeliveryTimeSlot = (day, slotIndex) => {
+    setdeliveryTimeSlots((prev) => {
+      const updateddeliveryTimeSlots = prev.map((item) => {
         if (item.day === day) {
           const updatedSlots = item.slots.filter(
             (_, index) => index !== slotIndex
           );
           if (updatedSlots.length === 0) {
-            setExtraTimeEnabled((prevEnabled) => ({
+            setdeliveryTimeEnabled((prevEnabled) => ({
               ...prevEnabled,
               [day]: false,
             }));
@@ -187,7 +181,7 @@ const Settings = () => {
         }
         return item;
       });
-      return updatedExtraTimeSlots;
+      return updateddeliveryTimeSlots;
     });
   };
 
@@ -238,7 +232,7 @@ const Settings = () => {
     );
   };
 
-  const handleExtraTimeChange = (day, slotIndex, field, value) => {
+  const handleDeliveryTimeChange = (day, slotIndex, field, value) => {
     const formattedValue = value
       ? `${value.getHours().toString().padStart(2, "0")}:${value
           .getMinutes()
@@ -246,7 +240,7 @@ const Settings = () => {
           .padStart(2, "0")}:00`
       : "";
 
-    setExtraTimeSlots((prev) =>
+    setdeliveryTimeSlots((prev) =>
       prev.map((item) =>
         item.day === day
           ? {
@@ -261,23 +255,6 @@ const Settings = () => {
           : item
       )
     );
-  };
-  const handleBookingTypeChange = (type) => {
-    setBookingType(type);
-    if (type === "multiple") {
-      setExtraTimeEnabled((prev) =>
-        Object.keys(prev).reduce((acc, day) => {
-          acc[day] = false;
-          return acc;
-        }, {})
-      );
-      setExtraTimeSlots((prev) =>
-        prev.map((item) => ({
-          ...item,
-          slots: [],
-        }))
-      );
-    }
   };
   const handleAddHoliday = () => {
     setHolidays([...holidays, { label: "", date: null }]);
@@ -298,10 +275,6 @@ const Settings = () => {
     setHolidays(updatedHolidays);
   };
 
-  const handleDefaultStatusChange = (newStatus) => {
-    setDefaultStatus(newStatus);
-  };
-
   const handleSaveChanges = async () => {
     setLoading(true);
 
@@ -317,20 +290,17 @@ const Settings = () => {
         open_at: isOpen ? String(openSlot.from) || "" : "",
         close_at: isOpen ? String(openSlot.to) || "" : "",
         duration: item.duration || 5,
-        extra_time: {
-          is_active: extraTimeEnabled[item.day] ? "T" : "F",
+        delivery_time: {
+          is_active: deliveryTimeEnabled[item.day] ? "T" : "F",
           data:
-            extraTimeSlots.find((extra) => extra.day === item.day)?.slots || [],
+            deliveryTimeSlots.find((delivery) => delivery.day === item.day)?.slots || [],
         },
       };
     });
 
     const params = {
-      booking_type: bookingType,
       store_email: storeEmail,
-      allow_overlap: allowOverlap ? "T" : "F",
       duration: duration,
-      default_booking_status: defaultStatus,
       store_working_time: storeWorkingTime,
     };
 
@@ -369,12 +339,6 @@ const Settings = () => {
           <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
               <BookingSettings
-                bookingType={bookingType}
-                handleBookingTypeChange={handleBookingTypeChange}
-                allowOverlap={allowOverlap}
-                setAllowOverlap={setAllowOverlap}
-                defaultStatus={defaultStatus}
-                handleDefaultStatusChange={handleDefaultStatusChange}
                 duration={duration}
                 setDuration={setDuration}
                 storeEmail={storeEmail}
@@ -384,6 +348,9 @@ const Settings = () => {
                 setHolidays={setHolidays}
                 loading={loading}
                 handleSaveChanges={handleSaveChanges}
+                stores={stores}
+                selectedStore={selectedStore}
+                setSelectedStore={setSelectedStore}
               />
             </Grid>
             <Grid item xs={12} md={8}>
@@ -400,16 +367,14 @@ const Settings = () => {
                 <>
                   <WeekdayTable
                     schedule={schedule}
-                    bookingType={bookingType}
                     handleAddTimeSlot={handleAddTimeSlot}
                     handleTimeChange={handleTimeChange}
                     handleRemoveTimeSlot={handleRemoveTimeSlot}
-                    handleExtraTimeToggle={handleExtraTimeToggle}
-                    extraTimeEnabled={extraTimeEnabled}
-                    extraTimeSlots={extraTimeSlots}
-                    handleAddExtraTimeSlot={handleAddExtraTimeSlot}
-                    handleRemoveExtraTimeSlot={handleRemoveExtraTimeSlot}
-                    handleExtraTimeChange={handleExtraTimeChange}
+                    handleDeliveryToggle={handleDeliveryToggle}
+                    deliveryTimeEnabled={deliveryTimeEnabled}
+                    deliveryTimeSlots={deliveryTimeSlots}
+                    handleRemoveDeliveryTimeSlot={handleRemoveDeliveryTimeSlot}
+                    handleDeliveryTimeChange={handleDeliveryTimeChange}
                     duration={duration}
                   />
                   {holidayEnabled && (

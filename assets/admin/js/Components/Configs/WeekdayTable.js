@@ -20,16 +20,14 @@ import { parseTime } from "../../utils/dateHelper";
 
 const WeekdayTable = ({
   schedule,
-  bookingType,
   handleAddTimeSlot,
   handleTimeChange,
   handleRemoveTimeSlot,
-  handleExtraTimeToggle,
-  extraTimeEnabled,
-  extraTimeSlots,
-  handleAddExtraTimeSlot,
-  handleRemoveExtraTimeSlot,
-  handleExtraTimeChange,
+  handleDeliveryToggle,
+  deliveryTimeEnabled,
+  deliveryTimeSlots,
+  handleRemoveDeliveryTimeSlot,
+  handleDeliveryTimeChange,
   duration,
 }) => {
   return (
@@ -40,7 +38,7 @@ const WeekdayTable = ({
             <TableCell>Day</TableCell>
             <TableCell>From</TableCell>
             <TableCell>To</TableCell>
-            {bookingType === "single" && <TableCell>Extra Time</TableCell>}
+            <TableCell>Delivery</TableCell>
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
@@ -52,7 +50,7 @@ const WeekdayTable = ({
                   <TableCell>{item.day}</TableCell>
                   <TableCell width={"30%"}></TableCell>
                   <TableCell width={"30%"}></TableCell>
-                  {bookingType === "single" && <TableCell></TableCell>}
+                  <TableCell></TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleAddTimeSlot(item.day)}>
                       <AddCircleOutlineIcon color="primary" />
@@ -85,7 +83,7 @@ const WeekdayTable = ({
                         }}
                       >
                         <TimePicker
-                        width={"100%"}
+                          width={"100%"}
                           selectedTime={parseTime(slot.to)}
                           onChange={(time) =>
                             handleTimeChange(item.day, slotIndex, "to", time)
@@ -94,24 +92,20 @@ const WeekdayTable = ({
                         />
                       </Box>
                     </TableCell>
-                    {bookingType === "single" && (
-                      <TableCell>
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={extraTimeEnabled[item.day] || false}
-                              onChange={(e) =>
-                                handleExtraTimeToggle(
-                                  item.day,
-                                  e.target.checked
-                                )
-                              }
-                              disabled={bookingType === "multiple"}
-                            />
-                          }
-                        />
-                      </TableCell>
-                    )}
+
+                    <TableCell>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={deliveryTimeEnabled[item.day] || false}
+                            onChange={(e) =>
+                              handleDeliveryToggle(item.day, e.target.checked)
+                            }
+                          />
+                        }
+                      />
+                    </TableCell>
+
                     <TableCell>
                       <IconButton
                         onClick={() =>
@@ -124,13 +118,13 @@ const WeekdayTable = ({
                   </TableRow>
                 ))
               )}
-              {/* Render extra time slots if enabled */}
-              {extraTimeEnabled[item.day] &&
-                extraTimeSlots
-                  .find((extra) => extra.day === item.day)
+              {/* Render delivery time slots if enabled */}
+              {deliveryTimeEnabled[item.day] &&
+                deliveryTimeSlots
+                  .find((delivery) => delivery.day === item.day)
                   ?.slots.map((slot, slotIndex) => (
                     <TableRow
-                      key={`extra-${dayIndex}-${slotIndex}`}
+                      key={`delivery-${dayIndex}-${slotIndex}`}
                       style={{ backgroundColor: "#f9f9f9" }}
                     >
                       <TableCell></TableCell>
@@ -142,10 +136,10 @@ const WeekdayTable = ({
                           }}
                         >
                           <TimePicker
-                          width={"100%"}
+                            width={"100%"}
                             selectedTime={parseTime(slot.from)}
                             onChange={(time) =>
-                              handleExtraTimeChange(
+                              handleDeliveryTimeChange(
                                 item.day,
                                 slotIndex,
                                 "from",
@@ -163,10 +157,10 @@ const WeekdayTable = ({
                           }}
                         >
                           <TimePicker
-                          width={"100%"}
+                            width={"100%"}
                             selectedTime={parseTime(slot.to)}
                             onChange={(time) =>
-                              handleExtraTimeChange(
+                              handleDeliveryTimeChange(
                                 item.day,
                                 slotIndex,
                                 "to",
@@ -177,16 +171,11 @@ const WeekdayTable = ({
                         </Box>
                       </TableCell>
                       <TableCell>
-                        <IconButton
-                          onClick={() => handleAddExtraTimeSlot(item.day)}
-                        >
-                          <AddCircleOutlineIcon color="primary" />
-                        </IconButton>
                       </TableCell>
                       <TableCell>
                         <IconButton
                           onClick={() =>
-                            handleRemoveExtraTimeSlot(item.day, slotIndex)
+                            handleRemoveDeliveryTimeSlot(item.day, slotIndex)
                           }
                         >
                           <RemoveCircleOutlineIcon color="error" />
