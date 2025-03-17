@@ -35,7 +35,6 @@ class Zippy_Admin_Booking_Store_Controller
             global $wpdb;
             $table_name = OUTLET_CONFIG_TABLE_NAME;
 
-            $response_data = [];
 
             $insert_data = [
                 "id" => wp_generate_uuid4(),
@@ -50,6 +49,7 @@ class Zippy_Admin_Booking_Store_Controller
 
             $is_insert = $wpdb->insert($table_name, $insert_data);
             if($is_insert){
+                $insert_data["outlet_address"] = $request["outlet_address"];
                 return Zippy_Response_Handler::success($insert_data, "Store created successfully.");
             }
 
