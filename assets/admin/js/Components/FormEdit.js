@@ -14,38 +14,49 @@ import {
 import { Api } from "../api";
 
 const FormEdit = ({ store, loading, onClose, onSave }) => {
-  const [formData, setFormData] = useState(store);
+  const [formData, setFormData] = useState({
+    outlet_name: "",
+    outlet_phone: "",
+    postal_code: "",
+    address: "",
+    latitude: "",
+    longitude: "",
+  });
   const [addressOptions, setAddressOptions] = useState([]);
 
   useEffect(() => {
-    setFormData(store);
-    if (store?.address) {
-      setAddressOptions((prevOptions) =>
-        prevOptions.some((opt) => opt.address === store.address)
-          ? prevOptions
-          : [
-              {
-                address: store.address,
-                latitude: store.latitude,
-                longitude: store.longitude,
-              },
-              ...prevOptions,
-            ]
-      );
+    if (store) {
+      setFormData({
+        outlet_name: store.outlet_name || "",
+        outlet_phone: store.outlet_phone || "",
+        postal_code: store.outlet_address?.postal_code || "",
+        address: store.outlet_address?.address || "",
+        latitude: store.outlet_address?.coordinates?.lat || "",
+        longitude: store.outlet_address?.coordinates?.lng || "",
+      });
+
+      if (store.outlet_address?.address) {
+        setAddressOptions([
+          {
+            address: store.outlet_address.address,
+            latitude: store.outlet_address.coordinates?.lat,
+            longitude: store.outlet_address.coordinates?.lng,
+          },
+        ]);
+      }
     }
   }, [store]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) =>
-      prev[name] === value ? prev : { ...prev, [name]: value }
-    );
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (name === "postal_code" && value.length === 6) {
-      handlePostalCodeChange(value);
+      fetchAddressOptions(value);
     }
   };
 
-  const handlePostalCodeChange = async (postalCode) => {
+  const fetchAddressOptions = async (postalCode) => {
     try {
       const response = await fetch(
         `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${postalCode}&returnGeom=Y&getAddrDetails=Y&pageNum=1`
@@ -59,17 +70,6 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
           longitude: result.LONGITUDE,
         })) || [];
 
-      if (
-        store?.address &&
-        !options.some((opt) => opt.address === store.address)
-      ) {
-        options.push({
-          address: store.address,
-          latitude: store.latitude,
-          longitude: store.longitude,
-        });
-      }
-
       setAddressOptions(options);
     } catch (error) {
       console.error("Error fetching address:", error);
@@ -79,10 +79,22 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
 
   const handleSubmit = async () => {
     try {
-      const response = await Api.updateStore({
-        id: formData.store_id,
-        ...formData,
-      });
+      const updateData = {
+        id: store.id,
+        outlet_name: formData.outlet_name,
+        outlet_phone: formData.outlet_phone,
+        outlet_address: {
+          postal_code: formData.postal_code,
+          address: formData.address,
+          coordinates: {
+            lat: formData.latitude,
+            lng: formData.longitude,
+          },
+        },
+      };
+
+      const response = await Api.updateStore(updateData);
+
       if (response.data.status === "success") {
         alert("Store updated successfully!");
         onSave();
@@ -115,38 +127,57 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
             <Box mb={2}>
               <Typography variant="body1">Store Name</Typography>
               <TextField
-                name="store_name"
-                value={formData.store_name || ""}
+                name="outlet_name"
+                value={formData.outlet_name}
                 onChange={handleChange}
                 fullWidth
               />
             </Box>
+
+            <Box mb={2}>
+              <Typography variant="body1">Phone</Typography>
+              <TextField
+                name="outlet_phone"
+                value={formData.outlet_phone}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Box>
+
             <Box mb={2}>
               <Typography variant="body1">Postal Code</Typography>
               <TextField
                 name="postal_code"
-                value={formData.postal_code || ""}
+                value={formData.postal_code}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
                 disabled={loading}
               />
             </Box>
+
             <Box mb={2}>
               <Typography variant="body1">Address</Typography>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Choose an address</InputLabel>
+              <FormControl fullWidth>
                 <Select
-                  value={formData.address || ""}
+                  name="address"
+                  value={formData.address}
                   onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
+                    setFormData({
+                      ...formData,
+                      address: e.target.value,
+                      latitude:
+                        addressOptions.find(
+                          (opt) => opt.address === e.target.value
+                        )?.latitude || "",
+                      longitude:
+                        addressOptions.find(
+                          (opt) => opt.address === e.target.value
+                        )?.longitude || "",
+                    })
                   }
-                  disabled={
-                    loading ||
-                    (addressOptions.length === 0 && !formData.address)
-                  }
+                  disabled={loading || addressOptions.length === 0}
                 >
-                  {addressOptions.length === 0 && !formData.address ? (
+                  {addressOptions.length === 0 ? (
                     <MenuItem value="" disabled>
                       No address available
                     </MenuItem>
@@ -162,6 +193,7 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
             </Box>
           </>
         )}
+
         <Grid container spacing={2} mt={2}>
           <Grid item xs={6}>
             <Button

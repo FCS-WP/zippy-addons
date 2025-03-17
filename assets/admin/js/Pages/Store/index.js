@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Table,
@@ -22,10 +22,13 @@ const Store = () => {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editStore, setEditStore] = useState(null);
+  const lastFetchedStoreId = useRef(null);
 
   useEffect(() => {
-    editStore ? fetchStoreDetails(editStore.id) : fetchStores();
-  }, [editStore]);
+    fetchStores();
+  }, []);
+
+
 
   const fetchStores = async () => {
     setLoading(true);
@@ -33,7 +36,6 @@ const Store = () => {
       const response = await Api.getStore();
       if (response.data.status === "success") {
         const storeList = response.data.data;
-        console.log(storeList);
         setStores(Array.isArray(storeList) ? storeList : [storeList]);
       } else {
         toast.error("Failed to fetch stores");
@@ -45,32 +47,14 @@ const Store = () => {
     }
   };
 
-  const fetchStoreDetails = async (storeId) => {
-    setLoading(true);
-    try {
-      const response = await Api.getStore({ id: storeId });
-      if (response.data.status === "success") {
-        const newStoreData = response.data.data;
-
-        setEditStore((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(newStoreData) ? newStoreData : prev
-        );
-      } else {
-        console.error("Invalid store data:", response);
-        setEditStore(null);
-        toast.error("Invalid store data");
-      }
-    } catch (error) {
-      console.error("Error fetching store details:", error);
-      setEditStore(null);
-      toast.error("Error fetching store details");
-    } finally {
-      setLoading(false);
-    }
+  const handleEditClick = (store) => {
+    setEditStore(store);
   };
 
-  const handleEditClick = (store) => setEditStore(store);
-  const handleCloseEditModal = () => setEditStore(null);
+  const handleCloseEditModal = () => {
+    setEditStore(null);
+    lastFetchedStoreId.current = null;
+  };
 
   const handleDeleteClick = async (storeId) => {
     if (!window.confirm("Are you sure you want to delete this store?")) return;
@@ -80,7 +64,9 @@ const Store = () => {
       const response = await Api.deleteStore({ id: storeId });
 
       if (response.data.status === "success") {
-        setStores((prevStores) => prevStores.filter((store) => store.id !== storeId));
+        setStores((prevStores) =>
+          prevStores.filter((store) => store.id !== storeId)
+        );
         toast.success("Store deleted successfully!");
       } else {
         toast.error("Failed to delete store");
@@ -93,7 +79,13 @@ const Store = () => {
   };
 
   return (
-    <Box display="flex" justifyContent="center" minHeight="100vh" bgcolor="#f5f5f5" p={3}>
+    <Box
+      display="flex"
+      justifyContent="center"
+      minHeight="100vh"
+      bgcolor="#f5f5f5"
+      p={3}
+    >
       <Box width="100%">
         <StoreForm onAddStore={fetchStores} loading={loading} />
         <Box mt={3}>
@@ -101,20 +93,33 @@ const Store = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell><strong>Name</strong></TableCell>
-                  <TableCell><strong>Phone</strong></TableCell>
-                  <TableCell><strong>Postal Code</strong></TableCell>
-                  <TableCell><strong>Address</strong></TableCell>
-                  <TableCell><strong>Latitude</strong></TableCell>
-                  <TableCell><strong>Longitude</strong></TableCell>
-                  <TableCell><strong>Actions</strong></TableCell>
+                  <TableCell>
+                    <strong>Name</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Phone</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Postal Code</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Address</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Actions</strong>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
-                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        height="100%"
+                      >
                         <CircularProgress />
                       </Box>
                     </TableCell>
@@ -124,10 +129,12 @@ const Store = () => {
                     <TableRow key={index}>
                       <TableCell>{s.outlet_name}</TableCell>
                       <TableCell>{s.outlet_phone}</TableCell>
-                      <TableCell>{s.outlet_address?.postal_code || "N/A"}</TableCell>
-                      <TableCell>{s.outlet_address?.address || "N/A"}</TableCell>
-                      <TableCell>{s.outlet_address?.coordinates?.lat || "N/A"}</TableCell>
-                      <TableCell>{s.outlet_address?.coordinates?.lng || "N/A"}</TableCell>
+                      <TableCell>
+                        {s.outlet_address?.postal_code || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        {s.outlet_address?.address || "N/A"}
+                      </TableCell>
                       <TableCell>
                         <Button
                           onClick={() => handleEditClick(s)}
@@ -164,7 +171,12 @@ const Store = () => {
         </Box>
       </Box>
 
-      <FormEdit store={editStore} loading={loading} onClose={handleCloseEditModal} onSave={fetchStores} />
+      <FormEdit
+        store={editStore}
+        loading={loading}
+        onClose={handleCloseEditModal}
+        onSave={fetchStores}
+      />
       <ToastContainer />
     </Box>
   );
