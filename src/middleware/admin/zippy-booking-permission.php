@@ -31,10 +31,9 @@ class Zippy_Booking_Permission
     public static function zippy_permission_callback()
     {
         $headers = getallheaders();
-
         $token = isset($headers['authorization']) ? trim(str_replace('Bearer', '', $headers['authorization'])) : '';
         $valid_token = get_option(ZIPPY_BOOKING_API_TOKEN_NAME);
-        
+
         // Valid Token
         return $token === $valid_token;
     }

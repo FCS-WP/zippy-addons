@@ -24,7 +24,7 @@ const Store = () => {
   const [editStore, setEditStore] = useState(null);
 
   useEffect(() => {
-    editStore ? fetchStoreDetails(editStore.store_id) : fetchStores();
+    editStore ? fetchStoreDetails(editStore.id) : fetchStores();
   }, [editStore]);
 
   const fetchStores = async () => {
@@ -32,7 +32,9 @@ const Store = () => {
     try {
       const response = await Api.getStore();
       if (response.data.status === "success") {
-        setStores(response.data.data.data);
+        const storeList = response.data.data;
+        console.log(storeList);
+        setStores(Array.isArray(storeList) ? storeList : [storeList]);
       } else {
         toast.error("Failed to fetch stores");
       }
@@ -41,17 +43,17 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  };const fetchStoreDetails = async (storeId) => {
+  };
+
+  const fetchStoreDetails = async (storeId) => {
     setLoading(true);
     try {
-      const response = await Api.getStore({ store_id: storeId });
+      const response = await Api.getStore({ id: storeId });
       if (response.data.status === "success") {
-        const newStoreData = response.data.data.data || response.data.data;
+        const newStoreData = response.data.data;
 
         setEditStore((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(newStoreData)
-            ? newStoreData
-            : prev
+          JSON.stringify(prev) !== JSON.stringify(newStoreData) ? newStoreData : prev
         );
       } else {
         console.error("Invalid store data:", response);
@@ -75,12 +77,10 @@ const Store = () => {
 
     setLoading(true);
     try {
-      const response = await Api.deleteStore({ store_id: storeId });
+      const response = await Api.deleteStore({ id: storeId });
 
       if (response.data.status === "success") {
-        setStores((prevStores) =>
-          prevStores.filter((store) => store.store_id !== storeId)
-        );
+        setStores((prevStores) => prevStores.filter((store) => store.id !== storeId));
         toast.success("Store deleted successfully!");
       } else {
         toast.error("Failed to delete store");
@@ -93,13 +93,7 @@ const Store = () => {
   };
 
   return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      minHeight="100vh"
-      bgcolor="#f5f5f5"
-      p={3}
-    >
+    <Box display="flex" justifyContent="center" minHeight="100vh" bgcolor="#f5f5f5" p={3}>
       <Box width="100%">
         <StoreForm onAddStore={fetchStores} loading={loading} />
         <Box mt={3}>
@@ -107,30 +101,20 @@ const Store = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>
-                    <strong>Name</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Postal Code</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Address</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Actions</strong>
-                  </TableCell>
+                  <TableCell><strong>Name</strong></TableCell>
+                  <TableCell><strong>Phone</strong></TableCell>
+                  <TableCell><strong>Postal Code</strong></TableCell>
+                  <TableCell><strong>Address</strong></TableCell>
+                  <TableCell><strong>Latitude</strong></TableCell>
+                  <TableCell><strong>Longitude</strong></TableCell>
+                  <TableCell><strong>Actions</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Box
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        height="100%"
-                      >
+                    <TableCell colSpan={7} align="center">
+                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                         <CircularProgress />
                       </Box>
                     </TableCell>
@@ -138,9 +122,12 @@ const Store = () => {
                 ) : stores.length > 0 ? (
                   stores.map((s, index) => (
                     <TableRow key={index}>
-                      <TableCell>{s.store_name}</TableCell>
-                      <TableCell>{s.postal_code}</TableCell>
-                      <TableCell>{s.address}</TableCell>
+                      <TableCell>{s.outlet_name}</TableCell>
+                      <TableCell>{s.outlet_phone}</TableCell>
+                      <TableCell>{s.outlet_address?.postal_code || "N/A"}</TableCell>
+                      <TableCell>{s.outlet_address?.address || "N/A"}</TableCell>
+                      <TableCell>{s.outlet_address?.coordinates?.lat || "N/A"}</TableCell>
+                      <TableCell>{s.outlet_address?.coordinates?.lng || "N/A"}</TableCell>
                       <TableCell>
                         <Button
                           onClick={() => handleEditClick(s)}
@@ -153,7 +140,7 @@ const Store = () => {
                           Edit
                         </Button>
                         <Button
-                          onClick={() => handleDeleteClick(s.store_id)}
+                          onClick={() => handleDeleteClick(s.id)}
                           variant="contained"
                           color="error"
                           size="small"
@@ -166,7 +153,7 @@ const Store = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
+                    <TableCell colSpan={7} align="center">
                       No stores found.
                     </TableCell>
                   </TableRow>
@@ -177,12 +164,7 @@ const Store = () => {
         </Box>
       </Box>
 
-      <FormEdit
-        store={editStore}
-        loading={loading}
-        onClose={handleCloseEditModal}
-        onSave={fetchStores}
-      />
+      <FormEdit store={editStore} loading={loading} onClose={handleCloseEditModal} onSave={fetchStores} />
       <ToastContainer />
     </Box>
   );
