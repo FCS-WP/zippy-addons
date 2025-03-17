@@ -6,5 +6,8 @@ export const webApi = {
   },
   async searchLocation(params) {
     return await makeOneMapRequest("/common/elastic/search", params);
-  } 
+  },
+  async searchRoute(params) {
+    return await makeOneMapRequest("/public/routingsvc/route", params);
+  }
 };

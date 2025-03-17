@@ -49,7 +49,7 @@ const DeliveryForm = () => {
             <LocationSearch onSelectLocation={handleSelectLocation} />
           </Box>
           <Box>
-            <OutletSelect onChangeData={handleDeliveryData} />
+            <OutletSelect onChangeData={handleDeliveryData} selectedLocation={selectedLocation} />
           </Box>
         </Box>
 
