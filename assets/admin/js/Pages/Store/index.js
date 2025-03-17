@@ -41,6 +41,30 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
+  };const fetchStoreDetails = async (storeId) => {
+    setLoading(true);
+    try {
+      const response = await Api.getStore({ store_id: storeId });
+      if (response.data.status === "success") {
+        const newStoreData = response.data.data.data || response.data.data;
+
+        setEditStore((prev) =>
+          JSON.stringify(prev) !== JSON.stringify(newStoreData)
+            ? newStoreData
+            : prev
+        );
+      } else {
+        console.error("Invalid store data:", response);
+        setEditStore(null);
+        toast.error("Invalid store data");
+      }
+    } catch (error) {
+      console.error("Error fetching store details:", error);
+      setEditStore(null);
+      toast.error("Error fetching store details");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditClick = (store) => setEditStore(store);
