@@ -62,7 +62,7 @@ class Zippy_Admin_Booking_Store_Controller
     public static function zippy_get_store(WP_REST_Request $request)
     {
         $required_fields = [
-            "outlet_id" =>  ["required" => true, "data_type" => "string"],
+            "outlet_id" =>  ["required" => false, "data_type" => "string"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -75,22 +75,33 @@ class Zippy_Admin_Booking_Store_Controller
         try {
             global $wpdb;
             $table_name = OUTLET_CONFIG_TABLE_NAME;
-            $query = "SELECT * FROM $table_name WHERE id ='" . $outlet_id . "'";
-            $outlet = $wpdb->get_results($query);
-            if(count($outlet) < 1){
+            if(!empty($outlet_id)){
+                $query = "SELECT * FROM $table_name WHERE id ='" . $outlet_id . "'";
+            } else {
+                $query = "SELECT * FROM $table_name WHERE 1=1";
+            }
+            
+            $outlets = $wpdb->get_results($query);
+
+            if(count($outlets) < 1){
                 return Zippy_Response_Handler::error("Outlet not exist");
             }
-            $unserialze_fields = [
-                "outlet_address",
-                "operating_hours",
-                "closed_dates",
-                "takeaway",
-            ];
 
-            foreach ($unserialze_fields as $field) {
-                $outlet[0]->{$field} = maybe_unserialize($outlet[0]->{$field});
+
+            foreach ($outlets as $key => $value) {
+                $unserialze_fields = [
+                    "outlet_address",
+                    "operating_hours",
+                    "closed_dates",
+                    "takeaway",
+                    "delivery",
+                ];
+                foreach ($unserialze_fields as $field) {
+                    $outlets[$key]->{$field} = maybe_unserialize($outlets[$key]->{$field});
+                }
             }
-            return Zippy_Response_Handler::success($outlet, "Outlet");
+
+            return Zippy_Response_Handler::success($outlets, "Outlet");
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('get_store', json_encode(['store_id' => $outlet_id]), 'Failure', $message);
