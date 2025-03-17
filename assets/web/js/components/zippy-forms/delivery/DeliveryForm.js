@@ -1,84 +1,66 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  FormControl,
-  Grid2,
-  Input,
-  InputLabel,
-  MenuItem,
-  NativeSelect,
-  Select,
-  styled,
-  Typography,
-} from "@mui/material";
-import LocationSearch from "./LocationSearch";
-import OutletSelect from "./OutletSelect";
-
-const CustomSelect = styled(Select)({
-  padding: "5px",
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#ccc", // Default border color
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#ec7265", // Outline color on hover
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline, &.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-    {
-      borderColor: "#ec7265", // Outline color on focus
-    },
-  "&.MuiOutlinedInput-root.Mui-focused": {
-    boxShadow: "none",
-    borderColor: "#ccc", // Default border color
-  },
-});
+import { Box, Button, Typography } from "@mui/material";
+import LocationSearch from "../LocationSearch";
+import OutletSelect from "../OutletSelect";
+import { toast } from "react-toastify";
 
 const DeliveryForm = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [deliveryData, setDeliveryData] = useState(null);
 
-  const onSelectLocation = (location) => {
+  const handleSelectLocation = (location) => {
     setSelectedLocation(location);
   };
 
-  const [age, setAge] = React.useState("");
+  const handleDeliveryData = (data) => {
+    setDeliveryData(data);
+  };
 
-  const handleChange = (event) => {
-    setAge(event.target.value);
+  const handleConfirm = () => {
+    if (!deliveryData) {
+      toast.error("Please select all required field!");
+      return;
+    }
+    const data = {
+      location: selectedLocation,
+      deliveryData: deliveryData,
+    };
   };
 
   return (
     <Box>
-      <Box className="method_shipping_popup">
-        <Grid2 className="method_shipping_popup_section row_title_form">
-          <Grid2 className="method_shipping_popup_back">
-            <Button color="gray">Back</Button>
-          </Grid2>
-          <Grid2 className="method_shipping_popup_title">
-            <h4 variant="h2" fontSize={20} fontWeight={600}>
-              Delivery Details
-            </h4>
-          </Grid2>
-          <Grid2 className="method_shipping_popup_exit">
-            <Button color="gray">Exit</Button>
-          </Grid2>
-        </Grid2>
+      <Box className="">
+        <Box display={"flex"} py={2} justifyContent={"space-between"}>
+          <Button color="gray">Back</Button>
+          <Typography
+            variant="h2"
+            fontSize={20}
+            fontWeight={600}
+            textAlign={"center"}
+          >
+            Delivery Details
+          </Typography>
+          <Button color="gray">Exit</Button>
+        </Box>
 
         <Box className="content_form_popup">
           <Box>
             <h5>Delivery to</h5>
-            <LocationSearch onSelectLocation={onSelectLocation} />
+            <LocationSearch onSelectLocation={handleSelectLocation} />
           </Box>
           <Box>
-            <OutletSelect />
+            <OutletSelect onChangeData={handleDeliveryData} />
           </Box>
         </Box>
 
         <Box className="method_shipping_popup_section">
-          <Button className="button_action_confirm">Confirm</Button>
+          <Button className="button_action_confirm" onClick={handleConfirm}>
+            Confirm
+          </Button>
         </Box>
       </Box>
     </Box>
-  );
+  );s
 };
 
 export default DeliveryForm;

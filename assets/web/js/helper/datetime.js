@@ -218,3 +218,11 @@ export const getCustomDayOfWeek = (date) => {
   const inputDate = new Date(date);
   return inputDate.getDay();
 };
+
+export const isWeekend = (date) => {
+  const checkDate = new Date(date);
+  if (checkDate.getDay() === 0 || checkDate.getDay() === 6) {
+    return true;
+  }
+  return false;
+}
