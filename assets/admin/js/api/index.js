@@ -31,12 +31,31 @@ export const Api = {
     return await makeRequest("/support-booking/categories", params);
   },
   async updateBookingProductPrices(params) {
-    return await makeRequest("/support-booking/products/update-price", params, "POST");
+    return await makeRequest(
+      "/support-booking/products/update-price",
+      params,
+      "POST"
+    );
   },
   async createOptions(params) {
     return await makeRequest("/zippy-options", params, "POST");
   },
   async searchMappingProducts(params) {
-    return await makeRequest("/support-booking/search-mapping-products", params);
-  }
+    return await makeRequest(
+      "/support-booking/search-mapping-products",
+      params
+    );
+  },
+  async addStore(params) {
+    return await makeRequest("/stores", params, "POST");
+  },
+  async getStore(params) {
+    return await makeRequest("/stores", params);
+  },
+  async updateStore(params) {
+    return await makeRequest("/stores", params, "PUT");
+  },
+  async deleteStore(params) {
+    return await makeRequest("/stores", params, "DELETE");
+  },
 };
