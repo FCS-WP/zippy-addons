@@ -126,30 +126,26 @@ class Zippy_Admin_Booking_Store_Controller
                 return Zippy_Response_Handler::error("Outlet not exist!");
             }
             
-            $response_data = [];
 
             $update_fields = [   
                 "display",
                 "outlet_name",
                 "outlet_phone",
-                "outlet_address",
             ];
 
             $update_data = [];
-            $res_data = [];
             foreach ($update_fields as $field) {
                 $update_data[$field] = sanitize_text_field($request[$field]);
-                $res_data[$field] = $request[$field];
             }
 
+            $update_data["outlet_address"] = maybe_serialize($request['outlet_address']);
             $update_data["updated_at"] = current_time('mysql');
 
             $is_updated = $wpdb->update($table_name, $update_data, ["id" => $outlet_id]);
 
             if($is_updated){
-                $response_data = array_merge($update_data, $res_data);
-                $response_data["updated_at"] = $update_data["updated_at"];
-                return Zippy_Response_Handler::success($response_data, "Outlet Updated");
+                $update_data["outlet_address"] = $request["outlet_address"];
+                return Zippy_Response_Handler::success($update_data, "Outlet Updated");
             }
 
         } catch (\Throwable $th) {
