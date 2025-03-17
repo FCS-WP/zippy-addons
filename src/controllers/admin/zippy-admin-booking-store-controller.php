@@ -20,7 +20,7 @@ class Zippy_Admin_Booking_Store_Controller
         $required_fields = [
             "display" =>  ["required" => true, "data_type" => "boolean"],
             "outlet_name" => ["required" => true, "data_type" => "string"],
-            "outlet_phone" => ["required" => true, "data_type" => "string"],
+            "outlet_phone" => ["required" => false, "data_type" => "string"],
             "outlet_address" => ["required" => true],
         ];
 
@@ -104,7 +104,7 @@ class Zippy_Admin_Booking_Store_Controller
             "outlet_id" => ["required" => true, "data_type" => "string"] ,
             "display" =>  ["required" => true, "data_type" => "boolean"],
             "outlet_name" => ["required" => true, "data_type" => "string"],
-            "outlet_phone" => ["required" => true, "data_type" => "string"],
+            "outlet_phone" => ["required" => false, "data_type" => "string"],
             "outlet_address" => ["required" => true],
         ];
 
