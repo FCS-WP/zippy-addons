@@ -50,7 +50,7 @@ class Zippy_Admin_Booking_Store_Controller
             $is_insert = $wpdb->insert($table_name, $insert_data);
             if($is_insert){
                 $insert_data["outlet_address"] = $request["outlet_address"];
-                return Zippy_Response_Handler::success($insert_data, "Store created successfully.");
+                return Zippy_Response_Handler::success($insert_data, "Outlet created successfully.");
             }
 
         } catch (\Throwable $th) {
