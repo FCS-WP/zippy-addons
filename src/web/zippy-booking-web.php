@@ -44,6 +44,8 @@ class Zippy_Booking_Web
     /* Short Code Delivery Function */
     add_shortcode('form_delivery', array($this, 'form_delivery'));
 
+    add_shortcode('zippy_form', array($this, 'zippy_form'));
+
     
     add_shortcode('pickup_date_calander', array($this, 'pickup_date_calander_callback'));
 
@@ -55,10 +57,11 @@ class Zippy_Booking_Web
     return;
   }
 
-  public function zippy_lightbox_flatsome(){
+  public function zippy_lightbox_flatsome()
+  {
     if (!is_admin()) {
       echo do_shortcode('[lightbox id="takeaway" width="550px"][form_take_away][/lightbox]');
-      echo do_shortcode('[lightbox id="delivery" width="550px"][form_delivery][/lightbox]');
+      echo do_shortcode('[lightbox id="delivery" title="222" width="550px"][form_delivery][/lightbox]');
     }
   }
 
@@ -78,11 +81,8 @@ class Zippy_Booking_Web
     ));
   }
 
-  public function form_take_away(){
-    return '<div id="zippy-takeaway-form"></div>';
-  }
-
-  public function form_delivery(){
-    return '<div id="zippy-delivery-form"></div>';
+  public function zippy_form($atts) 
+  {
+    return '<div id="zippy-form"></div>'; 
   }
 }

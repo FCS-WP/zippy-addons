@@ -61,8 +61,8 @@ const DateBoxed = ({ date, selected, onClick, disabled }) => {
 };
 
 const dates = Array.from({ length: 5 }, (_, i) => {
-  const date = new Date("2025/03/20");
-  date.setDate(date.getDate() + i);
+  const date = new Date();
+  date.setDate(date.getDate() + (2 + i));
   return date;
 });
 
@@ -72,11 +72,16 @@ const DateCalendar = ({ onSelectDate, defaultDate }) => {
     setSelectedDate(date);
     onSelectDate(date);
   };
+  let minDate = new Date();
+  minDate.setDate(minDate.getDate() + 2);
+  let maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 1);
 
   return (
     <Box className="date-box">
       <DatePicker
-        minDate={new Date()}
+        minDate={minDate}
+        maxDate={maxDate}
         selected={selectedDate}
         onChange={(date) => handleClick(date)}
         filterDate={(date) => !isWeekend(date)}

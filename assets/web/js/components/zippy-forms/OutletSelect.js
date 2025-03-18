@@ -14,6 +14,7 @@ import WatchLaterIcon from "@mui/icons-material/WatchLater";
 import { format } from "date-fns";
 import { webApi } from "../../api";
 import { toast } from "react-toastify";
+import { generateTimeSlots } from "../../helper/datetime";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -30,92 +31,43 @@ const CustomSelect = styled(Select)({
     },
 });
 
-const defaultOutlet = 
-  {
-    id: "0781bc8d-d7ea-452b-9926-96f073e8c56d",
-    outlet_name: "EPOS VN",
-    display: "T",
-    outlet_phone: "0986679999",
-    outlet_address: {
-      postal_code: "159086",
-      address: "2 LENG KEE ROAD THYE HONG INDUSTRIAL CENTRE SINGAPORE 159086",
-      coordinates: {
-        lat: "1.29098485842066",
-        lng: "103.814878244797",
-      },
-    },
-    operating_hours: [
-      {
-        week_day: "0",
-        open_at: "08:00",
-        close_at: "20:00",
-      },
-      {
-        week_day: "1",
-        open_at: "08:00",
-        close_at: "20:00",
-      },
-      {
-        week_day: "2",
-        open_at: "08:00",
-        close_at: "20:00",
-      },
-      {
-        week_day: "3",
-        open_at: "08:00",
-        close_at: "20:00",
-      },
-      {
-        week_day: "4",
-        open_at: "08:00",
-        close_at: "21:00",
-      },
-      {
-        week_day: "5",
-        open_at: "09:00",
-        close_at: "21:00",
-      },
-      {
-        week_day: "6",
-        open_at: "09:00",
-        close_at: "18:00",
-      },
-    ],
-    closed_dates: ["2025-01-01", "2025-02-01"],
-    delivery: {
-      enabled: "T",
-      delivery_hours: [
-        {
-          from: "10:00",
-          to: "11:00",
-        },
-        {
-          from: "13:00",
-          to: "14:00",
-        },
-      ],
-    },
-    takeaway: {
-      enabled: "F",
-      timeslot_duration: 1,
-    },
-  };
-
 const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => {
-  const [outlet, setOutlet] = useState(defaultOutlet);
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState('');
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
-  const times = type == "delivery" ? outlet.delivery.delivery_hours : outlet.operating_hours; 
+  const [times, setTimes] = useState();
+
+  const handleTimes = () => {
+    if (!selectedDate) return false();
+    let configTime = [];
+    switch (type) {
+      case "delivery":
+        if (!selectedOutlet.delivery) return false();
+        configTime = selectedOutlet?.delivery.delivery_hours;
+        break;
+      case "takeaway":
+        if (!selectedOutlet.takeaway) return false();
+        const openingHours = selectedOutlet?.operating_hours.find((item)=>{
+          return parseInt(item.week_day) === selectedDate.getDay();
+        }) 
+        configTime = generateTimeSlots(openingHours?.open_at, openingHours?.close_at, selectedOutlet?.takeaway.timeslot_duration);
+      default:
+        break;
+    }
+    setSelectedTime('');
+    setTimes(configTime); 
+  };
 
   const handleChangeOutlet = (e) => {
-    setOutlet(e.target.value);
+    setSelectedOutlet(e.target.value);
   };
 
   const handleDistance = async () => {
     try {
       const startPoint = selectedLocation.LATITUDE + "," + selectedLocation.LONGITUDE;
-      const endPoint = outlet.outlet_address.coordinates.lat + "," + outlet.outlet_address.coordinates.lng;
+      const endPoint = selectedOutlet.outlet_address.coordinates.lat + "," + selectedOutlet.outlet_address.coordinates.lng;
       const moveTime = '00:00:00';
 
       const params = {
@@ -145,28 +97,50 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
     setSelectedTime(e.target.value);
   };
 
-  useEffect(() => {
-    if (outlet && selectedDate && selectedTime) {
-      onChangeData({
-        outlet: outlet,
-        date: selectedDate,
-        time: selectedTime,
-      });
-    }
-  }, [outlet, selectedDate, selectedTime]);
-
-  useEffect(()=>{
-    if (selectedLocation && outlet) {
-      handleDistance();
-    }
-  }, [selectedLocation])
-
-  function formatMetersToKm(meters) {
+  const formatMetersToKm = (meters) => {
     const value = parseFloat(meters);
     if (isNaN(value)) return "Invalid input";
   
     return value >= 1000 ? (value / 1000).toFixed(2) + " km" : value + " m";
+  };
+
+  const getConfigOutlet = async () => {
+    try {
+      const { data : response } = await webApi.getStores();
+      if (response) {
+        setOutlets(response.data);
+      }
+    } catch (error) {
+      toast.error("Failed to get outlet.")
+    }
   }
+
+  useEffect(() => {
+    if (selectedOutlet && selectedDate && selectedTime) {
+      onChangeData({
+        outlet: selectedOutlet,
+        date: selectedDate,
+        time: selectedTime,
+      });
+    }
+  }, [selectedOutlet, selectedDate, selectedTime]);
+
+  useEffect(() => {
+    if (selectedLocation && selectedOutlet) {
+      handleDistance();
+    }
+  }, [selectedLocation]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      handleTimes();
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    getConfigOutlet();
+  }, [])
+
   return (
     <Box className="outlet-selects" mt={2}>
       <FormControl variant="outlined" fullWidth>
@@ -175,7 +149,7 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
           variant="outlined"
           id="outlet-id"
           size="small"
-          value={outlet}
+          value={selectedOutlet}
           onChange={handleChangeOutlet}
           startAdornment={
             <InputAdornment position="start" sx={{ paddingLeft: "11px" }}>
@@ -184,22 +158,20 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
           }
         >
           {/* Multi outlets */}
-          {/* {outlets &&
+          {outlets.length > 0 &&
             outlets.map((outlet, index) => (
-              <MenuItem key={index} value={outlet} selected={ index == 0 ? true : false}>
-                <Typography fontSize={14}>{outlet.ADDRESS}</Typography>
+              <MenuItem key={index} value={outlet}>
+                <Typography sx={{ textWrap: 'wrap' }} fontSize={14}>{outlet.outlet_address.address} <strong> {mapRoute ? '| ' + formatMetersToKm(mapRoute.total_distance) : ''} </strong></Typography>
               </MenuItem>
-            ))} */}
-            <MenuItem value={outlet}>
-              <Typography sx={{ textWrap: 'wrap' }} fontSize={14}>{outlet.outlet_address.address} <strong> {mapRoute ? '| ' + formatMetersToKm(mapRoute.total_distance) : ''} </strong></Typography>
-            </MenuItem>
+            ))}
+           
         </CustomSelect>
       </FormControl>
 
-      {outlet && selectedLocation && (
+      {selectedOutlet && (
         <Box>
           {/* Select Date */}
-          <Box my={2}>
+          <Box my={3}>
             <OutletDate onChangeDate={handleChangeDate} />
           </Box>
 

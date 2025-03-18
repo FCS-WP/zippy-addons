@@ -6,7 +6,7 @@ export const makeRequest = async (
   method = "GET", // Default method set to GET
   token = "FEhI30q7ySHtMfzvSDo6RkxZUDVaQ1BBU3lBcGhYS3BrQStIUT09"
 ) => {
-  const baseURL = "/wp-json/zippy-booking/v1";
+  const baseURL = "/wp-json/zippy-addons/v1";
   const api = axios.create({ baseURL });
 
   // Build headers

@@ -13,7 +13,7 @@ export const makeRequest = async (
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const config = {
-    url: "zippy-booking/v1" + endpoint,
+    url: "zippy-addons/v1" + endpoint,
     params: params,
     method: method,
     headers: headers,
@@ -119,7 +119,7 @@ export const makeOneMapRequest = async (
   endpoint,
   params = {},
   method = "GET",
-  token = "..."
+  token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhNzM3MGZhYTg2MTBlMDc1OTJlNDI0NTA2NDRiMmZjYSIsImlzcyI6Imh0dHA6Ly9pbnRlcm5hbC1hbGItb20tcHJkZXppdC1pdC1uZXctMTYzMzc5OTU0Mi5hcC1zb3V0aGVhc3QtMS5lbGIuYW1hem9uYXdzLmNvbS9hcGkvdjIvdXNlci9zZXNzaW9uIiwiaWF0IjoxNzQyMTg2Njg1LCJleHAiOjE3NDI0NDU4ODUsIm5iZiI6MTc0MjE4NjY4NSwianRpIjoiMTQyNXdYY01LZGo4TGZ0OSIsInVzZXJfaWQiOjYzMjMsImZvcmV2ZXIiOmZhbHNlfQ.WFyONQpVqBcRsbOdljaRsCk5Ri6HKt1AbOikUbkxVng"
 ) => {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
