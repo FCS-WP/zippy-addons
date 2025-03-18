@@ -34,10 +34,14 @@ const BookingSettings = ({
           onChange={(e) => setSelectedStore(e.target.value)}
           fullWidth
           size="small"
+          displayEmpty
         >
+          <MenuItem value="" disabled>
+            Please select a store
+          </MenuItem>
           {stores.map((store) => (
-            <MenuItem key={store.store_id} value={store.store_id}>
-              {store.store_name}
+            <MenuItem key={store.id} value={store.id}>
+              {store.outlet_name}
             </MenuItem>
           ))}
         </Select>

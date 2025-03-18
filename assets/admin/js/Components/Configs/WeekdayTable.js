@@ -97,10 +97,8 @@ const WeekdayTable = ({
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={deliveryTimeEnabled[item.day] || false}
-                            onChange={(e) =>
-                              handleDeliveryToggle(item.day, e.target.checked)
-                            }
+                            checked={deliveryTimeEnabled}
+                            onChange={handleDeliveryToggle}
                           />
                         }
                       />
@@ -119,7 +117,7 @@ const WeekdayTable = ({
                 ))
               )}
               {/* Render delivery time slots if enabled */}
-              {deliveryTimeEnabled[item.day] &&
+              {deliveryTimeEnabled &&
                 deliveryTimeSlots
                   .find((delivery) => delivery.day === item.day)
                   ?.slots.map((slot, slotIndex) => (
@@ -128,16 +126,14 @@ const WeekdayTable = ({
                       style={{ backgroundColor: "#f9f9f9" }}
                     >
                       <TableCell></TableCell>
+
+                      {/* Delivery From Time Picker */}
                       <TableCell width={"30%"}>
                         <Box
-                          sx={{
-                            border: "1px solid #ccc",
-                            borderRadius: "5px",
-                          }}
+                          sx={{ border: "1px solid #ccc", borderRadius: "5px" }}
                         >
                           <TimePicker
-                            width={"100%"}
-                            selectedTime={parseTime(slot.from)}
+                            value={slot.from ? parseTime(slot.from) : null}
                             onChange={(time) =>
                               handleDeliveryTimeChange(
                                 item.day,
@@ -146,19 +142,27 @@ const WeekdayTable = ({
                                 time
                               )
                             }
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                fullWidth
+                                InputProps={{
+                                  ...params.InputProps,
+                                  placeholder: slot.from ? "" : "Delivery From",
+                                }}
+                              />
+                            )}
                           />
                         </Box>
                       </TableCell>
+
+                      {/* Delivery To Time Picker */}
                       <TableCell width={"30%"}>
                         <Box
-                          sx={{
-                            border: "1px solid #ccc",
-                            borderRadius: "5px",
-                          }}
+                          sx={{ border: "1px solid #ccc", borderRadius: "5px" }}
                         >
                           <TimePicker
-                            width={"100%"}
-                            selectedTime={parseTime(slot.to)}
+                            value={slot.to ? parseTime(slot.to) : null}
                             onChange={(time) =>
                               handleDeliveryTimeChange(
                                 item.day,
@@ -167,11 +171,23 @@ const WeekdayTable = ({
                                 time
                               )
                             }
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                fullWidth
+                                InputProps={{
+                                  ...params.InputProps,
+                                  placeholder: slot.to ? "" : "Delivery To",
+                                }}
+                              />
+                            )}
                           />
                         </Box>
                       </TableCell>
-                      <TableCell>
-                      </TableCell>
+
+                      <TableCell></TableCell>
+
+                      {/* Remove Slot Button */}
                       <TableCell>
                         <IconButton
                           onClick={() =>

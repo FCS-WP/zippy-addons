@@ -12,6 +12,7 @@ import {
   Button,
 } from "@mui/material";
 import { Api } from "../api";
+import { toast, ToastContainer } from "react-toastify";
 
 const FormEdit = ({ store, loading, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -27,6 +28,7 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
   useEffect(() => {
     if (store) {
       setFormData({
+        id: store.id,
         outlet_name: store.outlet_name || "",
         outlet_phone: store.outlet_phone || "",
         postal_code: store.outlet_address?.postal_code || "",
@@ -80,15 +82,18 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
   const handleSubmit = async () => {
     try {
       const updateData = {
-        id: store.id,
-        outlet_name: formData.outlet_name,
-        outlet_phone: formData.outlet_phone,
-        outlet_address: {
-          postal_code: formData.postal_code,
-          address: formData.address,
-          coordinates: {
-            lat: formData.latitude,
-            lng: formData.longitude,
+        request: {
+          outlet_id: store.id,
+          display: "T",
+          outlet_name: formData.outlet_name,
+          outlet_phone: formData.outlet_phone,
+          outlet_address: {
+            postal_code: formData.postal_code,
+            address: formData.address,
+            coordinates: {
+              lat: formData.latitude,
+              lng: formData.longitude,
+            },
           },
         },
       };
@@ -96,15 +101,15 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
       const response = await Api.updateStore(updateData);
 
       if (response.data.status === "success") {
-        alert("Store updated successfully!");
+         toast.success("Store updated successfully!");
         onSave();
         onClose();
       } else {
-        alert("Failed to update store.");
+         toast.error("Failed to update store.");
       }
     } catch (error) {
       console.error("Error updating store:", error);
-      alert("Error updating store.");
+      toast.error("Error updating store.");
     }
   };
 

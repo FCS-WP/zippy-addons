@@ -13,7 +13,6 @@ import {
   Typography,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { Api } from "../../api";
 import StoreForm from "../../Components/StoreForm";
 import FormEdit from "../../Components/FormEdit";
@@ -27,8 +26,6 @@ const Store = () => {
   useEffect(() => {
     fetchStores();
   }, []);
-
-
 
   const fetchStores = async () => {
     setLoading(true);
@@ -61,7 +58,7 @@ const Store = () => {
 
     setLoading(true);
     try {
-      const response = await Api.deleteStore({ id: storeId });
+      const response = await Api.deleteStore({ outlet_id: storeId });
 
       if (response.data.status === "success") {
         setStores((prevStores) =>
