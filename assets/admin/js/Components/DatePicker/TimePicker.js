@@ -7,7 +7,7 @@ const TimePicker = (props) => {
   const {
     selectedTime,
     onChange,
-    duration,
+    duration = 15,
     width,
     placeholderText = "Pick a time",
   } = props;
