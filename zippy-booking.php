@@ -24,39 +24,39 @@ defined('ABSPATH') or die('°_°’');
  ------------------------------------------------------------------------ */
 /* Set plugin version constant. */
 
-if (!defined('ZIPPY_BOOKING_VERSION')) {
-  define('ZIPPY_BOOKING_VERSION', '4.0');
+if (!defined('ZIPPY_ADDONS_VERSION')) {
+  define('ZIPPY_ADDONS_VERSION', '4.0');
 }
 
 /* Set plugin name. */
 
-if (!defined('ZIPPY_BOOKING_NAME')) {
-  define('ZIPPY_BOOKING_NAME', 'Zippy Booking');
+if (!defined('ZIPPY_ADDONS_NAME')) {
+  define('ZIPPY_ADDONS_NAME', 'Zippy Addons');
 }
 
-if (!defined('ZIPPY_BOOKING_PREFIX')) {
-  define('ZIPPY_BOOKING_PREFIX', 'zippy_booking');
+if (!defined('ZIPPY_ADDONS_PREFIX')) {
+  define('ZIPPY_ADDONS_PREFIX', 'zippy_addons');
 }
 
-if (!defined('ZIPPY_BOOKING_BASENAME')) {
-  define('ZIPPY_BOOKING_BASENAME', plugin_basename(__FILE__));
+if (!defined('ZIPPY_ADDONS_BASENAME')) {
+  define('ZIPPY_ADDONS_BASENAME', plugin_basename(__FILE__));
 }
 
 /* Set constant path to the plugin directory. */
 
-if (!defined('ZIPPY_BOOKING_DIR_PATH')) {
-  define('ZIPPY_BOOKING_DIR_PATH', plugin_dir_path(__FILE__));
+if (!defined('ZIPPY_ADDONS_DIR_PATH')) {
+  define('ZIPPY_ADDONS_DIR_PATH', plugin_dir_path(__FILE__));
 }
 
 /* Set constant url to the plugin directory. */
 
-if (!defined('ZIPPY_BOOKING_URL')) {
-  define('ZIPPY_BOOKING_URL', plugin_dir_url(__FILE__));
+if (!defined('ZIPPY_ADDONS_URL')) {
+  define('ZIPPY_ADDONS_URL', plugin_dir_url(__FILE__));
 }
 
 /* Set constant enpoint to the plugin directory. */
 if (!defined('ZIPPY_BOOKING_API_NAMESPACE')) {
-  define('ZIPPY_BOOKING_API_NAMESPACE', 'zippy-booking/v1');
+  define('ZIPPY_BOOKING_API_NAMESPACE', 'zippy-addons/v1');
 }
 
 /* Booking table name */
@@ -74,8 +74,8 @@ if (!defined('ZIPPY_BOOKING_OPTIONS_TABLE_NAME')) {
 }
 
 /* Booking Product Mapping table name */
-if (!defined('ZIPPY_BOOKING_PRODUCT_MAPPING_TABLE_NAME')) {
-  define('ZIPPY_BOOKING_PRODUCT_MAPPING_TABLE_NAME', 'fcs_data_products_booking');
+if (!defined('OUTLET_CONFIG_TABLE_NAME')) {
+  define('OUTLET_CONFIG_TABLE_NAME', 'fcs_data_zippy_addons_outlet');
 }
 
 /* Booking Product Mapping table name */
@@ -138,6 +138,10 @@ if (!defined('ZIPPY_BOOKING_API_TOKEN')) {
   define('ZIPPY_BOOKING_API_TOKEN', 'FEhI30q7ySHtMfzvSDo6RkxZUDVaQ1BBU3lBcGhYS3BrQStIUT09');
 }
 
+if (!defined('ONEMAP_API_URL')) {
+  define('ONEMAP_API_URL', 'https://www.onemap.gov.sg/api/common/elastic/search');
+}
+
 /* Default Timezone */
 
 date_default_timezone_set("Asia/Singapore");
@@ -151,7 +155,7 @@ date_default_timezone_set("Asia/Singapore");
 /* ------------------------------------------
 // Includes
  --------------------------- --------------------------------------------- */
-require ZIPPY_BOOKING_DIR_PATH . '/includes/autoload.php';
+require ZIPPY_ADDONS_DIR_PATH . '/includes/autoload.php';
 
 use  Zippy_Booking\Src\Admin\Zippy_Admin_Settings;
 

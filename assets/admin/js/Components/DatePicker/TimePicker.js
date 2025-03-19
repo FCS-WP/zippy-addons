@@ -1,11 +1,19 @@
-import React from 'react';
-import DatePicker from 'react-datepicker';
-import { Box } from '@mui/material';
+import React from "react";
+import DatePicker from "react-datepicker";
+import { Box } from "@mui/material";
 
 // Custom TimePicker component
-const TimePicker = ({ selectedTime, onChange, duration ,width }) => {
+const TimePicker = (props) => {
+  const {
+    selectedTime,
+    onChange,
+    duration = 15,
+    width,
+    placeholderText = "Pick a time",
+  } = props;
+
   return (
-    <Box sx={{width}}>
+    <Box sx={{ width }}>
       <DatePicker
         selected={selectedTime}
         onChange={onChange}
@@ -15,7 +23,7 @@ const TimePicker = ({ selectedTime, onChange, duration ,width }) => {
         dateFormat="HH:mm"
         timeIntervals={duration}
         isClearable
-        placeholderText="Pick a time"
+        placeholderText={placeholderText}
       />
     </Box>
   );

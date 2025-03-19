@@ -20,193 +20,163 @@ const Settings = () => {
   const [schedule, setSchedule] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
-  const [extraTimeSlots, setExtraTimeSlots] = useState(
+  const [deliveryTimeSlots, setdeliveryTimeSlots] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
-  const [duration, setDuration] = useState(5);
+
+  const [duration, setDuration] = useState(15);
   const [storeEmail, setStoreEmail] = useState("");
-  const [allowOverlap, setAllowOverlap] = useState(false);
-  const [bookingType, setBookingType] = useState("single");
-  const [defaultStatus, setDefaultStatus] = useState("pending");
   const [loading, setLoading] = useState(true);
-  const [extraTimeEnabled, setExtraTimeEnabled] = useState({});
+  const [deliveryTimeEnabled, setDeliveryTimeEnabled] = useState({});
+
   const [holidayEnabled, setHolidayEnabled] = useState(false);
   const [holidays, setHolidays] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState("");
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchStores = async () => {
       setLoading(true);
       try {
-        const response = await Api.getSettings();
-        const data = response.data.data;
-        if (
-          data &&
-          data.store_working_time &&
-          data.store_working_time.length > 0
-        ) {
-          const fetchedSchedule = daysOfWeek.map((day, index) => {
-            const daySchedule = data.store_working_time.find(
-              (time) => parseInt(time.weekday) === index
-            );
-            return {
-              day,
-              slots:
-                daySchedule && daySchedule.is_open === "T"
-                  ? [
-                      {
-                        from: daySchedule.open_at || "00:00",
-                        to: daySchedule.close_at || "00:00",
-                      },
-                    ]
-                  : [],
-              duration: parseInt(daySchedule?.duration) || 5,
-              extraTime: daySchedule?.extra_time || {
-                is_active: "F",
-                data: [],
-              },
-            };
-          });
-          setSchedule(fetchedSchedule);
-          setExtraTimeEnabled(
-            fetchedSchedule.reduce(
-              (acc, item) => ({
-                ...acc,
-                [item.day]: item.extraTime.is_active === "T",
-              }),
-              {}
-            )
-          );
-          setExtraTimeSlots(
-            fetchedSchedule.map((item) => ({
-              day: item.day,
-              slots: item.extraTime.data || [],
-            }))
-          );
-          setDuration(parseInt(data.store_working_time[0]?.duration) || 5);
-          setStoreEmail(data.store_email || "");
-          setAllowOverlap(data.allow_overlap === "T");
-          setBookingType(data.booking_type || "single");
-          setDefaultStatus(data.default_booking_status || "pending");
-          const fetchedHolidays = data.holiday || [];
-          setHolidays(fetchedHolidays);
-          setHolidayEnabled(fetchedHolidays.length > 0);
-        } else {
-          setSchedule(daysOfWeek.map((day) => ({ day, slots: [] })));
-          setHolidays([]);
-          setHolidayEnabled(false);
-        }
+        const storesResponse = await Api.getStore();
+        const storesData = storesResponse.data.data || [];
+        setStores(storesData);
       } catch (error) {
-        console.error("Error fetching settings:", error);
-        setSchedule(daysOfWeek.map((day) => ({ day, slots: [] })));
-        setHolidays([]);
-        setHolidayEnabled(false);
+        console.error("Error fetching stores:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchSettings();
+
+    fetchStores();
   }, []);
 
-  const handleExtraTimeToggle = (day, enabled) => {
-    setExtraTimeEnabled((prev) => ({
-      ...prev,
-      [day]: enabled,
-    }));
+  useEffect(() => {
+    if (!selectedStore) return;
+    const fetchSettings = async () => {
+      setLoading(true);
+      try {
+        const store = stores.find((s) => s.id === selectedStore);
+        if (!store) return;
 
-    setExtraTimeSlots((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: enabled
-                ? item.slots.length === 0
-                  ? [{ from: "", to: "" }]
-                  : item.slots
-                : [],
-            }
-          : item
-      )
-    );
-  };
+        const storeWorkingTime = store.operating_hours || [];
+        const storeHolidays = store.closed_dates || [];
+        const storeDuration = store.takeaway?.timeslot_duration || 15;
 
-  const handleAddTimeSlot = (day) => {
-    setSchedule((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: [...item.slots, { from: "", to: "", type: "regular" }],
-            }
-          : item
-      )
-    );
+        const formattedHolidays = Array.isArray(storeHolidays)
+          ? storeHolidays.map((date) => ({
+              label: date.label,
+              date: date.value,
+            }))
+          : [];
+
+        const deliveryEnabledByDay = {};
+        const deliverySlotsByDay = daysOfWeek.map((day, index) => {
+          const dayData = storeWorkingTime.find(
+            (time) => parseInt(time.week_day) === index
+          );
+
+          const isDeliveryEnabled = dayData?.delivery?.enabled === "T";
+          deliveryEnabledByDay[day] = isDeliveryEnabled;
+
+          return {
+            day,
+            enabled: isDeliveryEnabled,
+            slots: isDeliveryEnabled
+              ? dayData?.delivery?.delivery_hours || []
+              : [],
+          };
+        });
+
+        setDeliveryTimeEnabled(deliveryEnabledByDay);
+        setdeliveryTimeSlots(deliverySlotsByDay);
+
+        const fetchedSchedule = daysOfWeek.map((day, index) => {
+          const daySchedule = storeWorkingTime.find(
+            (time) => parseInt(time.week_day) === index
+          );
+
+          return {
+            day,
+            slots: daySchedule
+              ? [
+                  {
+                    from: daySchedule.open_at || "",
+                    to: daySchedule.close_at || "",
+                  },
+                ]
+              : [],
+            duration: parseInt(daySchedule?.duration) || 15,
+          };
+        });
+
+        setSchedule(fetchedSchedule);
+        setDuration(storeDuration);
+        setHolidays(formattedHolidays);
+        setHolidayEnabled(formattedHolidays.length > 0);
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, [selectedStore, stores]);
+
+  const handleDeliveryToggle = (day) => {
+    setDeliveryTimeEnabled((prevState) => {
+      const newState = { ...prevState, [day]: !prevState[day] };
+
+      setdeliveryTimeSlots((prev) =>
+        prev.map((item) =>
+          item.day === day
+            ? {
+                ...item,
+                slots: newState[day] ? [{ from: "", to: "" }] : [],
+              }
+            : item
+        )
+      );
+
+      return newState;
+    });
   };
 
   const handleRemoveTimeSlot = (day, slotIndex) => {
-    setSchedule((prev) =>
-      prev.map((item) =>
+    setSchedule((prev) => {
+      const updatedSchedule = prev.map((item) =>
         item.day === day
           ? {
               ...item,
               slots: item.slots.filter((_, index) => index !== slotIndex),
             }
           : item
-      )
-    );
+      );
+
+      const daySchedule = updatedSchedule.find((item) => item.day === day);
+
+      if (daySchedule && daySchedule.slots.length === 0) {
+        setDeliveryTimeEnabled((prev) => ({ ...prev, [day]: false }));
+
+        setdeliveryTimeSlots((prev) =>
+          prev.map((item) => (item.day === day ? { ...item, slots: [] } : item))
+        );
+      }
+
+      return updatedSchedule;
+    });
   };
-  const handleAddExtraTimeSlot = (day) => {
-    setExtraTimeSlots((prev) =>
+
+  const handleAddTimeSlot = (day) => {
+    setSchedule((prev) =>
       prev.map((item) =>
         item.day === day
-          ? {
-              ...item,
-              slots: [...item.slots, { from: "", to: "" }],
-            }
+          ? { ...item, slots: [...item.slots, { from: "", to: "" }] }
           : item
       )
     );
   };
-
-  const handleRemoveExtraTimeSlot = (day, slotIndex) => {
-    setExtraTimeSlots((prev) => {
-      const updatedExtraTimeSlots = prev.map((item) => {
-        if (item.day === day) {
-          const updatedSlots = item.slots.filter(
-            (_, index) => index !== slotIndex
-          );
-          if (updatedSlots.length === 0) {
-            setExtraTimeEnabled((prevEnabled) => ({
-              ...prevEnabled,
-              [day]: false,
-            }));
-          }
-          return {
-            ...item,
-            slots: updatedSlots,
-          };
-        }
-        return item;
-      });
-      return updatedExtraTimeSlots;
-    });
-  };
-
-  const calculateCloseAt = (startTime, duration) => {
-    if (!startTime) return "";
-    const closeTime = new Date(startTime);
-    closeTime.setMinutes(closeTime.getMinutes() + duration);
-
-    const formattedCloseAt = `${closeTime
-      .getHours()
-      .toString()
-      .padStart(2, "0")}:${closeTime
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}:00`;
-
-    return formattedCloseAt;
-  };
-
   const handleTimeChange = (day, slotIndex, field, value) => {
     const formattedValue = value
       ? `${value.getHours().toString().padStart(2, "0")}:${value
@@ -222,37 +192,6 @@ const Settings = () => {
               ...item,
               slots: item.slots.map((slot, index) => {
                 if (index === slotIndex) {
-                  if (field === "from") {
-                    const newCloseAt = calculateCloseAt(value, duration);
-
-                    return { ...slot, from: formattedValue, to: newCloseAt };
-                  } else {
-                    return { ...slot, [field]: formattedValue };
-                  }
-                }
-                return slot;
-              }),
-            }
-          : item
-      )
-    );
-  };
-
-  const handleExtraTimeChange = (day, slotIndex, field, value) => {
-    const formattedValue = value
-      ? `${value.getHours().toString().padStart(2, "0")}:${value
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}:00`
-      : "";
-
-    setExtraTimeSlots((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: item.slots.map((slot, index) => {
-                if (index === slotIndex) {
                   return { ...slot, [field]: formattedValue };
                 }
                 return slot;
@@ -262,89 +201,116 @@ const Settings = () => {
       )
     );
   };
-  const handleBookingTypeChange = (type) => {
-    setBookingType(type);
-    if (type === "multiple") {
-      setExtraTimeEnabled((prev) =>
-        Object.keys(prev).reduce((acc, day) => {
-          acc[day] = false;
-          return acc;
-        }, {})
-      );
-      setExtraTimeSlots((prev) =>
-        prev.map((item) => ({
-          ...item,
-          slots: [],
-        }))
-      );
-    }
-  };
-  const handleAddHoliday = () => {
-    setHolidays([...holidays, { label: "", date: null }]);
-  };
 
   const handleRemoveHoliday = (index) => {
-    const updatedHolidays = holidays.filter((_, i) => i !== index);
-    setHolidays(updatedHolidays);
+    setHolidays((prevHolidays) => prevHolidays.filter((_, i) => i !== index));
   };
-
+  const handleAddHoliday = () => {
+    setHolidays((prevHolidays) => [...prevHolidays, { label: "", date: "" }]);
+  };
   const handleHolidayChange = (index, key, value) => {
-    const formattedValue = key === "date" && value ? new Date(value) : value;
-
-    const updatedHolidays = holidays.map((holiday, i) =>
-      i === index ? { ...holiday, [key]: formattedValue } : holiday
+    setHolidays((prevHolidays) =>
+      prevHolidays.map((holiday, i) =>
+        i === index ? { ...holiday, [key]: value } : holiday
+      )
     );
+  };
+  const handleRemoveDeliveryTimeSlot = (day, slotIndex) => {
+    setdeliveryTimeSlots((prev) => {
+      const updatedSlots = prev.map((item) =>
+        item.day === day
+          ? {
+              ...item,
+              slots: item.slots.filter((_, index) => index !== slotIndex),
+            }
+          : item
+      );
 
-    setHolidays(updatedHolidays);
+      const updatedState = updatedSlots.find((item) => item.day === day);
+      if (updatedState && updatedState.slots.length === 0) {
+        setDeliveryTimeEnabled((prev) => ({ ...prev, [day]: false }));
+      }
+
+      return updatedSlots;
+    });
   };
 
-  const handleDefaultStatusChange = (newStatus) => {
-    setDefaultStatus(newStatus);
+  const handleDeliveryTimeChange = (day, slotIndex, field, value) => {
+    const formattedValue = value
+      ? `${value.getHours().toString().padStart(2, "0")}:${value
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:00`
+      : "";
+
+    setdeliveryTimeSlots((prev) =>
+      prev.map((item) =>
+        item.day === day
+          ? {
+              ...item,
+              slots: item.slots.map((slot, index) =>
+                index === slotIndex
+                  ? { ...slot, [field]: formattedValue }
+                  : slot
+              ),
+            }
+          : item
+      )
+    );
+  };
+  const handleAddDeliveryTimeSlot = (day) => {
+    setdeliveryTimeSlots((prev) =>
+      prev.map((item) =>
+        item.day === day
+          ? { ...item, slots: [...item.slots, { from: "", to: "" }] }
+          : item
+      )
+    );
   };
 
   const handleSaveChanges = async () => {
     setLoading(true);
-
-    const storeWorkingTime = schedule.map((item) => {
-      const isOpen = item.slots.length > 0;
-      const openSlot = item.slots[0] || {};
-      const weekdayIndex = daysOfWeek.indexOf(item.day);
-
-      return {
-        id: item.id || null,
-        is_open: isOpen ? "T" : "F",
-        weekday: weekdayIndex.toString(),
-        open_at: isOpen ? String(openSlot.from) || "" : "",
-        close_at: isOpen ? String(openSlot.to) || "" : "",
-        duration: item.duration || 5,
-        extra_time: {
-          is_active: extraTimeEnabled[item.day] ? "T" : "F",
-          data:
-            extraTimeSlots.find((extra) => extra.day === item.day)?.slots || [],
+    try {
+      const payload = {
+        request: {
+          outlet_id: selectedStore,
+          operating_hours: schedule.map((item, index) => ({
+            week_day: index.toString(),
+            open_at: item.slots[0]?.from || "",
+            close_at: item.slots[0]?.to || "",
+            delivery: {
+              enabled: deliveryTimeEnabled[item.day] ? "T" : "F",
+              delivery_hours: deliveryTimeEnabled
+                ? deliveryTimeSlots.find((slot) => slot.day === item.day)
+                    ?.slots || []
+                : [],
+            },
+          })),
+          closed_dates: holidays.map((holiday) => ({
+            label: holiday.label,
+            value: holiday.date,
+          })),
+          takeaway: {
+            enabled: "F",
+            timeslot_duration: duration,
+          },
         },
       };
-    });
 
-    const params = {
-      booking_type: bookingType,
-      store_email: storeEmail,
-      allow_overlap: allowOverlap ? "T" : "F",
-      duration: duration,
-      default_booking_status: defaultStatus,
-      store_working_time: storeWorkingTime,
-    };
-
-    try {
-      const response = await Api.createSettings(params);
-
-      if (response.data.status === "success") {
-        toast.success(response.data.message || "Settings saved successfully!");
+      const response = await Api.addStoreConfig(payload);
+      if (response?.data.status === "success") {
+        toast.success("Settings saved successfully!");
       } else {
-        toast.error(response.data.message || "Error saving settings.");
+        toast.error("Failed to save settings.");
       }
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error("Error saving settings. Please try again.");
+
+      if (error.response?.data?.status === "error") {
+        toast.error(error.response.data.message || "Failed to save settings.");
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
@@ -369,12 +335,6 @@ const Settings = () => {
           <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
               <BookingSettings
-                bookingType={bookingType}
-                handleBookingTypeChange={handleBookingTypeChange}
-                allowOverlap={allowOverlap}
-                setAllowOverlap={setAllowOverlap}
-                defaultStatus={defaultStatus}
-                handleDefaultStatusChange={handleDefaultStatusChange}
                 duration={duration}
                 setDuration={setDuration}
                 storeEmail={storeEmail}
@@ -384,6 +344,9 @@ const Settings = () => {
                 setHolidays={setHolidays}
                 loading={loading}
                 handleSaveChanges={handleSaveChanges}
+                stores={stores}
+                selectedStore={selectedStore}
+                setSelectedStore={setSelectedStore}
               />
             </Grid>
             <Grid item xs={12} md={8}>
@@ -400,24 +363,23 @@ const Settings = () => {
                 <>
                   <WeekdayTable
                     schedule={schedule}
-                    bookingType={bookingType}
+                    deliveryTimeSlots={deliveryTimeSlots}
+                    deliveryTimeEnabled={deliveryTimeEnabled}
+                    handleDeliveryToggle={handleDeliveryToggle}
+                    handleRemoveTimeSlot={handleRemoveTimeSlot}
                     handleAddTimeSlot={handleAddTimeSlot}
                     handleTimeChange={handleTimeChange}
-                    handleRemoveTimeSlot={handleRemoveTimeSlot}
-                    handleExtraTimeToggle={handleExtraTimeToggle}
-                    extraTimeEnabled={extraTimeEnabled}
-                    extraTimeSlots={extraTimeSlots}
-                    handleAddExtraTimeSlot={handleAddExtraTimeSlot}
-                    handleRemoveExtraTimeSlot={handleRemoveExtraTimeSlot}
-                    handleExtraTimeChange={handleExtraTimeChange}
+                    handleRemoveDeliveryTimeSlot={handleRemoveDeliveryTimeSlot}
+                    handleDeliveryTimeChange={handleDeliveryTimeChange}
+                    handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
                     duration={duration}
                   />
                   {holidayEnabled && (
                     <HolidayTable
                       holidays={holidays}
-                      handleHolidayChange={handleHolidayChange}
-                      handleRemoveHoliday={handleRemoveHoliday}
                       handleAddHoliday={handleAddHoliday}
+                      handleRemoveHoliday={handleRemoveHoliday}
+                      handleHolidayChange={handleHolidayChange}
                     />
                   )}
                 </>

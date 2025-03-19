@@ -2,24 +2,15 @@ import React from "react";
 import {
   Box,
   Typography,
-  RadioGroup,
   FormControlLabel,
-  Radio,
   Switch,
   Select,
   MenuItem,
   TextField,
   Button,
 } from "@mui/material";
-import DefaultStatusSelect from "../../Components/DefaultStatusSelect";
 
 const BookingSettings = ({
-  bookingType,
-  handleBookingTypeChange,
-  allowOverlap,
-  setAllowOverlap,
-  defaultStatus,
-  handleDefaultStatusChange,
   duration,
   setDuration,
   storeEmail,
@@ -29,51 +20,34 @@ const BookingSettings = ({
   setHolidays,
   loading,
   handleSaveChanges,
+  stores,
+  selectedStore,
+  setSelectedStore,
 }) => {
   return (
     <Box>
-      <Box>
-        <Typography variant="body1">Booking Type</Typography>
-        <RadioGroup
-          row
-          value={bookingType}
-          onChange={(e) => handleBookingTypeChange(e.target.value)}
+      {/* Select Store */}
+      <Box mb={2}>
+        <Typography variant="body1">Select Store</Typography>
+        <Select
+          value={selectedStore}
+          onChange={(e) => setSelectedStore(e.target.value)}
+          fullWidth
+          size="small"
+          displayEmpty
         >
-          <FormControlLabel
-            value="single"
-            control={<Radio />}
-            label="Single"
-          />
-          <FormControlLabel
-            value="multiple"
-            control={<Radio />}
-            label="Multiple"
-          />
-        </RadioGroup>
+          <MenuItem value="" disabled>
+            Please select a store
+          </MenuItem>
+          {stores.map((store) => (
+            <MenuItem key={store.id} value={store.id}>
+              {store.outlet_name}
+            </MenuItem>
+          ))}
+        </Select>
       </Box>
 
-      <Box mb={1}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={allowOverlap}
-              onChange={(e) => setAllowOverlap(e.target.checked)}
-            />
-          }
-          label="Allow Overlap"
-        />
-        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-          Enable this if you want multiple bookings to overlap.
-        </Typography>
-      </Box>
-
-      <Box mb={1}>
-        <DefaultStatusSelect
-          status={defaultStatus}
-          onChange={handleDefaultStatusChange}
-        />
-      </Box>
-
+      {/* Duration Selection */}
       <Box mb={1}>
         <Typography variant="body1">Duration</Typography>
         <Select
@@ -82,7 +56,7 @@ const BookingSettings = ({
           fullWidth
           size="small"
         >
-          {Array.from({ length: 36 }, (_, i) => (i + 1) * 5).map((option) => (
+          {Array.from({ length: 4 }, (_, i) => (i + 1) * 15).map((option) => (
             <MenuItem key={option} value={option}>
               {option} minutes
             </MenuItem>
@@ -93,17 +67,7 @@ const BookingSettings = ({
         </Typography>
       </Box>
 
-      <Box mb={1}>
-        <Typography variant="body1">Store Email</Typography>
-        <TextField
-          type="email"
-          value={storeEmail}
-          onChange={(e) => setStoreEmail(e.target.value)}
-          size="small"
-          fullWidth
-        />
-      </Box>
-
+      {/* Holiday Toggle */}
       <Box mt={2} mb={2}>
         <FormControlLabel
           control={
@@ -125,6 +89,7 @@ const BookingSettings = ({
         </Typography>
       </Box>
 
+      {/* Save Button */}
       <Box mt={2}>
         <Button
           variant="contained"

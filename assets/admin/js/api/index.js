@@ -10,7 +10,7 @@ export const Api = {
     return await makeRequest("/configs", params, "PUT");
   },
   async getSettings(params) {
-    return await makeRequest("/configs", params, "GET");
+    return await makeRequest("/store-config", params, "GET");
   },
   async searchByKeyword(params) {
     return await makeRequest("/prodegories", params);
@@ -31,12 +31,34 @@ export const Api = {
     return await makeRequest("/support-booking/categories", params);
   },
   async updateBookingProductPrices(params) {
-    return await makeRequest("/support-booking/products/update-price", params, "POST");
+    return await makeRequest(
+      "/support-booking/products/update-price",
+      params,
+      "POST"
+    );
   },
   async createOptions(params) {
     return await makeRequest("/zippy-options", params, "POST");
   },
   async searchMappingProducts(params) {
-    return await makeRequest("/support-booking/search-mapping-products", params);
-  }
+    return await makeRequest(
+      "/support-booking/search-mapping-products",
+      params
+    );
+  },
+  async addStore(params) {
+    return await makeRequest("/stores", params, "POST");
+  },
+  async getStore(params) {
+    return await makeRequest("/stores", params);
+  },
+  async updateStore(params) {
+    return await makeRequest("/stores", params, "PUT");
+  },
+  async deleteStore(params) {
+    return await makeRequest("/stores", params, "DELETE");
+  },
+  async addStoreConfig(params) {
+    return await makeRequest("/store-config", params, "POST");
+  },
 };
