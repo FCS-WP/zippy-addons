@@ -224,7 +224,6 @@ class Zippy_Admin_Settings
         outlet_address LONGTEXT NULL,
         operating_hours LONGTEXT NULL,
         closed_dates LONGTEXT NULL,
-        delivery LONGTEXT NULL,
         takeaway LONGTEXT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
