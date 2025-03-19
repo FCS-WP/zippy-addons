@@ -27,7 +27,13 @@ class Zippy_Admin_Booking_Shipping_Route extends Zippy_Booking_Router
         // CREATE GET Config
         register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/shipping', array(
             'methods' => 'GET',
-            'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'create_shipping_config'),
+            'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'get_shipping_config'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        )); 
+        // CREATE GET Config
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/shipping-calculate', array(
+            'methods' => 'GET',
+            'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'calculate_shipping_fee'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
     }

@@ -138,8 +138,20 @@ if (!defined('ZIPPY_BOOKING_API_TOKEN')) {
   define('ZIPPY_BOOKING_API_TOKEN', 'FEhI30q7ySHtMfzvSDo6RkxZUDVaQ1BBU3lBcGhYS3BrQStIUT09');
 }
 
+if (!defined('SHIPPING_CONFIG_META_KEY')) {
+  define('SHIPPING_CONFIG_META_KEY', '_zippy_addons_shipping_fee_config');
+}
+
 if (!defined('ONEMAP_API_URL')) {
-  define('ONEMAP_API_URL', 'https://www.onemap.gov.sg/api/common/elastic/search');
+  define('ONEMAP_API_URL', 'https://www.onemap.gov.sg');
+}
+
+if (!defined('ONEMAP_ROUTING_ENDPOINT')) {
+  define('ONEMAP_ROUTING_ENDPOINT', '/api/public/routingsvc/route');
+}
+
+if (!defined('ONEMAP_API_KEY')) {
+  define('ONEMAP_API_KEY', "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhNzM3MGZhYTg2MTBlMDc1OTJlNDI0NTA2NDRiMmZjYSIsImlzcyI6Imh0dHA6Ly9pbnRlcm5hbC1hbGItb20tcHJkZXppdC1pdC1uZXctMTYzMzc5OTU0Mi5hcC1zb3V0aGVhc3QtMS5lbGIuYW1hem9uYXdzLmNvbS9hcGkvdjIvdXNlci9zZXNzaW9uIiwiaWF0IjoxNzQyMTg2Njg1LCJleHAiOjE3NDI0NDU4ODUsIm5iZiI6MTc0MjE4NjY4NSwianRpIjoiMTQyNXdYY01LZGo4TGZ0OSIsInVzZXJfaWQiOjYzMjMsImZvcmV2ZXIiOmZhbHNlfQ.WFyONQpVqBcRsbOdljaRsCk5Ri6HKt1AbOikUbkxVng");
 }
 
 /* Default Timezone */
