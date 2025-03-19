@@ -26,6 +26,7 @@ class Zippy_Admin_Booking_Product_Controller
 
         $required_fields = [
             "product_id" => ["required" => true, "data_type" => "string"],
+            "quantity" => ["required" => true, "data_type" => "number"],
             "order_mode" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
         ];
 
@@ -58,10 +59,15 @@ class Zippy_Admin_Booking_Product_Controller
 
         $store_datas = [];
 
+        $stored_fields = [
+            "product_id",
+            "quantity",
+            "order_mode",
+        ];
+
         if($order_mode == "delivery"){
-            $stored_fields = [
-                "product_id",
-                "order_mode",
+
+            $fields = [
                 "delivery_address",
                 "delivery_from",
                 "delivery_date",
@@ -69,15 +75,22 @@ class Zippy_Admin_Booking_Product_Controller
                 "total_distance",
                 "shipping_fee",
             ];
+
+            foreach ($fields as $field) {
+                array_push($stored_fields, $field);
+            }
         } else {
-            $stored_fields = [
-                "product_id",
-                "order_mode",
+            $fields = [
                 "selected_outlet",
-                "takeaway_time",
+                "takeaway_time"
             ];
+
+            foreach ($fields as $field) {
+                array_push($stored_fields, $field);
+            }
         }
 
+        
         foreach ($stored_fields as $value) {
             if(!empty($request[$value])) {
                 $store_datas[$value] = $request[$value];
