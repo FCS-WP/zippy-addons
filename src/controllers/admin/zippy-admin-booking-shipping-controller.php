@@ -65,23 +65,12 @@ class Zippy_Admin_Booking_Shipping_Controller
 
     public static function calculate_shipping_fee(WP_REST_Request $request)
     {
-
         $required_fields = [
-            "request" => ["required" => true, "data_type" => "array"],
-        ];
-
-        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if (!empty($validate)) {
-            return Zippy_Response_Handler::error($validate);
-        }
-        
-
-        $required_sub_fields = [
             "start" => ["required" => true, "data_type" => "string"],
             "end" => ["required" => true, "data_type" => "string"],
         ];
 
-        $validate = Zippy_Request_Validation::validate_request($required_sub_fields, $request["request"]);
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
         if (!empty($validate)) {
             return Zippy_Response_Handler::error($validate);
         }
@@ -100,18 +89,16 @@ class Zippy_Admin_Booking_Shipping_Controller
                 "shipping_fee" => "",
             ];
 
-            $request_data = $request["request"];
-
             $param = [
-                "start" => $request_data["start"],
-                "end" => $request_data["end"],
+                "start" => $request["start"],
+                "end" => $request["end"],
                 "routeType" => "drive",
                 "mode" => "TRANSIT",
             ];
 
             $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
 
-            if($api["error"]){
+            if(isset($api["error"])){
                 return Zippy_Response_Handler::error($api["error"]);
             }
 
