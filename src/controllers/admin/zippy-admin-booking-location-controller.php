@@ -34,7 +34,7 @@ class Zippy_Admin_Booking_Location_Controller
 
             $api = One_Map_Api::call("GET", "/api/common/elastic/search", $param);
 
-            if($api["error"]){
+            if(isset($api["error"])){
                 return Zippy_Response_Handler::error($api["error"]);
             }
 

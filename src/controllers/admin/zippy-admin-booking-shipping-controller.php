@@ -98,7 +98,7 @@ class Zippy_Admin_Booking_Shipping_Controller
 
             $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
 
-            if($api["error"]){
+            if(isset($api["error"])){
                 return Zippy_Response_Handler::error($api["error"]);
             }
 
