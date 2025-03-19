@@ -12,5 +12,8 @@ export const webApi = {
   },
   async searchRoute(params) {
     return await makeOneMapRequest("/public/routingsvc/route", params);
+  },
+  async submitOrderForm(params) {
+    return await makeRequest('/search-location', params);
   }
 };

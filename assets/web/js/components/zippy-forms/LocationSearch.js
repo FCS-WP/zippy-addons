@@ -90,6 +90,13 @@ const LocationSearch = ({ onSelectLocation }) => {
     }
   }, [searchQuery]);
 
+  useEffect(() => {
+    return () => {
+      setSelectedLocation(null);
+      onSelectLocation(null);
+    };
+  }, []);
+
   return (
     <Box position={"relative"}>
       <FormControl fullWidth>

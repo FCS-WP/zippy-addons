@@ -19,7 +19,7 @@ const DeliveryForm = ({ onChangeMode }) => {
   };
 
   const handleConfirm = () => {
-    if (!deliveryData) {
+    if (!deliveryData || !selectedLocation) {
       toast.error("Please select all required field!");
       return;
     }
@@ -27,6 +27,20 @@ const DeliveryForm = ({ onChangeMode }) => {
       location: selectedLocation,
       deliveryData: deliveryData,
     };
+
+    /**
+     * Todo list:
+     * 1. Handle Submit Data
+     * 2. Send message
+     */
+    Swal.fire({
+      title: "Success",
+      icon: 'success',
+      timer: 3000,
+      showConfirmButton: false,
+      timerProgressBar: true
+    });
+
   };
 
   return (
@@ -38,7 +52,9 @@ const DeliveryForm = ({ onChangeMode }) => {
 
       <Box p={2}>
         <Box>
-          <h5>Delivery to</h5>
+          <h5>
+            Delivery to: <span style={{ color: "red" }}>(*)</span>
+          </h5>
           <LocationSearch onSelectLocation={handleSelectLocation} />
         </Box>
         <Box>

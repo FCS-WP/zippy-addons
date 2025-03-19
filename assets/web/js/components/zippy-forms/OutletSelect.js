@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { webApi } from "../../api";
 import { toast } from "react-toastify";
 import { generateTimeSlots } from "../../helper/datetime";
+import { convertTime24to12 } from "../../../../admin/js/utils/dateHelper";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -31,9 +32,9 @@ const CustomSelect = styled(Select)({
     },
 });
 
-const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => {
+const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null }) => {
   const [outlets, setOutlets] = useState([]);
-  const [selectedOutlet, setSelectedOutlet] = useState('');
+  const [selectedOutlet, setSelectedOutlet] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
@@ -59,6 +60,12 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
     setSelectedTime('');
     setTimes(configTime); 
   };
+
+  const clearOldData = () => {
+    setSelectedOutlet("");
+    setSelectedTime("");
+    onChangeData(null);
+  }
 
   const handleChangeOutlet = (e) => {
     setSelectedOutlet(e.target.value);
@@ -118,8 +125,8 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
   useEffect(() => {
     if (selectedOutlet && selectedDate && selectedTime) {
       onChangeData({
-        outlet: selectedOutlet,
-        date: selectedDate,
+        outlet: selectedOutlet.id,
+        date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
       });
     }
@@ -129,22 +136,27 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
     if (selectedLocation && selectedOutlet) {
       handleDistance();
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, selectedOutlet]);
 
   useEffect(() => {
     if (selectedDate) {
       handleTimes();
+      onChangeData(null);
     }
   }, [selectedDate]);
 
   useEffect(() => {
     getConfigOutlet();
+    
+    return () => {
+      clearOldData();
+    };
   }, [])
 
   return (
     <Box className="outlet-selects" mt={2}>
       <FormControl variant="outlined" fullWidth>
-        <h5>Select an outlet</h5>
+        <h5>Select an outlet: <span style={{ color: 'red' }}>(*)</span></h5>
         <CustomSelect
           variant="outlined"
           id="outlet-id"
@@ -177,7 +189,7 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
 
           {/* Select Time */}
           <FormControl variant="outlined" fullWidth>
-            <h5>Select time: {selectedTime ? selectedTime.from + ' - ' + selectedTime.to : ''}</h5>
+            <h5>Select time: <span style={{ color: 'red' }}>(*)</span> {selectedTime ? convertTime24to12(selectedTime.from) + ' - ' + convertTime24to12(selectedTime.to) : ''}</h5>
             <CustomSelect
               id="delivery-time"
               size="small"
@@ -196,7 +208,7 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation }) => 
                 times.map((time, index) => (
                   <MenuItem key={index} value={time}>
                     <Typography fontSize={14}>
-                      {time.from + " - " + time.to}
+                      {convertTime24to12(time.from) + " - " + convertTime24to12(time.to)}
                     </Typography>
                   </MenuItem>
                 ))}

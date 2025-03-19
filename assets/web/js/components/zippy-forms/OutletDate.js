@@ -112,7 +112,7 @@ const OutletDate = ({ onChangeDate }) => {
     <Box>
       <Box display={"flex"} justifyContent={"space-between"} mb={1}>
         <h5>
-          Select date: {selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
+          Select date: <span style={{ color: 'red' }}>(*)</span> {selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
         </h5>
         <Button
           sx={{ textWrap: "nowrap", textTransform: "capitalize" }}

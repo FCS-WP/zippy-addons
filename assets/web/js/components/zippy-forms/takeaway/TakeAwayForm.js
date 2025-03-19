@@ -1,53 +1,66 @@
-import { Box, Button } from '@mui/material'
-import React, { useState } from 'react'
-import FormHeading from '../FormHeading';
-import LocationSearch from '../LocationSearch';
-import OutletSelect from '../OutletSelect';
-import { toast } from 'react-toastify';
-import theme from '../../../../theme/customTheme';
+import { Box, Button } from "@mui/material";
+import React, { useState } from "react";
+import FormHeading from "../FormHeading";
+import OutletSelect from "../OutletSelect";
+import { toast } from "react-toastify";
+import theme from "../../../../theme/customTheme";
+import { webApi } from "../../../api";
 
 const TakeAwayForm = ({ onChangeMode }) => {
-  const [selectedLocation, setSelectedLocation] = useState(null);
   const [takeawayData, setTakeawayData] = useState(null);
-
-  const handleSelectLocation = (location) => {
-    setSelectedLocation(location);
-  };
 
   const handletakeawayData = (data) => {
     setTakeawayData(data);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!takeawayData) {
       toast.error("Please select all required field!");
       return;
     }
     const data = {
-      method: 'takeaway',
+      method: "takeaway",
       takeawayData: takeawayData,
     };
+    /**
+     * Todo list:
+     * 1. Handle Submit Data
+     * 2. Send message
+     */
   };
 
   return (
     <Box>
       <Box>
-        <FormHeading onBack={()=>onChangeMode('select-method')} title={"Take Away Details"} />
+        <FormHeading
+          onBack={() => onChangeMode("select-method")}
+          title={"Take Away Details"}
+        />
 
         <Box p={2}>
           <Box>
-            <OutletSelect type='takeaway' onChangeData={handletakeawayData} selectedLocation={selectedLocation} />
+            <OutletSelect type="takeaway" onChangeData={handletakeawayData} />
           </Box>
         </Box>
 
         <Box p={2}>
-          <Button fullWidth sx={{ paddingY: '10px', background: theme.palette.primary.main, color: "#fff", fontWeight: "600" }} onClick={handleConfirm}>
+          <Button
+            fullWidth
+            sx={{
+              paddingY: "10px",
+              background: theme.palette.primary.main,
+              color: "#fff",
+              fontWeight: "600",
+            }}
+            onClick={handleConfirm}
+          >
             Confirm
           </Button>
         </Box>
       </Box>
     </Box>
-  );s
-}
+  );
+  s;
+};
 
-export default TakeAwayForm
+export default TakeAwayForm;
