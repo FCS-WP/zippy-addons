@@ -21,7 +21,6 @@ class Zippy_Admin_Booking_Store_Config_Controller
             "outlet_id" => ["required" => true, "data_type" => "string"],
             "operating_hours" => ["required" => true,],
             "closed_dates" => ["required" => true, "data_type" => "array"],
-            "delivery" => ["required" => true],
             "takeaway" => ["required" => true],
         ];
 
@@ -32,10 +31,6 @@ class Zippy_Admin_Booking_Store_Config_Controller
 
         // validate sub_field_datas
         $sub_require_fields = [
-            "delivery" => [
-                "enabled" => ["required"=> true, "data_type" => "boolean"],
-                "delivery_hours" => ["required"=> true],
-            ],
             "takeaway" => [
                 "enabled" => ["required"=> true, "data_type" => "boolean"],
                 "timeslot_duration" => ["required"=> true, "data_type" => "number"],
@@ -67,7 +62,6 @@ class Zippy_Admin_Booking_Store_Config_Controller
             $serialize_fields = [   
                 "operating_hours",
                 "closed_dates",
-                "delivery",
                 "takeaway",
             ];
 

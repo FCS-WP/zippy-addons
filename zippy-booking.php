@@ -138,6 +138,10 @@ if (!defined('ZIPPY_BOOKING_API_TOKEN')) {
   define('ZIPPY_BOOKING_API_TOKEN', 'FEhI30q7ySHtMfzvSDo6RkxZUDVaQ1BBU3lBcGhYS3BrQStIUT09');
 }
 
+if (!defined('ONEMAP_API_URL')) {
+  define('ONEMAP_API_URL', 'https://www.onemap.gov.sg/api/common/elastic/search');
+}
+
 /* Default Timezone */
 
 date_default_timezone_set("Asia/Singapore");
