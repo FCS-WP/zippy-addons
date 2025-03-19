@@ -22,17 +22,26 @@ defined('ABSPATH') or die();
 class Zippy_Admin_Booking_Product_Controller
 {
     public static function add_product_and_shipping_info_to_card(WP_REST_Request $request)
-    {
+    {   
+
         $required_fields = [
             "product_id" => ["required" => true, "data_type" => "string"],
             "order_mode" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
-            "delivery_address" => ["required" => true, "data_type" => "string"],
-            "delivery_from" => ["required" => true, "data_type" => "string"],
-            "delivery_date" => ["required" => true, "data_type" => "string"],
-            "delivery_time" => ["required" => true, "data_type" => "string"],
-            "total_distance" => ["required" => true, "data_type" => "string"],
-            "shipping_fee" => ["required" => true, "data_type" => "number"],
         ];
+
+        $order_mode = strtolower($request["order_mode"]);
+
+        if($order_mode == "delivery"){
+            $required_fields["delivery_address"] = ["required" => true, "data_type" => "string"];
+            $required_fields["delivery_from"] = ["required" => true, "data_type" => "string"];
+            $required_fields["delivery_date"] = ["required" => true, "data_type" => "string"];
+            $required_fields["delivery_time"] = ["required" => true, "data_type" => "string"];
+            $required_fields["total_distance"] = ["required" => true, "data_type" => "string"];
+            $required_fields["shipping_fee"] = ["required" => true, "data_type" => "number"];
+        } else {
+            $required_fields["selected_outlet"] = ["required" => true, "data_type" => "string"];
+            $required_fields["takeaway_time"] = ["required" => true, "data_type" => "string"];
+        }
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
         if (!empty($validate)) {
@@ -49,16 +58,25 @@ class Zippy_Admin_Booking_Product_Controller
 
         $store_datas = [];
 
-        $stored_fields = [
-            "product_id",
-            "order_mode",
-            "delivery_address",
-            "delivery_from",
-            "delivery_date",
-            "delivery_time",
-            "total_distance",
-            "shipping_fee",
-        ];
+        if($order_mode == "delivery"){
+            $stored_fields = [
+                "product_id",
+                "order_mode",
+                "delivery_address",
+                "delivery_from",
+                "delivery_date",
+                "delivery_time",
+                "total_distance",
+                "shipping_fee",
+            ];
+        } else {
+            $stored_fields = [
+                "product_id",
+                "order_mode",
+                "selected_outlet",
+                "takeaway_time",
+            ];
+        }
 
         foreach ($stored_fields as $value) {
             if(!empty($request[$value])) {
