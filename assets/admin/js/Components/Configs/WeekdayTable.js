@@ -1,4 +1,3 @@
-// WeekdayTable.js
 import React from "react";
 import {
   Table,
@@ -28,6 +27,7 @@ const WeekdayTable = ({
   deliveryTimeSlots,
   handleRemoveDeliveryTimeSlot,
   handleDeliveryTimeChange,
+  handleAddDeliveryTimeSlot,
   duration,
 }) => {
   return (
@@ -97,8 +97,8 @@ const WeekdayTable = ({
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={deliveryTimeEnabled}
-                            onChange={handleDeliveryToggle}
+                            checked={!!deliveryTimeEnabled[item.day]}
+                            onChange={() => handleDeliveryToggle(item.day)}
                           />
                         }
                       />
@@ -117,72 +117,71 @@ const WeekdayTable = ({
                 ))
               )}
               {/* Render delivery time slots if enabled */}
-              {deliveryTimeEnabled &&
+              {deliveryTimeEnabled[item.day] &&
                 deliveryTimeSlots
                   .find((delivery) => delivery.day === item.day)
-                  ?.slots.map(
-                    (slot, slotIndex) => (
-                      (
-                        <TableRow
-                          key={`delivery-${dayIndex}-${slotIndex}`}
-                          style={{ backgroundColor: "#f9f9f9" }}
+                  ?.slots.map((slot, slotIndex) => (
+                    <TableRow
+                      key={`delivery-${dayIndex}-${slotIndex}`}
+                      style={{ backgroundColor: "#f9f9f9" }}
+                    >
+                      <TableCell></TableCell>
+                      <TableCell width={"30%"}>
+                        <Box
+                          sx={{ border: "1px solid #ccc", borderRadius: "5px" }}
                         >
-                          <TableCell></TableCell>
-
-                          {/* Delivery From Time Picker */}
-                          <TableCell width={"30%"}>
-                            <Box
-                              sx={{
-                                border: "1px solid #ccc",
-                                borderRadius: "5px",
-                              }}
-                            >
-                              <TimePicker
-                               selectedTime={parseTime(slot.from)}
-                               onChange={(time) =>
-                                 handleDeliveryTimeChange(item.day, slotIndex, "from", time)
-                               }
-                              />
-                            </Box>
-                          </TableCell>
-
-                          {/* Delivery To Time Picker */}
-
-                          <TableCell width={"30%"}>
-                            <Box
-                              sx={{
-                                border: "1px solid #ccc",
-                                borderRadius: "5px",
-                              }}
-                            >
-                              <TimePicker
-                                selectedTime={parseTime(slot.to)}
-                                onChange={(time) =>
-                                  handleDeliveryTimeChange(item.day, slotIndex, "to", time)
-                                }
-                              />
-                            </Box>
-                          </TableCell>
-
-                          <TableCell></TableCell>
-
-                          {/* Remove Slot Button */}
-                          <TableCell>
-                            <IconButton
-                              onClick={() =>
-                                handleRemoveDeliveryTimeSlot(
-                                  item.day,
-                                  slotIndex
-                                )
-                              }
-                            >
-                              <RemoveCircleOutlineIcon color="error" />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    )
-                  )}
+                          <TimePicker
+                            selectedTime={parseTime(slot.from)}
+                            onChange={(time) =>
+                              handleDeliveryTimeChange(
+                                item.day,
+                                slotIndex,
+                                "from",
+                                time
+                              )
+                            }
+                            placeholderText="Delivery from"
+                          />
+                        </Box>
+                      </TableCell>
+                      <TableCell width={"30%"}>
+                        <Box
+                          sx={{ border: "1px solid #ccc", borderRadius: "5px" }}
+                        >
+                          <TimePicker
+                            selectedTime={parseTime(slot.to)}
+                            onChange={(time) =>
+                              handleDeliveryTimeChange(
+                                item.day,
+                                slotIndex,
+                                "to",
+                                time
+                              )
+                            }
+                            placeholderText="Delivery to"
+                          />
+                        </Box>
+                      </TableCell>
+                      {deliveryTimeEnabled[item.day] && (
+                        <TableCell>
+                          <IconButton
+                            onClick={() => handleAddDeliveryTimeSlot(item.day)}
+                          >
+                            <AddCircleOutlineIcon color="primary" />
+                          </IconButton>
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <IconButton
+                          onClick={() =>
+                            handleRemoveDeliveryTimeSlot(item.day, slotIndex)
+                          }
+                        >
+                          <RemoveCircleOutlineIcon color="error" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
             </React.Fragment>
           ))}
         </TableBody>

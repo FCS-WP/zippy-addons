@@ -1,12 +1,32 @@
 import React from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, IconButton, Paper, Typography } from "@mui/material";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  IconButton,
+  Paper,
+  Typography,
+} from "@mui/material";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CustomeDatePicker from "../DatePicker/CustomeDatePicker";
 
-const HolidayTable = ({ holidays, handleHolidayChange, handleRemoveHoliday, handleAddHoliday }) => {
+const HolidayTable = ({
+  holidays,
+  handleHolidayChange,
+  handleRemoveHoliday,
+  handleAddHoliday,
+}) => {
   return (
-    <TableContainer component={Paper} style={{ marginTop: "20px" }} className="holiday-table">
+    <TableContainer
+      component={Paper}
+      style={{ marginTop: "20px" }}
+      className="holiday-table"
+    >
       <Typography
         variant="h6"
         gutterBottom
@@ -52,7 +72,10 @@ const HolidayTable = ({ holidays, handleHolidayChange, handleRemoveHoliday, hand
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton color="error" onClick={() => handleRemoveHoliday(index)}>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleRemoveHoliday(index)}
+                  >
                     <RemoveCircleOutlineIcon />
                   </IconButton>
                 </TableCell>
