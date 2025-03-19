@@ -68,7 +68,7 @@ const BookingSettings = ({
       </Box>
 
       {/* Store Email */}
-      <Box mb={1}>
+      {/* <Box mb={1}>
         <Typography variant="body1">Store Email</Typography>
         <TextField
           type="email"
@@ -77,7 +77,7 @@ const BookingSettings = ({
           size="small"
           fullWidth
         />
-      </Box>
+      </Box> */}
 
       {/* Holiday Toggle */}
       <Box mt={2} mb={2}>

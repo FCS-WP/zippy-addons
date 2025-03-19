@@ -23,6 +23,7 @@ const Settings = () => {
   const [deliveryTimeSlots, setdeliveryTimeSlots] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
+
   const [duration, setDuration] = useState(15);
   const [storeEmail, setStoreEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -64,27 +65,22 @@ const Settings = () => {
           enabled: "F",
           delivery_hours: [],
         };
+        const storeDuration = store.takeaway?.timeslot_duration || 15;
 
         const formattedHolidays = Array.isArray(storeHolidays)
           ? storeHolidays.map((date) => ({ label: `Holiday ${date}`, date }))
           : [];
 
         const isDeliveryEnabled = storeDelivery.enabled === "T";
-        const deliverySlotsByDay = daysOfWeek.map((day, index) => {
-          const slots =
-            storeDelivery.delivery_hours?.filter(
-              (slot) => parseInt(slot.week_day) === index
-            ) || [];
 
-          return {
-            day,
-            slots:
-              slots.length > 0
-                ? slots
-                : isDeliveryEnabled
-                ? [{ from: "", to: "" }]
-                : [],
-          };
+        const deliverySlotsByDay = daysOfWeek.map((day, index) => {
+          const slots = storeDelivery.delivery_hours?.[index]
+            ? [storeDelivery.delivery_hours[index]]
+            : isDeliveryEnabled
+            ? [{ from: "", to: "" }]
+            : [];
+
+          return { day, slots };
         });
 
         setDeliveryTimeEnabled(isDeliveryEnabled);
@@ -111,7 +107,7 @@ const Settings = () => {
           });
 
           setSchedule(fetchedSchedule);
-          setDuration(parseInt(storeWorkingTime[0]?.duration) || 15);
+          setDuration(storeDuration || 15);
           setHolidays(formattedHolidays);
           setHolidayEnabled(formattedHolidays.length > 0);
         } else {
@@ -207,6 +203,29 @@ const Settings = () => {
           ? {
               ...item,
               slots: item.slots.filter((_, index) => index !== slotIndex),
+            }
+          : item
+      )
+    );
+  };
+  const handleDeliveryTimeChange = (day, slotIndex, field, value) => {
+    const formattedValue = value
+      ? `${value.getHours().toString().padStart(2, "0")}:${value
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:00`
+      : "";
+
+    setdeliveryTimeSlots((prev) =>
+      prev.map((item) =>
+        item.day === day
+          ? {
+              ...item,
+              slots: item.slots.map((slot, index) =>
+                index === slotIndex
+                  ? { ...slot, [field]: formattedValue }
+                  : slot
+              ),
             }
           : item
       )
@@ -312,6 +331,7 @@ const Settings = () => {
                     handleAddTimeSlot={handleAddTimeSlot}
                     handleTimeChange={handleTimeChange}
                     handleRemoveDeliveryTimeSlot={handleRemoveDeliveryTimeSlot}
+                    handleDeliveryTimeChange={handleDeliveryTimeChange}
                     duration={duration}
                   />
                   {holidayEnabled && (

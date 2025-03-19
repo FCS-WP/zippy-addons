@@ -120,85 +120,69 @@ const WeekdayTable = ({
               {deliveryTimeEnabled &&
                 deliveryTimeSlots
                   .find((delivery) => delivery.day === item.day)
-                  ?.slots.map((slot, slotIndex) => (
-                    <TableRow
-                      key={`delivery-${dayIndex}-${slotIndex}`}
-                      style={{ backgroundColor: "#f9f9f9" }}
-                    >
-                      <TableCell></TableCell>
-
-                      {/* Delivery From Time Picker */}
-                      <TableCell width={"30%"}>
-                        <Box
-                          sx={{ border: "1px solid #ccc", borderRadius: "5px" }}
+                  ?.slots.map(
+                    (slot, slotIndex) => (
+                      (
+                        <TableRow
+                          key={`delivery-${dayIndex}-${slotIndex}`}
+                          style={{ backgroundColor: "#f9f9f9" }}
                         >
-                          <TimePicker
-                            value={slot.from ? parseTime(slot.from) : null}
-                            onChange={(time) =>
-                              handleDeliveryTimeChange(
-                                item.day,
-                                slotIndex,
-                                "from",
-                                time
-                              )
-                            }
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                fullWidth
-                                InputProps={{
-                                  ...params.InputProps,
-                                  placeholder: slot.from ? "" : "Delivery From",
-                                }}
+                          <TableCell></TableCell>
+
+                          {/* Delivery From Time Picker */}
+                          <TableCell width={"30%"}>
+                            <Box
+                              sx={{
+                                border: "1px solid #ccc",
+                                borderRadius: "5px",
+                              }}
+                            >
+                              <TimePicker
+                               selectedTime={parseTime(slot.from)}
+                               onChange={(time) =>
+                                 handleDeliveryTimeChange(item.day, slotIndex, "from", time)
+                               }
                               />
-                            )}
-                          />
-                        </Box>
-                      </TableCell>
+                            </Box>
+                          </TableCell>
 
-                      {/* Delivery To Time Picker */}
-                      <TableCell width={"30%"}>
-                        <Box
-                          sx={{ border: "1px solid #ccc", borderRadius: "5px" }}
-                        >
-                          <TimePicker
-                            value={slot.to ? parseTime(slot.to) : null}
-                            onChange={(time) =>
-                              handleDeliveryTimeChange(
-                                item.day,
-                                slotIndex,
-                                "to",
-                                time
-                              )
-                            }
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                fullWidth
-                                InputProps={{
-                                  ...params.InputProps,
-                                  placeholder: slot.to ? "" : "Delivery To",
-                                }}
+                          {/* Delivery To Time Picker */}
+
+                          <TableCell width={"30%"}>
+                            <Box
+                              sx={{
+                                border: "1px solid #ccc",
+                                borderRadius: "5px",
+                              }}
+                            >
+                              <TimePicker
+                                selectedTime={parseTime(slot.to)}
+                                onChange={(time) =>
+                                  handleDeliveryTimeChange(item.day, slotIndex, "to", time)
+                                }
                               />
-                            )}
-                          />
-                        </Box>
-                      </TableCell>
+                            </Box>
+                          </TableCell>
 
-                      <TableCell></TableCell>
+                          <TableCell></TableCell>
 
-                      {/* Remove Slot Button */}
-                      <TableCell>
-                        <IconButton
-                          onClick={() =>
-                            handleRemoveDeliveryTimeSlot(item.day, slotIndex)
-                          }
-                        >
-                          <RemoveCircleOutlineIcon color="error" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          {/* Remove Slot Button */}
+                          <TableCell>
+                            <IconButton
+                              onClick={() =>
+                                handleRemoveDeliveryTimeSlot(
+                                  item.day,
+                                  slotIndex
+                                )
+                              }
+                            >
+                              <RemoveCircleOutlineIcon color="error" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )
+                  )}
             </React.Fragment>
           ))}
         </TableBody>
