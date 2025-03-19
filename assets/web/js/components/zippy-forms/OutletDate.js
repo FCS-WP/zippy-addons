@@ -110,7 +110,7 @@ const OutletDate = ({ onChangeDate }) => {
 
   return (
     <Box>
-      <Box display={"flex"} justifyContent={"space-between"} mb={1}>
+      <Box display={"flex"} justifyContent={"space-between"} alignItems={'center'} flexWrap={'wrap'} mb={1}>
         <h5>
           Select date: <span style={{ color: 'red' }}>(*)</span> {selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
         </h5>
@@ -122,9 +122,9 @@ const OutletDate = ({ onChangeDate }) => {
         </Button>
       </Box>
       {mode == "boxed" ? (
-        <Grid container justifyContent={"space-between"}>
+        <Grid container justifyContent={"space-between"} spacing={2}>
           {dates.map((date, index) => (
-            <Grid key={index} width="18%">
+            <Grid key={index} size={{ xs: 6, md: 2.4 }}>
               <DateBoxed
                 date={date}
                 selected={selectedDate?.toDateString() === date.toDateString()}

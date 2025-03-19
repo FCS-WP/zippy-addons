@@ -22,3 +22,7 @@ export const getSelectProductId = () => {
   const productId = zippyForm.getAttribute("data-product_id");
   return productId;
 };
+
+export const triggerCloseLightbox = () => {
+  document.querySelector(".mfp-close").click();
+}

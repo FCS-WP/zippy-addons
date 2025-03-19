@@ -56,16 +56,11 @@ const LocationSearch = ({ onSelectLocation }) => {
   };
 
   const handleSearchLocation = async (searchQuery) => {
-    const params = {
-      searchVal: searchQuery,
-      returnGeom: "Y",
-      getAddrDetails: "Y",
-      pageNum: 1,
-    };
+    const params = { postal_code: searchQuery};
     setIsLoading(true);
     const { data } = await webApi.searchLocation(params);
     setIsLoading(false);
-    return data.results;
+    return data.data.results;
   };
 
   const debounceSearchLocation = useCallback(

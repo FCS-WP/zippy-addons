@@ -8,10 +8,10 @@ export const webApi = {
     return await makeRequest("/stores", params);
   },
   async searchLocation(params) {
-    return await makeOneMapRequest("/common/elastic/search", params);
+    return await makeRequest("/location", params);
   },
   async searchRoute(params) {
-    return await makeOneMapRequest("/public/routingsvc/route", params);
+    return await makeRequest("/shipping-calculate", params);
   },
   async submitOrderForm(params) {
     return await makeRequest('/search-location', params);

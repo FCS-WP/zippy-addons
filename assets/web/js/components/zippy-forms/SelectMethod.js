@@ -1,5 +1,5 @@
 import { Box, Typography, Button, styled } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { deliveryIcon, takeawayIcon } from "../../images";
 
 const CustomButton = styled(Button)(({ theme }) => ({

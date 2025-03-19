@@ -4,7 +4,7 @@
         border-radius: 5px;
 
         .react-datepicker__navigation {
-            margin-top: 20px;
+            margin-top: 10px;
 
             &:hover {
                 background: $primary;
@@ -16,7 +16,6 @@
 
             .react-datepicker__header {
                 background: $white;
-                padding-top: 20px;
             }
 
             .react-datepicker__day-name,
@@ -27,6 +26,12 @@
 
             .react-datepicker__day {
                 line-height: 3rem;
+            }
+
+            @media (max-width: 728px) {
+                .react-datepicker__day {
+                    line-height: 2rem;
+                }
             }
 
             .react-datepicker__day--selected {

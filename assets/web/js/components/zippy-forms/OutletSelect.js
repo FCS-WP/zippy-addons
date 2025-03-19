@@ -32,7 +32,11 @@ const CustomSelect = styled(Select)({
     },
 });
 
-const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null }) => {
+const OutletSelect = ({
+  type = "delivery",
+  onChangeData,
+  selectedLocation = null,
+}) => {
   const [outlets, setOutlets] = useState([]);
   const [selectedOutlet, setSelectedOutlet] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -41,31 +45,37 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null
   const [times, setTimes] = useState();
 
   const handleTimes = () => {
-    if (!selectedDate) return false();
+    if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) return false();
     let configTime = [];
+
+    const openingHours = selectedOutlet?.operating_hours.find((item) => {
+      return parseInt(item.week_day) === selectedDate.getDay();
+    });
+
     switch (type) {
       case "delivery":
-        if (!selectedOutlet.delivery) return false();
-        configTime = selectedOutlet?.delivery.delivery_hours;
+        if (!openingHours.delivery || openingHours.delivery.enable === 'F') return false();
+        configTime = openingHours.delivery.delivery_hours;
         break;
       case "takeaway":
         if (!selectedOutlet.takeaway) return false();
-        const openingHours = selectedOutlet?.operating_hours.find((item)=>{
-          return parseInt(item.week_day) === selectedDate.getDay();
-        }) 
-        configTime = generateTimeSlots(openingHours?.open_at, openingHours?.close_at, selectedOutlet?.takeaway.timeslot_duration);
+        configTime = generateTimeSlots(
+          openingHours?.open_at,
+          openingHours?.close_at,
+          selectedOutlet?.takeaway.timeslot_duration
+        );
       default:
         break;
     }
-    setSelectedTime('');
-    setTimes(configTime); 
+    setSelectedTime("");
+    setTimes(configTime);
   };
 
   const clearOldData = () => {
     setSelectedOutlet("");
     setSelectedTime("");
     onChangeData(null);
-  }
+  };
 
   const handleChangeOutlet = (e) => {
     setSelectedOutlet(e.target.value);
@@ -73,24 +83,20 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null
 
   const handleDistance = async () => {
     try {
-      const startPoint = selectedLocation.LATITUDE + "," + selectedLocation.LONGITUDE;
-      const endPoint = selectedOutlet.outlet_address.coordinates.lat + "," + selectedOutlet.outlet_address.coordinates.lng;
-      const moveTime = '00:00:00';
+      const startPoint =
+        selectedLocation.LATITUDE + "," + selectedLocation.LONGITUDE;
+      const endPoint =
+        selectedOutlet.outlet_address.coordinates.lat +
+        "," +
+        selectedOutlet.outlet_address.coordinates.lng;
 
       const params = {
         start: startPoint,
-        end:endPoint,
-        routeType: "drive",
-        date: format(new Date(), 'MM-dd-yyyy'),
-        time: moveTime,
-        mode: "TRANSIT",
-        maxWalkDistance: 1000,
-        numItineraries: 3,
+        end: endPoint,
       };
 
-      const calcDistance = await webApi.searchRoute(params);
-      setMapRoute(calcDistance.data.route_summary);
-
+      const { data: response } = await webApi.searchRoute(params);
+      setMapRoute(response.data);
     } catch (error) {
       toast.error("failed to get distance");
     }
@@ -107,27 +113,28 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null
   const formatMetersToKm = (meters) => {
     const value = parseFloat(meters);
     if (isNaN(value)) return "Invalid input";
-  
+
     return value >= 1000 ? (value / 1000).toFixed(2) + " km" : value + " m";
   };
 
   const getConfigOutlet = async () => {
     try {
-      const { data : response } = await webApi.getStores();
+      const { data: response } = await webApi.getStores();
       if (response) {
         setOutlets(response.data);
       }
     } catch (error) {
-      toast.error("Failed to get outlet.")
+      toast.error("Failed to get outlet.");
     }
-  }
+  };
 
   useEffect(() => {
     if (selectedOutlet && selectedDate && selectedTime) {
       onChangeData({
         outlet: selectedOutlet.id,
-        date: format(selectedDate, 'yyyy-MM-dd'),
+        date: format(selectedDate, "yyyy-MM-dd"),
         time: selectedTime,
+        mapRoute: mapRoute ?? '',
       });
     }
   }, [selectedOutlet, selectedDate, selectedTime]);
@@ -147,17 +154,20 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null
 
   useEffect(() => {
     getConfigOutlet();
-    
+
     return () => {
       clearOldData();
     };
-  }, [])
+  }, []);
 
   return (
     <Box className="outlet-selects" mt={2}>
       <FormControl variant="outlined" fullWidth>
-        <h5>Select an outlet: <span style={{ color: 'red' }}>(*)</span></h5>
+        <h5>
+          Select an outlet: <span style={{ color: "red" }}>(*)</span>
+        </h5>
         <CustomSelect
+          sx={{mb: 1}}
           variant="outlined"
           id="outlet-id"
           size="small"
@@ -173,11 +183,15 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null
           {outlets.length > 0 &&
             outlets.map((outlet, index) => (
               <MenuItem key={index} value={outlet}>
-                <Typography sx={{ textWrap: 'wrap' }} fontSize={14}>{outlet.outlet_address.address} <strong> {mapRoute ? '| ' + formatMetersToKm(mapRoute.total_distance) : ''} </strong></Typography>
+                <Typography sx={{ textWrap: "wrap" }} fontSize={14}>
+                  {outlet.outlet_address.address}
+                </Typography>
               </MenuItem>
             ))}
-           
         </CustomSelect>
+        {mapRoute && (
+          <Typography fontWeight={600} fontSize={13}>Distance: {formatMetersToKm(mapRoute.total_distance)}</Typography>
+        )}
       </FormControl>
 
       {selectedOutlet && (
@@ -189,7 +203,14 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null
 
           {/* Select Time */}
           <FormControl variant="outlined" fullWidth>
-            <h5>Select time: <span style={{ color: 'red' }}>(*)</span> {selectedTime ? convertTime24to12(selectedTime.from) + ' - ' + convertTime24to12(selectedTime.to) : ''}</h5>
+            <h5>
+              Select time: <span style={{ color: "red" }}>(*)</span>{" "}
+              {selectedTime
+                ? convertTime24to12(selectedTime.from) +
+                  " - " +
+                  convertTime24to12(selectedTime.to)
+                : ""}
+            </h5>
             <CustomSelect
               id="delivery-time"
               size="small"
@@ -208,7 +229,9 @@ const OutletSelect = ({ type = "delivery", onChangeData, selectedLocation = null
                 times.map((time, index) => (
                   <MenuItem key={index} value={time}>
                     <Typography fontSize={14}>
-                      {convertTime24to12(time.from) + " - " + convertTime24to12(time.to)}
+                      {convertTime24to12(time.from) +
+                        " - " +
+                        convertTime24to12(time.to)}
                     </Typography>
                   </MenuItem>
                 ))}

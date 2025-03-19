@@ -15,12 +15,21 @@ const TakeAwayForm = ({ onChangeMode }) => {
 
   const handleConfirm = async () => {
     if (!takeawayData) {
-      toast.error("Please select all required field!");
+      Swal.fire({
+        title: "Failed!",
+        text: "Please fill all required field!",
+        icon: "error",
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      });
       return;
     }
     const data = {
-      method: "takeaway",
-      takeawayData: takeawayData,
+      product_id: getSelectProductId(),
+      order_mode: "takeaway",
+      outlet_id: takeawayData.outlet.id,
+      delivery_time: takeawayData.time,
     };
     /**
      * Todo list:

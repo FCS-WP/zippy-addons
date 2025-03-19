@@ -5,6 +5,7 @@ import OutletSelect from "../OutletSelect";
 import { toast } from "react-toastify";
 import FormHeading from "../FormHeading";
 import theme from "../../../../theme/customTheme";
+import { getSelectProductId, triggerCloseLightbox } from "../../../helper/booking";
 
 const DeliveryForm = ({ onChangeMode }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -20,27 +21,35 @@ const DeliveryForm = ({ onChangeMode }) => {
 
   const handleConfirm = () => {
     if (!deliveryData || !selectedLocation) {
-      toast.error("Please select all required field!");
+      Swal.fire({
+        title: "Failed!",
+        text: "Please fill all required field!",
+        icon: "error",
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      });
       return;
     }
+
     const data = {
-      location: selectedLocation,
-      deliveryData: deliveryData,
+      product_id: getSelectProductId(),
+      order_mode: "delivery",
+      delivery_address: (selectedLocation.LATITUDE + "," + selectedLocation.LONGITUDE),
+      outlet_id: deliveryData.outlet.id,
+      delivery_date: deliveryData.date,
+      delivery_time: deliveryData.time,
     };
 
-    /**
-     * Todo list:
-     * 1. Handle Submit Data
-     * 2. Send message
-     */
     Swal.fire({
       title: "Success",
-      icon: 'success',
+      icon: "success",
       timer: 3000,
       showConfirmButton: false,
-      timerProgressBar: true
+      timerProgressBar: true,
     });
 
+    triggerCloseLightbox();
   };
 
   return (
