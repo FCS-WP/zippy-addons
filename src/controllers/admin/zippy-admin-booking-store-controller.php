@@ -16,7 +16,6 @@ class Zippy_Admin_Booking_Store_Controller
      */
     public static function zippy_create_store(WP_REST_Request $request)
     {
-        $request = $request["request"];
         $required_fields = [
             "display" =>  ["required" => true, "data_type" => "boolean"],
             "outlet_name" => ["required" => true, "data_type" => "string"],
@@ -109,7 +108,6 @@ class Zippy_Admin_Booking_Store_Controller
 
     public static function zippy_update_store(WP_REST_Request $request)
     {
-        $request = $request["request"];
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"] ,
             "display" =>  ["required" => true, "data_type" => "boolean"],

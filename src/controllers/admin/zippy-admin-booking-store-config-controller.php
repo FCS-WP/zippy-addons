@@ -16,7 +16,6 @@ class Zippy_Admin_Booking_Store_Config_Controller
      */
     public static function create_store_config(WP_REST_Request $request)
     {
-        $request = $request["request"];
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"],
             "operating_hours" => ["required" => true,],
