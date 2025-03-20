@@ -16,7 +16,7 @@ class Zippy_Admin_Booking_Location_Controller
     public static function get_location_geo(WP_REST_Request $request)
     {   
         $required_fields = [
-            "postal_code" => ["required" => true, "data_type" => "number"],
+            "keyword" => ["required" => true, "data_type" => "string"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -27,7 +27,7 @@ class Zippy_Admin_Booking_Location_Controller
         try {
             // prepair param
             $param = [
-                "searchVal" => $request["postal_code"],
+                "searchVal" => $request["keyword"],
                 "returnGeom" => "Y",
                 "getAddrDetails" => "Y",
             ];
