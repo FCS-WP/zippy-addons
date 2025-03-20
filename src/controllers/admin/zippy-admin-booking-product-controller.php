@@ -23,23 +23,20 @@ defined('ABSPATH') or die();
 class Zippy_Admin_Booking_Product_Controller
 {
     public static function add_product_and_shipping_info_to_card(WP_REST_Request $request)
-    {   
+    {
 
         $required_fields = [
             "product_id" => ["required" => true, "data_type" => "string"],
             "order_mode" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
             "outlet_id" => ["required" => true, "data_type" => "string"],
+            "date" => ["required" => true, "data_type" => "string"],
+            "time" => ["required" => true],
         ];
 
         $order_mode = strtolower($request["order_mode"]);
 
-        if($order_mode == "delivery"){
+        if ($order_mode == "delivery") {
             $required_fields["delivery_address"] = ["required" => true];
-            $required_fields["delivery_date"] = ["required" => true, "data_type" => "string"];
-            $required_fields["delivery_time"] = ["required" => true];
-        } else {
-            $required_fields["takeaway_time"] = ["required" => true];
-            $required_fields["takeaway_date"] = ["required" => true, "data_type" => "string"];
         }
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -52,6 +49,8 @@ class Zippy_Admin_Booking_Product_Controller
             "product_id",
             "quantity",
             "order_mode",
+            "date",
+            "time"
         ];
 
         try {
@@ -63,7 +62,7 @@ class Zippy_Admin_Booking_Product_Controller
             $query = "SELECT id,outlet_name,outlet_address FROM $table_name WHERE id ='" . $outlet_id . "'";
             $outlet = $wpdb->get_results($query);
 
-            if(count($outlet) < 1){
+            if (count($outlet) < 1) {
                 return Zippy_Response_Handler::error("Outlet not exist!");
             }
 
@@ -72,7 +71,7 @@ class Zippy_Admin_Booking_Product_Controller
             $outlet_address_name = $outlet_address["address"] ?? null;
             $outlet_address_lat = $outlet_address["coordinates"]["lat"] ?? null;
             $outlet_address_lng = $outlet_address["coordinates"]["lng"] ?? null;
-            if(empty($outlet_address_lat) || empty($outlet_address_lng)){
+            if (empty($outlet_address_lat) || empty($outlet_address_lng)) {
                 return Zippy_Response_Handler::error("This Outlet does not have address yet!");
             }
 
@@ -83,19 +82,16 @@ class Zippy_Admin_Booking_Product_Controller
             $product_id = $request["product_id"];
 
             $_product = wc_get_product($product_id);
-            
-            if(!$_product){
+
+            if (!$_product) {
                 return Zippy_Response_Handler::error("Product not exist!");
             }
 
             $store_datas = [];
 
-            if($order_mode == "delivery"){
-
+            if ($order_mode == "delivery") {
                 // delivery fields
                 $fields = [
-                    "delivery_date",
-                    "delivery_time",
                     "total_distance",
                     "shipping_fee",
                     "address_name",
@@ -105,10 +101,9 @@ class Zippy_Admin_Booking_Product_Controller
                     array_push($stored_fields, $field);
                 }
 
-
                 // Call Api to get distance between outlet and delivery address
                 $param = [
-                    "start" => $outlet_address["coordinates"]["lat"] . "," . $outlet_address["coordinates"]["lng"] ,
+                    "start" => $outlet_address["coordinates"]["lat"] . "," . $outlet_address["coordinates"]["lng"],
                     "end" => $request["delivery_address"]["lat"] . "," . $request["delivery_address"]["lng"],
                     "routeType" => "drive",
                     "mode" => "TRANSIT",
@@ -116,7 +111,7 @@ class Zippy_Admin_Booking_Product_Controller
 
                 $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
 
-                if(isset($api["error"])){
+                if (isset($api["error"])) {
                     return Zippy_Response_Handler::error($api["error"]);
                 }
 
@@ -125,7 +120,7 @@ class Zippy_Admin_Booking_Product_Controller
 
                 // Get Shipping Config
                 $shipping_fee_config = get_option(SHIPPING_CONFIG_META_KEY);
-                if(empty($shipping_fee_config)){
+                if (empty($shipping_fee_config)) {
                     return Zippy_Response_Handler::error("Missing Config for Shipping Fee");
                 }
 
@@ -134,33 +129,22 @@ class Zippy_Admin_Booking_Product_Controller
                 // Calculate shipping fee
                 $shipping_fee = "";
                 foreach ($shipping_fee_data as $data) {
-                    if($total_distance > $data["from"] && $total_distance <= $data["to"]){
+                    if ($total_distance > $data["from"] && $total_distance <= $data["to"]) {
                         $shipping_fee = $data["value"];
                     }
                 }
                 $store_datas["shipping_fee"] = $shipping_fee;
                 $store_datas["total_distance"] = $total_distance;
-            } else {
-
-                // Takeaway fields
-                $fields = [
-                    "takeaway_date",
-                    "takeaway_time",
-                ];
-                
-                foreach ($fields as $field) {
-                    array_push($stored_fields, $field);
-                }
             }
 
 
             // Parse data
             foreach ($stored_fields as $value) {
-                if(!empty($request[$value])) {
+                if (!empty($request[$value])) {
                     $store_datas[$value] = $request[$value];
                 }
             }
-            
+
             $store_datas["delivery_address"] = $request["delivery_address"]["address_name"] ?? null;
             $store_datas["outlet_name"] = $outlet[0]->outlet_name;
             $store_datas["outlet_address"] = $outlet_address_name;
@@ -169,7 +153,8 @@ class Zippy_Admin_Booking_Product_Controller
             foreach ($store_datas as $key => $value) {
                 $_SESSION[$key] = $value;
             }
-            
+            $_SESSION['status_popup'] = true;
+
             return Zippy_Response_Handler::success($store_datas, "Product added to cart");
         } catch (\Throwable $th) {
             $message = $th->getMessage();

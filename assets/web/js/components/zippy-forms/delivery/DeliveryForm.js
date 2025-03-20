@@ -36,8 +36,8 @@ const DeliveryForm = ({ onChangeMode }) => {
         lng: selectedLocation.LONGITUDE
       },
       outlet_id: deliveryData.outlet,
-      delivery_date: deliveryData.date,
-      delivery_time: deliveryData.time,
+      date: deliveryData.date,
+      time: deliveryData.time,
     };
 
     const response = await webApi.addToCart(params);
