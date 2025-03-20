@@ -87,17 +87,15 @@ const StoreForm = ({ onAddStore, loading }) => {
   const handleSubmit = async () => {
     if (validate()) {
       const requestData = {
-        request: {
-          display: "T",
-          outlet_name: store.store_name,
-          outlet_phone: store.phone,
-          outlet_address: {
-            postal_code: store.postal_code,
-            address: store.address,
-            coordinates: {
-              lat: store.latitude,
-              lng: store.longitude,
-            },
+        display: "T",
+        outlet_name: store.store_name,
+        outlet_phone: store.phone,
+        outlet_address: {
+          postal_code: store.postal_code,
+          address: store.address,
+          coordinates: {
+            lat: store.latitude,
+            lng: store.longitude,
           },
         },
       };

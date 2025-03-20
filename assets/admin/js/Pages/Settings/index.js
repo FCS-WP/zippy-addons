@@ -272,28 +272,26 @@ const Settings = () => {
     setLoading(true);
     try {
       const payload = {
-        request: {
-          outlet_id: selectedStore,
-          operating_hours: schedule.map((item, index) => ({
-            week_day: index.toString(),
-            open_at: item.slots[0]?.from || "",
-            close_at: item.slots[0]?.to || "",
-            delivery: {
-              enabled: deliveryTimeEnabled[item.day] ? "T" : "F",
-              delivery_hours: deliveryTimeEnabled
-                ? deliveryTimeSlots.find((slot) => slot.day === item.day)
-                    ?.slots || []
-                : [],
-            },
-          })),
-          closed_dates: holidays.map((holiday) => ({
-            label: holiday.label,
-            value: holiday.date,
-          })),
-          takeaway: {
-            enabled: "F",
-            timeslot_duration: duration,
+        outlet_id: selectedStore,
+        operating_hours: schedule.map((item, index) => ({
+          week_day: index.toString(),
+          open_at: item.slots[0]?.from || "",
+          close_at: item.slots[0]?.to || "",
+          delivery: {
+            enabled: deliveryTimeEnabled[item.day] ? "T" : "F",
+            delivery_hours: deliveryTimeEnabled
+              ? deliveryTimeSlots.find((slot) => slot.day === item.day)
+                  ?.slots || []
+              : [],
           },
+        })),
+        closed_dates: holidays.map((holiday) => ({
+          label: holiday.label,
+          value: holiday.date,
+        })),
+        takeaway: {
+          enabled: "F",
+          timeslot_duration: duration,
         },
       };
 
