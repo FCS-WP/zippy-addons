@@ -45,7 +45,6 @@ class Zippy_Admin_Booking_Shipping_Controller
     public static function get_shipping_config(WP_REST_Request $request)
     {
         try {
-            /* insert data to config table */
             $options = get_option(SHIPPING_CONFIG_META_KEY);
 
             if($options){
@@ -59,72 +58,6 @@ class Zippy_Admin_Booking_Shipping_Controller
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('get_shipping_fee', json_encode($request), 'Failure', $message);
-        }
-    }
-
-
-    public static function calculate_shipping_fee(WP_REST_Request $request)
-    {
-        $required_fields = [
-            "start" => ["required" => true, "data_type" => "string"],
-            "end" => ["required" => true, "data_type" => "string"],
-        ];
-
-        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if (!empty($validate)) {
-            return Zippy_Response_Handler::error($validate);
-        }
-
-        try {
-            // Get Shipping Config
-            $shipping_fee_config = get_option(SHIPPING_CONFIG_META_KEY);
-            if(empty($shipping_fee_config)){
-                return Zippy_Response_Handler::error("Missing Config for Shipping Fee");
-            }
-
-            $res_data = [
-                "start_point" => "",
-                "end_point" => "",
-                "total_distance" => "",
-                "shipping_fee" => "",
-            ];
-
-            $param = [
-                "start" => $request["start"],
-                "end" => $request["end"],
-                "routeType" => "drive",
-                "mode" => "TRANSIT",
-            ];
-
-            $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
-
-            if(isset($api["error"])){
-                return Zippy_Response_Handler::error($api["error"]);
-            }
-
-            $route_summary = $api["route_summary"];
-
-            $total_distance = $route_summary["total_distance"];
-
-            $res_data["start_point"] = $route_summary["start_point"];
-            $res_data["end_point"] = $route_summary["end_point"];
-            $res_data["total_distance"] = $total_distance;
-
-
-            $shipping_fee_data = maybe_unserialize($shipping_fee_config)["shipping_fee"];
-
-            foreach ($shipping_fee_data as $data) {
-                if($total_distance > $data["from"] && $total_distance <= $data["to"]){
-                    $res_data["shipping_fee"] = $data["value"];
-                    $_SESSION["SHIPPING_FEE"] = $res_data;
-                }
-            }
-
-            return Zippy_Response_Handler::success($res_data, "Success");
-
-        } catch (\Throwable $th) {
-            $message = $th->getMessage();
-            Zippy_Log_Action::log('calculate_shipping_fee', json_encode($request), 'Failure', $message);
         }
     }
 }

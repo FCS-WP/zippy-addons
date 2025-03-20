@@ -23,5 +23,11 @@ class Zippy_Admin_Booking_Location_Route extends Zippy_Booking_Router
             'callback' => array(Zippy_Admin_Booking_Location_Controller::class, 'get_location_geo'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
+        // CREATE GET Config
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/distance', array(
+            'methods' => 'GET',
+            'callback' => array(Zippy_Admin_Booking_Location_Controller::class, 'get_distance_between_locations'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        ));
     }
 }
