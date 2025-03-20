@@ -11,7 +11,10 @@ export const webApi = {
     return await makeRequest("/location", params);
   },
   async searchRoute(params) {
-    return await makeRequest("/shipping-calculate", params);
+    return await makeRequest("/distance", params);
+  },
+  async addToCart(params) {
+    return await makeRequest("/add-to-cart", params, 'POST');
   },
   async submitOrderForm(params) {
     return await makeRequest('/search-location', params);

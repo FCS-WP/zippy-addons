@@ -2,9 +2,10 @@ import { Box, Button } from "@mui/material";
 import React, { useState } from "react";
 import FormHeading from "../FormHeading";
 import OutletSelect from "../OutletSelect";
-import { toast } from "react-toastify";
 import theme from "../../../../theme/customTheme";
 import { webApi } from "../../../api";
+import { getSelectProductId } from "../../../helper/booking";
+import { showAlert } from "../../../helper/showAlert";
 
 const TakeAwayForm = ({ onChangeMode }) => {
   const [takeawayData, setTakeawayData] = useState(null);
@@ -25,17 +26,25 @@ const TakeAwayForm = ({ onChangeMode }) => {
       });
       return;
     }
-    const data = {
+    const params = {
       product_id: getSelectProductId(),
       order_mode: "takeaway",
-      outlet_id: takeawayData.outlet.id,
-      delivery_time: takeawayData.time,
+      outlet_id: takeawayData.outlet,
+      takeaway_time: takeawayData.time,
+      takeaway_date: takeawayData.date,
     };
-    /**
-     * Todo list:
-     * 1. Handle Submit Data
-     * 2. Send message
-     */
+    
+    const response = await webApi.addToCart(params);
+
+    if (!response?.data || response.data.status !== 'success') {
+      showAlert('error', "Failed!", "Can not add product. Please try again!");
+      return false;
+    }
+
+    showAlert('success', "Success", "Product added to cart.");
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000);
   };
 
   return (

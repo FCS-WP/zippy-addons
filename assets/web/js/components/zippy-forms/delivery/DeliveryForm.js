@@ -6,6 +6,8 @@ import { toast } from "react-toastify";
 import FormHeading from "../FormHeading";
 import theme from "../../../../theme/customTheme";
 import { getSelectProductId, triggerCloseLightbox } from "../../../helper/booking";
+import { webApi } from "../../../api";
+import { showAlert } from "../../../helper/showAlert";
 
 const DeliveryForm = ({ onChangeMode }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -19,37 +21,35 @@ const DeliveryForm = ({ onChangeMode }) => {
     setDeliveryData(data);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!deliveryData || !selectedLocation) {
-      Swal.fire({
-        title: "Failed!",
-        text: "Please fill all required field!",
-        icon: "error",
-        timer: 3000,
-        showConfirmButton: false,
-        timerProgressBar: true,
-      });
+      showAlert('error', "Failed!", "Please fill all required field!");
       return;
     }
 
-    const data = {
+    const params = {
       product_id: getSelectProductId(),
       order_mode: "delivery",
-      delivery_address: (selectedLocation.LATITUDE + "," + selectedLocation.LONGITUDE),
-      outlet_id: deliveryData.outlet.id,
+      delivery_address: {
+        lat: selectedLocation.LATITUDE,
+        lng: selectedLocation.LONGITUDE
+      },
+      outlet_id: deliveryData.outlet,
       delivery_date: deliveryData.date,
       delivery_time: deliveryData.time,
     };
 
-    Swal.fire({
-      title: "Success",
-      icon: "success",
-      timer: 3000,
-      showConfirmButton: false,
-      timerProgressBar: true,
-    });
+    const response = await webApi.addToCart(params);
 
-    triggerCloseLightbox();
+    if (!response?.data || response.data.status !== 'success') {
+      showAlert('error', "Failed!", "Can not add product. Please try again!");
+      return false;
+    }
+
+    showAlert('success', "Success", "Product added to cart.");
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000);
   };
 
   return (

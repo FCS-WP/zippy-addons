@@ -83,16 +83,15 @@ const OutletSelect = ({
 
   const handleDistance = async () => {
     try {
-      const startPoint =
-        selectedLocation.LATITUDE + "," + selectedLocation.LONGITUDE;
-      const endPoint =
-        selectedOutlet.outlet_address.coordinates.lat +
-        "," +
-        selectedOutlet.outlet_address.coordinates.lng;
-
       const params = {
-        start: startPoint,
-        end: endPoint,
+        from: {
+          lat: selectedOutlet.outlet_address.coordinates.lat,
+          lng: selectedOutlet.outlet_address.coordinates.lng,
+        },
+        to: {
+          lat: selectedLocation.LATITUDE,
+          lng: selectedLocation.LONGITUDE,
+        }
       };
 
       const { data: response } = await webApi.searchRoute(params);

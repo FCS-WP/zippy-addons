@@ -56,7 +56,7 @@ const LocationSearch = ({ onSelectLocation }) => {
   };
 
   const handleSearchLocation = async (searchQuery) => {
-    const params = { postal_code: searchQuery};
+    const params = { keyword: searchQuery};
     setIsLoading(true);
     const { data } = await webApi.searchLocation(params);
     setIsLoading(false);
