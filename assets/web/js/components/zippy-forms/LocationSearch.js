@@ -100,6 +100,7 @@ const LocationSearch = ({ onSelectLocation }) => {
           onChange={handleChangeInput}
           size="md"
           id="input-with-icon-adornment"
+          placeholder="SELECT YOUR ADDRESS"
           startAdornment={
             <InputAdornment position="start" sx={{ paddingLeft: "11px" }}>
               <LocationOnIcon sx={{ color: "#ec7265" }} />
