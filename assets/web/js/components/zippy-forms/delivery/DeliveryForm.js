@@ -1,58 +1,92 @@
-import { Box, Button, Grid2, Input, TextField, Typography } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
+import { Box, Button, Typography } from "@mui/material";
+import LocationSearch from "../LocationSearch";
+import OutletSelect from "../OutletSelect";
+import { toast } from "react-toastify";
+import FormHeading from "../FormHeading";
+import theme from "../../../../theme/customTheme";
+import { getSelectProductId, triggerCloseLightbox } from "../../../helper/booking";
+import { webApi } from "../../../api";
+import { showAlert } from "../../../helper/showAlert";
 
-const DeliveryForm = () => {
+const DeliveryForm = ({ onChangeMode }) => {
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [deliveryData, setDeliveryData] = useState(null);
+
+  const handleSelectLocation = (location) => {
+    setSelectedLocation(location);
+  };
+
+  const handleDeliveryData = (data) => {
+    setDeliveryData(data);
+  };
+
+  const handleConfirm = async () => {
+    if (!deliveryData || !selectedLocation) {
+      showAlert('error', "Failed!", "Please fill all required field!");
+      return;
+    }
+
+    const params = {
+      product_id: getSelectProductId(),
+      order_mode: "delivery",
+      delivery_address: {
+        lat: selectedLocation.LATITUDE,
+        lng: selectedLocation.LONGITUDE
+      },
+      outlet_id: deliveryData.outlet,
+      delivery_date: deliveryData.date,
+      delivery_time: deliveryData.time,
+    };
+
+    const response = await webApi.addToCart(params);
+
+    if (!response?.data || response.data.status !== 'success') {
+      showAlert('error', "Failed!", "Can not add product. Please try again!");
+      return false;
+    }
+
+    showAlert('success', "Success", "Product added to cart.");
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000);
+  };
+
   return (
     <Box>
-      <Box className="method_shipping_popup">
-        <Grid2 className="method_shipping_popup_section row_title_form">
-          <Grid2 className="method_shipping_popup_back">
-            <Button>Back</Button>
-          </Grid2>
-          <Grid2 className="method_shipping_popup_title">
-            <Typography variant="h2" fontSize={20} fontWeight={600}>Delivery Details</Typography>
-          </Grid2>
-          <Grid2 className="method_shipping_popup_exit">
-            <Button>Exit</Button>
-          </Grid2>
-        </Grid2>
+      <FormHeading
+        onBack={() => onChangeMode("select-method")}
+        title={"Delivery Details"}
+      />
 
-        <Box className="content_form_popup">
-          <Box className="method_shipping_popup_section">
-            <Typography>Delivery To</Typography>
-            <TextField
-              className="form-control"
-              name="input_address_1"
-              placeholder="Key in your address/postal code to proceed"
-              id="input-adress"
-              autocomplete="nope"
-            />
-          </Box>
-
-          <div className="method_shipping_popup_section">
-            <label>Select an Outlet</label>
-            <select name="selectOutlet" id="selectOutlet">
-              <option value="JI XIANG ANG KU KUEH PTE LTD (Block1  Everton Park, 01-33)">
-                JI XIANG ANG KU KUEH PTE LTD (Block1 Everton Park, 01-33)
-              </option>
-            </select>
-          </div>
-          <div className="method_shipping_popup_section">
-            {/* <?php echo do_shortcode('[pickup_date_calander]'); ?> */}
-          </div>
-          <div className="method_shipping_popup_section">
-            <label>Select Delivery Time</label>
-            <select name="selectTakeAwayTime" id="selectTakeAwayTime">
-              <option value="11:00 AM to 12:00 PM">11:00 AM to 12:00 PM</option>
-              <option value="12:00 PM to 1:00 PM">12:00 PM to 1:00 PM</option>
-              <option value="1:00 PM to 2:00 PM">1:00 PM to 2:00 PM</option>
-              <option value="2:00 PM to 3:00 PM">2:00 PM to 3:00 PM</option>
-            </select>
-          </div>
+      <Box p={2}>
+        <Box>
+          <h5>
+            Delivery to: <span style={{ color: "red" }}>(*)</span>
+          </h5>
+          <LocationSearch onSelectLocation={handleSelectLocation} />
         </Box>
-        <div className="method_shipping_popup_section">
-          <button className="button_action_confirm">Confirm</button>
-        </div>
+        <Box>
+          <OutletSelect
+            onChangeData={handleDeliveryData}
+            selectedLocation={selectedLocation}
+          />
+        </Box>
+      </Box>
+
+      <Box p={2}>
+        <Button
+          fullWidth
+          sx={{
+            paddingY: "10px",
+            background: theme.palette.primary.main,
+            color: "#fff",
+            fontWeight: "600",
+          }}
+          onClick={handleConfirm}
+        >
+          Confirm
+        </Button>
       </Box>
     </Box>
   );

@@ -1,10 +1,10 @@
 .date-box {
     .react-datepicker {
         width: 100%;
-        border-radius: 0;
+        border-radius: 5px;
 
         .react-datepicker__navigation {
-            margin-top: 20px;
+            margin-top: 10px;
 
             &:hover {
                 background: $primary;
@@ -16,7 +16,6 @@
 
             .react-datepicker__header {
                 background: $white;
-                padding-top: 20px;
             }
 
             .react-datepicker__day-name,
@@ -29,6 +28,12 @@
                 line-height: 3rem;
             }
 
+            @media (max-width: 728px) {
+                .react-datepicker__day {
+                    line-height: 2rem;
+                }
+            }
+
             .react-datepicker__day--selected {
                 background-color: $primary;
                 font-weight: 600;
@@ -36,7 +41,9 @@
         }
 
         .react-datepicker__day--keyboard-selected {
-            background: #ececec;
+            background: $primary;
+            color: #fff;
+            font-weight: 600;
 
             &:hover {
                 background-color: $primary;
@@ -57,7 +64,7 @@
 }
 
 .react-datepicker__navigation-icon--next::before {
-    top: 0;
+    top: 11px;
     left: auto;
 }
 
@@ -66,7 +73,7 @@
 }
 
 .react-datepicker__navigation-icon--previous::before {
-    top: 0;
+    top: 11px;
     right: auto;
 }
 

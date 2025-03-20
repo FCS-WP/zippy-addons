@@ -1,23 +1,26 @@
 import { parse, format, addMinutes, isBefore, getDay, isAfter } from "date-fns";
+import { toast } from "react-toastify";
 export const generateTimeSlots = (startTime, endTime, gapTime) => {
   const timeSlots = [];
+  try {
+    let current = new Date(`1970-01-01T${startTime}`);
+    const end = new Date(`1970-01-01T${endTime}`);
+    while (current < end) {
+      const slotStart = new Date(current);
+      const slotEnd = new Date(current);
+      slotEnd.setMinutes(slotEnd.getMinutes() + parseInt(gapTime));
 
-  let current = new Date(`1970-01-01T${startTime}`);
-  const end = new Date(`1970-01-01T${endTime}`);
+      if (slotEnd > end) break;
 
-  while (current < end) {
-    const slotStart = new Date(current);
-    const slotEnd = new Date(current);
-    slotEnd.setMinutes(slotEnd.getMinutes() + parseInt(gapTime));
+      timeSlots.push({
+        from: format(slotStart, "HH:mm"),
+        to: format(slotEnd, "HH:mm"),
+      });
 
-    if (slotEnd > end) break;
-
-    timeSlots.push({
-      start: format(slotStart, "HH:mm"),
-      end: format(slotEnd, "HH:mm"),
-    });
-
-    current.setMinutes(current.getMinutes() + parseInt(gapTime));
+      current.setMinutes(current.getMinutes() + parseInt(gapTime));
+    }
+  } catch (error) {
+    toast.error("Generate time slots failed");
   }
   return timeSlots;
 };
@@ -218,3 +221,11 @@ export const getCustomDayOfWeek = (date) => {
   const inputDate = new Date(date);
   return inputDate.getDay();
 };
+
+export const isWeekend = (date) => {
+  const checkDate = new Date(date);
+  if (checkDate.getDay() === 0 || checkDate.getDay() === 6) {
+    return true;
+  }
+  return false;
+}

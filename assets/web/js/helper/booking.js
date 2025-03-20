@@ -16,3 +16,13 @@ export const getBookingsByDate = async (booking_id, date, status = []) => {
   }
   return res.data.data.bookings;
 };
+
+export const getSelectProductId = () => {
+  const zippyForm = document.getElementById("lightbox-zippy-form");
+  const productId = zippyForm.getAttribute("data-product_id");
+  return productId;
+};
+
+export const triggerCloseLightbox = () => {
+  document.querySelector(".mfp-close").click();
+}

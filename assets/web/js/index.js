@@ -1,23 +1,20 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
-import { DeliveryForm, TakeAwayForm } from "./components/zippy-forms";
-
-import "./calendar/old_calendar";
+import ReactDOM from "react-dom/client";import "./calendar/old_calendar";
+import theme from "../theme/customTheme";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { ToastContainer } from "react-toastify";
+import OrderForm from "./components/zippy-forms/OrderForm";
 
 document.addEventListener("DOMContentLoaded", function () {
-  const zippyMain = document.getElementById("zippy-delivery-form");
+  const zippyMain = document.getElementById("zippy-form");
 
   if (typeof zippyMain != "undefined" && zippyMain != null) {
     const root = ReactDOM.createRoot(zippyMain);
-    root.render(<DeliveryForm />);
-  }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const zippyMain = document.getElementById("zippy-takeaway-form");
-
-  if (typeof zippyMain != "undefined" && zippyMain != null) {
-    const root = ReactDOM.createRoot(zippyMain);
-    root.render(<TakeAwayForm />);
+    root.render(      
+    <ThemeProvider theme={theme}>
+      <CssBaseline /> 
+      <OrderForm />
+      <ToastContainer />
+    </ThemeProvider>);
   }
 });

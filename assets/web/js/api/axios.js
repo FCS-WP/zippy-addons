@@ -13,7 +13,7 @@ export const makeRequest = async (
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const config = {
-    url: "zippy-booking/v1" + endpoint,
+    url: "zippy-addons/v1" + endpoint,
     params: params,
     method: method,
     headers: headers,
@@ -99,6 +99,40 @@ export const makeLocalRequest = async (
     let res = null;
 
     res = await api.request(config);
+    const data = res.data;
+    return { data };
+  } catch {
+    (error) => {
+      if (!error?.response) {
+        console.error("❗Error", error.message);
+        return { ...error, catchedError: error };
+      }
+
+      console.error(error.response.statusText);
+      return error;
+    };
+  }
+};
+
+// Onemap Request 
+export const makeOneMapRequest = async (
+  endpoint,
+  params = {},
+  method = "GET",
+  token = ""
+) => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const config = {
+    url: "https://www.onemap.gov.sg/api" + endpoint,
+    params: params,
+    method: method,
+    headers: headers,
+  };
+  try {
+    let res = null;
+
+    res = await axios.request(config);
     const data = res.data;
     return { data };
   } catch {
