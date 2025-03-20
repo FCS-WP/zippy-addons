@@ -14,6 +14,7 @@ use Zippy_Booking\Utils\Zippy_Utils_Core;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_booking\Src\App\Models\Zippy_Log_Action;
+use Zippy_Booking\Src\Services\One_Map_Api;
 
 defined('ABSPATH') or die();
 
@@ -21,194 +22,153 @@ defined('ABSPATH') or die();
 
 class Zippy_Admin_Booking_Product_Controller
 {
-    public static function get_products_or_categories(WP_REST_Request $request)
-    {
-        try {
-            // Rules
-            $required_fields = [
-                "keyword" => ["required" => true, "data_type" => "string"],
-                "type" => ["required" => true, "data_type" => "range", "allowed_values" => ["product", "category"]],
-            ];
-            
-            // Validate Request Fields
-            $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-            if(!empty($validate)){
-                return Zippy_Response_Handler::error($validate);
-            }
+    public static function add_product_and_shipping_info_to_card(WP_REST_Request $request)
+    {   
 
-            $type = sanitize_text_field($request["type"]);
-            $keyword = sanitize_text_field($request["keyword"]);
-            $product = null;
-            
-            $limit = 10;
-
-            global $wpdb;
-
-            $response = [];
-
-            if($type == "product"){
-                // Product    
-                $sql = "
-                    SELECT p.ID, p.post_title, pm.meta_value as sku 
-                    FROM {$wpdb->posts} p
-                    LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_sku'
-                    WHERE p.post_type = 'product' 
-                    AND p.post_status = 'publish'
-                    AND (p.ID = %d OR pm.meta_value LIKE %s OR p.post_title LIKE %s)
-                    LIMIT %d
-                ";
-            
-                $results = $wpdb->get_results($wpdb->prepare(
-                    $sql,
-                    $keyword,
-                    '%' . $wpdb->esc_like($keyword) . '%',
-                    '%' . $wpdb->esc_like($keyword) . '%',
-                    $limit
-                ));
-            
-            
-                if (!empty($results)) {
-                    foreach ($results as $result) {
-                        $product = wc_get_product($result->ID);
-                        if ($product) {
-                            $response[] = [
-                                'id' => $product->get_id(),
-                                'name' => $product->get_name(),
-                                'regular_price' => $product->get_meta('_regular_price'),
-                                'sale_price' => $product->get_meta('_sale_price'),
-                                'extra_price' => $product->get_meta('_extra_price')
-                            ];
-                        }
-                    }
-                }
-                
-            } else {
-                // Category
-                $sql = "
-                    SELECT t.term_id, t.name, t.slug
-                    FROM {$wpdb->terms} t
-                    INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
-                    WHERE tt.taxonomy = 'product_cat'
-                    AND (t.term_id = %d OR t.slug LIKE %s OR t.name LIKE %s)
-                    LIMIT %d
-                ";
-
-                $results = $wpdb->get_results($wpdb->prepare(
-                    $sql,
-                    $keyword,
-                    '%' . $wpdb->esc_like($keyword) . '%',
-                    '%' . $wpdb->esc_like($keyword) . '%',
-                    $limit
-                ));
-
-                if (!empty($results)) {
-                    foreach ($results as $result) {
-                        $response[] = [
-                            'id' => $result->term_id,
-                            'name' => $result->name,
-                        ];
-                    }
-                }
-            }
-
-            // return results
-            $message = empty($response) ?  ZIPPY_BOOKING_NOT_FOUND : ZIPPY_BOOKING_SUCCESS;
-            return Zippy_Response_Handler::success($response, $message);
-
-        } catch (Exception $e) {
-            return Zippy_Response_Handler::error($e->getMessage());
-        }
-    }
-
-
-    public static function check_product_mapping (WP_REST_Request $request){
-        
         $required_fields = [
-            "product_id" => ["required" => true, "data_type" => "number"],
+            "product_id" => ["required" => true, "data_type" => "string"],
+            "order_mode" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
+            "outlet_id" => ["required" => true, "data_type" => "string"],
         ];
 
-        // Validate Request Fields
+        $order_mode = strtolower($request["order_mode"]);
+
+        if($order_mode == "delivery"){
+            $required_fields["delivery_address"] = ["required" => true];
+            $required_fields["delivery_date"] = ["required" => true, "data_type" => "string"];
+            $required_fields["delivery_time"] = ["required" => true];
+        } else {
+            $required_fields["takeaway_time"] = ["required" => true];
+            $required_fields["takeaway_date"] = ["required" => true, "data_type" => "string"];
+        }
+
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if(!empty($validate)){
+        if (!empty($validate)) {
             return Zippy_Response_Handler::error($validate);
         }
 
-        // check if product exist or not
-        $product_id = intval($request["product_id"]);
 
-
-        //message
-        $not_support_message = "This product is NOT use for booking";
-        $support_message = "This product is use for booking";
-        
-
-        $log_data = [
-            "product_id" => $product_id,
+        $stored_fields = [
+            "product_id",
+            "quantity",
+            "order_mode",
         ];
-
-        $product = wc_get_product($product_id);
-        
-        // product not exist
-        if(empty($product)){
-            return Zippy_Response_Handler::error(ZIPPY_BOOKING_NOT_FOUND);
-        }
-
 
         try {
             global $wpdb;
-            $table_name = ZIPPY_BOOKING_PRODUCT_MAPPING_TABLE_NAME;
+            $table_name = OUTLET_CONFIG_TABLE_NAME;
 
-            // check if product is mapped or not
-            $query = "SELECT * FROM $table_name WHERE items_id=$product_id AND mapping_type='product'";
-            $results = $wpdb->get_results($query);
+            // check outlet exist
+            $outlet_id = $request['outlet_id'];
+            $query = "SELECT id,outlet_name,outlet_address FROM $table_name WHERE id ='" . $outlet_id . "'";
+            $outlet = $wpdb->get_results($query);
 
-            $response_data = [
-                "product_id" => $product_id,
-                "booking" => false,
-            ];
+            if(count($outlet) < 1){
+                return Zippy_Response_Handler::error("Outlet not exist!");
+            }
 
-            if(!empty($results)){
-                foreach ($results as $res) {
-                    $mapping_status = $res->mapping_status;
+            $outlet_address = $outlet[0]->outlet_address;
+            $outlet_address = maybe_unserialize($outlet_address);
+            $outlet_address_lat = $outlet_address["coordinates"]["lat"] ?? null;
+            $outlet_address_lng = $outlet_address["coordinates"]["lng"] ?? null;
+            if(empty($outlet_address_lat) || empty($outlet_address_lng)){
+                return Zippy_Response_Handler::error("This Outlet does not have address yet!");
+            }
 
-                    if($mapping_status == "exclude"){
-                        Zippy_Log_Action::log('check_product_mapping', json_encode($log_data), 'Success', $not_support_message);
-                        return Zippy_Response_Handler::success($response_data, $not_support_message);
-                    } else if($mapping_status == "include"){
-                        $response_data['regular_price'] = get_post_meta($product_id, '_regular_price', true);
-                        $response_data['sale_price'] = get_post_meta($product_id, '_sale_price', true);
-                        $response_data['extra_price'] = get_post_meta($product_id, '_extra_price', true);
-                        $response_data['booking'] = true;
-                        
-                        Zippy_Log_Action::log('check_product_mapping', json_encode($log_data), 'Success', $support_message);
-                        return Zippy_Response_Handler::success($response_data, $support_message);
+            array_push($stored_fields, "outlet_name");
+
+
+            // Check for product exist
+            $product_id = $request["product_id"];
+
+            $_product = wc_get_product($product_id);
+            
+            if(!$_product){
+                return Zippy_Response_Handler::error("Product not exist!");
+            }
+
+            $store_datas = [];
+
+            if($order_mode == "delivery"){
+
+                // delivery fields
+                $fields = [
+                    "delivery_date",
+                    "delivery_time",
+                    "total_distance",
+                    "shipping_fee",
+                ];
+
+                foreach ($fields as $field) {
+                    array_push($stored_fields, $field);
+                }
+
+
+                // Call Api to get distance between outlet and delivery address
+                $param = [
+                    "start" => $outlet_address["coordinates"]["lat"] . "," . $outlet_address["coordinates"]["lng"] ,
+                    "end" => $request["delivery_address"]["lat"] . "," . $request["delivery_address"]["lng"],
+                    "routeType" => "drive",
+                    "mode" => "TRANSIT",
+                ];
+
+                $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
+
+                if(isset($api["error"])){
+                    return Zippy_Response_Handler::error($api["error"]);
+                }
+
+                $total_distance = $api["route_summary"]["total_distance"];
+
+
+                // Get Shipping Config
+                $shipping_fee_config = get_option(SHIPPING_CONFIG_META_KEY);
+                if(empty($shipping_fee_config)){
+                    return Zippy_Response_Handler::error("Missing Config for Shipping Fee");
+                }
+
+                $shipping_fee_data = maybe_unserialize($shipping_fee_config)["shipping_fee"];
+
+                // Calculate shipping fee
+                $shipping_fee = "";
+                foreach ($shipping_fee_data as $data) {
+                    if($total_distance > $data["from"] && $total_distance <= $data["to"]){
+                        $shipping_fee = $data["value"];
                     }
+                }
+                $store_datas["shipping_fee"] = $shipping_fee;
+                $store_datas["total_distance"] = $total_distance;
+            } else {
+                // Takeaway fields
+                $fields = [
+                    "takeaway_date",
+                    "takeaway_time",
+                ];
+
+                foreach ($fields as $field) {
+                    array_push($stored_fields, $field);
                 }
             }
 
-            // check if product is belong to mapped category or not
-            $product_cats_ids = wc_get_product_term_ids( $product_id, 'product_cat' );
-            if(!empty($product_cats_ids)){
-                foreach ($product_cats_ids as $cate_id) {   
-                    $query = "SELECT * FROM $table_name WHERE items_id=$cate_id AND mapping_type='category' AND mapping_status='include'";
-                    $results = $wpdb->get_results($query);
-                    // return if found
-                    if(!empty($results)){
-                        $response_data['regular_price'] = get_post_meta($product_id, '_regular_price', true);
-                        $response_data['sale_price'] = get_post_meta($product_id, '_sale_price', true);
-                        $response_data['extra_price'] = get_post_meta($product_id, '_extra_price', true);
-                        $response_data['booking'] = true;
-                        Zippy_Log_Action::log('check_product_mapping', json_encode($log_data), 'Success', $support_message);
-                        return Zippy_Response_Handler::success($response_data, $support_message);
-                    }
+
+            // Parse data
+            foreach ($stored_fields as $value) {
+                if(!empty($request[$value])) {
+                    $store_datas[$value] = $request[$value];
                 }
             }
-            Zippy_Log_Action::log('check_product_mapping', json_encode($log_data), 'Success', $not_support_message);
-            return Zippy_Response_Handler::success($response_data, $not_support_message);
+
+            $store_datas["outlet_name"] = $outlet[0]->outlet_name;
+
+            // Store data to Session
+            foreach ($store_datas as $key => $value) {
+                $_SESSION[$key] = $value;
+            }
+            
+            return Zippy_Response_Handler::success($store_datas, "Product added to cart");
         } catch (\Throwable $th) {
             $message = $th->getMessage();
-            Zippy_Log_Action::log('check_product_mapping', json_encode($log_data), 'Failure', $message);
-            return Zippy_Response_Handler::error($th->getMessage());
+            Zippy_Log_Action::log('calculate_shipping_fee', json_encode($request), 'Failure', $message);
         }
     }
 }

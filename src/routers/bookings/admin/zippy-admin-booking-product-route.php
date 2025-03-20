@@ -19,9 +19,9 @@ class Zippy_Admin_Booking_Product_Route extends Zippy_Booking_Router
     public function zippy_booking_init_product_api()
     {
         /* GET product/category */
-        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/prodegories', array(
-            'methods' => 'GET',
-            'callback' => array(Zippy_Admin_Booking_Product_Controller::class, 'get_products_or_categories'),
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/add-to-cart', array(
+            'methods' => 'POST',
+            'callback' => array(Zippy_Admin_Booking_Product_Controller::class, 'add_product_and_shipping_info_to_card'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
 
