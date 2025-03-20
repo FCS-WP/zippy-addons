@@ -172,12 +172,18 @@ const OutletSelect = ({
           size="small"
           value={selectedOutlet}
           onChange={handleChangeOutlet}
+          displayEmpty
           startAdornment={
             <InputAdornment position="start" sx={{ paddingLeft: "11px" }}>
               <StoreIcon sx={{ color: "#ec7265" }} />
             </InputAdornment>
           }
         >
+          <MenuItem value={""} disabled>
+              <Typography sx={{ textWrap: "wrap" }} color="#ccc" fontSize={14}>
+                SELECT AN OUTLET
+              </Typography>
+            </MenuItem>
           {/* Multi outlets */}
           {outlets.length > 0 &&
             outlets.map((outlet, index) => (
@@ -215,14 +221,15 @@ const OutletSelect = ({
               size="small"
               value={selectedTime}
               onChange={handleChangeTime}
+              displayEmpty
               startAdornment={
                 <InputAdornment position="start" sx={{ paddingLeft: "11px" }}>
                   <WatchLaterIcon sx={{ color: "#ec7265" }} />
                 </InputAdornment>
               }
             >
-              <MenuItem value="">
-                <Typography fontSize={14}>None</Typography>
+              <MenuItem value="" disabled>
+                <Typography fontSize={14} color="#ccc">SELECT TIME</Typography>
               </MenuItem>
               {times &&
                 times.map((time, index) => (

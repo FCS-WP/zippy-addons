@@ -31,6 +31,7 @@ const DeliveryForm = ({ onChangeMode }) => {
       product_id: getSelectProductId(),
       order_mode: "delivery",
       delivery_address: {
+        address_name: selectedLocation.ADDRESS,
         lat: selectedLocation.LATITUDE,
         lng: selectedLocation.LONGITUDE
       },
