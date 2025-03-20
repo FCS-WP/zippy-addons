@@ -69,6 +69,7 @@ class Zippy_Admin_Booking_Product_Controller
 
             $outlet_address = $outlet[0]->outlet_address;
             $outlet_address = maybe_unserialize($outlet_address);
+            $outlet_address_name = $outlet_address["address"] ?? null;
             $outlet_address_lat = $outlet_address["coordinates"]["lat"] ?? null;
             $outlet_address_lng = $outlet_address["coordinates"]["lng"] ?? null;
             if(empty($outlet_address_lat) || empty($outlet_address_lng)){
@@ -97,6 +98,7 @@ class Zippy_Admin_Booking_Product_Controller
                     "delivery_time",
                     "total_distance",
                     "shipping_fee",
+                    "address_name",
                 ];
 
                 foreach ($fields as $field) {
@@ -139,12 +141,13 @@ class Zippy_Admin_Booking_Product_Controller
                 $store_datas["shipping_fee"] = $shipping_fee;
                 $store_datas["total_distance"] = $total_distance;
             } else {
+
                 // Takeaway fields
                 $fields = [
                     "takeaway_date",
                     "takeaway_time",
                 ];
-
+                
                 foreach ($fields as $field) {
                     array_push($stored_fields, $field);
                 }
@@ -157,8 +160,10 @@ class Zippy_Admin_Booking_Product_Controller
                     $store_datas[$value] = $request[$value];
                 }
             }
-
+            
+            $store_datas["delivery_address"] = $request["delivery_address"]["address_name"] ?? null;
             $store_datas["outlet_name"] = $outlet[0]->outlet_name;
+            $store_datas["outlet_address"] = $outlet_address_name;
 
             // Store data to Session
             foreach ($store_datas as $key => $value) {
