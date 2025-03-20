@@ -30,8 +30,8 @@ const TakeAwayForm = ({ onChangeMode }) => {
       product_id: getSelectProductId(),
       order_mode: "takeaway",
       outlet_id: takeawayData.outlet,
-      takeaway_time: takeawayData.time,
-      takeaway_date: takeawayData.date,
+      time: takeawayData.time,
+      date: takeawayData.date,
     };
     
     const response = await webApi.addToCart(params);
