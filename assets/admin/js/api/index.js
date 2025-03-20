@@ -10,7 +10,7 @@ export const Api = {
     return await makeRequest("/configs", params, "PUT");
   },
   async getSettings(params) {
-    return await makeRequest("/configs", params, "GET");
+    return await makeRequest("/store-config", params, "GET");
   },
   async searchByKeyword(params) {
     return await makeRequest("/prodegories", params);
@@ -57,5 +57,8 @@ export const Api = {
   },
   async deleteStore(params) {
     return await makeRequest("/stores", params, "DELETE");
+  },
+  async addStoreConfig(params) {
+    return await makeRequest("/store-config", params, "POST");
   },
 };

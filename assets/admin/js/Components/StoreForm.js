@@ -19,6 +19,7 @@ const StoreForm = ({ onAddStore, loading }) => {
     address: "",
     latitude: "",
     longitude: "",
+    phone: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -30,6 +31,7 @@ const StoreForm = ({ onAddStore, loading }) => {
     if (!store.store_name) tempErrors.store_name = "Name is required";
     if (!store.postal_code) tempErrors.postal_code = "Postal code is required";
     if (!store.address) tempErrors.address = "Address is required";
+    if (!store.phone) tempErrors.phone = "Phone number is required";
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -84,8 +86,24 @@ const StoreForm = ({ onAddStore, loading }) => {
 
   const handleSubmit = async () => {
     if (validate()) {
+      const requestData = {
+        request: {
+          display: "T",
+          outlet_name: store.store_name,
+          outlet_phone: store.phone,
+          outlet_address: {
+            postal_code: store.postal_code,
+            address: store.address,
+            coordinates: {
+              lat: store.latitude,
+              lng: store.longitude,
+            },
+          },
+        },
+      };
+
       try {
-        const response = await Api.addStore(store);
+        const response = await Api.addStore(requestData);
 
         if (response.data.status === "success") {
           toast.success("Store created successfully!");
@@ -97,6 +115,7 @@ const StoreForm = ({ onAddStore, loading }) => {
             address: "",
             latitude: "",
             longitude: "",
+            phone: "",
           });
 
           setAddressOptions([]);
@@ -124,6 +143,18 @@ const StoreForm = ({ onAddStore, loading }) => {
           onChange={handleChange}
           error={!!errors.store_name}
           helperText={errors.store_name}
+          fullWidth
+        />
+      </Box>
+
+      <Box mb={2}>
+        <Typography>Phone Number</Typography>
+        <TextField
+          name="phone"
+          value={store.phone}
+          onChange={handleChange}
+          error={!!errors.phone}
+          helperText={errors.phone}
           fullWidth
         />
       </Box>

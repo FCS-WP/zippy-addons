@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Table,
@@ -13,7 +13,6 @@ import {
   Typography,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { Api } from "../../api";
 import StoreForm from "../../Components/StoreForm";
 import FormEdit from "../../Components/FormEdit";
@@ -22,17 +21,19 @@ const Store = () => {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editStore, setEditStore] = useState(null);
+  const lastFetchedStoreId = useRef(null);
 
   useEffect(() => {
-    editStore ? fetchStoreDetails(editStore.store_id) : fetchStores();
-  }, [editStore]);
+    fetchStores();
+  }, []);
 
   const fetchStores = async () => {
     setLoading(true);
     try {
       const response = await Api.getStore();
       if (response.data.status === "success") {
-        setStores(response.data.data.data);
+        const storeList = response.data.data;
+        setStores(Array.isArray(storeList) ? storeList : [storeList]);
       } else {
         toast.error("Failed to fetch stores");
       }
@@ -41,45 +42,27 @@ const Store = () => {
     } finally {
       setLoading(false);
     }
-  };const fetchStoreDetails = async (storeId) => {
-    setLoading(true);
-    try {
-      const response = await Api.getStore({ store_id: storeId });
-      if (response.data.status === "success") {
-        const newStoreData = response.data.data.data || response.data.data;
-
-        setEditStore((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(newStoreData)
-            ? newStoreData
-            : prev
-        );
-      } else {
-        console.error("Invalid store data:", response);
-        setEditStore(null);
-        toast.error("Invalid store data");
-      }
-    } catch (error) {
-      console.error("Error fetching store details:", error);
-      setEditStore(null);
-      toast.error("Error fetching store details");
-    } finally {
-      setLoading(false);
-    }
   };
 
-  const handleEditClick = (store) => setEditStore(store);
-  const handleCloseEditModal = () => setEditStore(null);
+  const handleEditClick = (store) => {
+    setEditStore(store);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditStore(null);
+    lastFetchedStoreId.current = null;
+  };
 
   const handleDeleteClick = async (storeId) => {
     if (!window.confirm("Are you sure you want to delete this store?")) return;
 
     setLoading(true);
     try {
-      const response = await Api.deleteStore({ store_id: storeId });
+      const response = await Api.deleteStore({ outlet_id: storeId });
 
       if (response.data.status === "success") {
         setStores((prevStores) =>
-          prevStores.filter((store) => store.store_id !== storeId)
+          prevStores.filter((store) => store.id !== storeId)
         );
         toast.success("Store deleted successfully!");
       } else {
@@ -111,6 +94,9 @@ const Store = () => {
                     <strong>Name</strong>
                   </TableCell>
                   <TableCell>
+                    <strong>Phone</strong>
+                  </TableCell>
+                  <TableCell>
                     <strong>Postal Code</strong>
                   </TableCell>
                   <TableCell>
@@ -124,7 +110,7 @@ const Store = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
+                    <TableCell colSpan={7} align="center">
                       <Box
                         display="flex"
                         justifyContent="center"
@@ -138,9 +124,14 @@ const Store = () => {
                 ) : stores.length > 0 ? (
                   stores.map((s, index) => (
                     <TableRow key={index}>
-                      <TableCell>{s.store_name}</TableCell>
-                      <TableCell>{s.postal_code}</TableCell>
-                      <TableCell>{s.address}</TableCell>
+                      <TableCell>{s.outlet_name}</TableCell>
+                      <TableCell>{s.outlet_phone}</TableCell>
+                      <TableCell>
+                        {s.outlet_address?.postal_code || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        {s.outlet_address?.address || "N/A"}
+                      </TableCell>
                       <TableCell>
                         <Button
                           onClick={() => handleEditClick(s)}
@@ -153,7 +144,7 @@ const Store = () => {
                           Edit
                         </Button>
                         <Button
-                          onClick={() => handleDeleteClick(s.store_id)}
+                          onClick={() => handleDeleteClick(s.id)}
                           variant="contained"
                           color="error"
                           size="small"
@@ -166,7 +157,7 @@ const Store = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
+                    <TableCell colSpan={7} align="center">
                       No stores found.
                     </TableCell>
                   </TableRow>
