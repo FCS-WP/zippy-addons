@@ -146,12 +146,12 @@ if (!defined('ONEMAP_API_URL')) {
   define('ONEMAP_API_URL', 'https://www.onemap.gov.sg');
 }
 
-if (!defined('ONEMAP_ROUTING_ENDPOINT')) {
-  define('ONEMAP_ROUTING_ENDPOINT', '/api/public/routingsvc/route');
+if (!defined('ONEMAP_ACCESS_TOKEN_KEY')) {
+  define('ONEMAP_ACCESS_TOKEN_KEY', "onemap_access_token");
 }
 
-if (!defined('ONEMAP_API_KEY')) {
-  define('ONEMAP_API_KEY', "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkYmE4YzE3MTljMmIzZDMyZmFhYTA4ZDI1YzUzZDBmZCIsImlzcyI6Imh0dHA6Ly9pbnRlcm5hbC1hbGItb20tcHJkZXppdC1pdC1uZXctMTYzMzc5OTU0Mi5hcC1zb3V0aGVhc3QtMS5lbGIuYW1hem9uYXdzLmNvbS9hcGkvdjIvdXNlci9wYXNzd29yZCIsImlhdCI6MTc0MjUyMjgxNywiZXhwIjoxNzQyNzgyMDE3LCJuYmYiOjE3NDI1MjI4MTcsImp0aSI6IjBQRTc3c1I5WndRRzJkRnYiLCJ1c2VyX2lkIjo2MzI3LCJmb3JldmVyIjpmYWxzZX0.eCeCdiAeQCLOAcD9kxn7Vp0oIOfkF5FBLxcp3bwjCH0");
+if (!defined('ONEMAP_META_KEY')) {
+  define('ONEMAP_META_KEY', "one_map_credentials");
 }
 
 /* Default Timezone */
