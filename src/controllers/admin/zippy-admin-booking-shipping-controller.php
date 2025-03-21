@@ -19,7 +19,8 @@ class Zippy_Admin_Booking_Shipping_Controller
     {
 
         $required_fields = [
-            "request" => ["required" => true, "data_type" => "array"],
+            "config" => ["required" => true, "data_type" => "array"],
+            "minimum_shipping_fee" => ["required" => true, "data_type" => "number"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -27,7 +28,8 @@ class Zippy_Admin_Booking_Shipping_Controller
             return Zippy_Response_Handler::error($validate);
         }
 
-        $shipping_fee_config["shipping_fee"] = $request["request"];
+        $shipping_fee_config["shipping_fee"] = $request["config"];
+        $shipping_fee_config["minimum_shipping_fee"] = $request["minimum_shipping_fee"];
         $shipping_fee_config["updated_at"] = current_time("mysql");
 
         try {
