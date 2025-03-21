@@ -146,10 +146,6 @@ if (!defined('ONEMAP_API_URL')) {
   define('ONEMAP_API_URL', 'https://www.onemap.gov.sg');
 }
 
-if (!defined('ONEMAP_ROUTING_ENDPOINT')) {
-  define('ONEMAP_ROUTING_ENDPOINT', '/api/public/routingsvc/route');
-}
-
 if (!defined('ONEMAP_ACCESS_TOKEN_KEY')) {
   define('ONEMAP_ACCESS_TOKEN_KEY', "onemap_access_token");
 }

@@ -109,7 +109,7 @@ class Zippy_Admin_Booking_Product_Controller
                     "mode" => "TRANSIT",
                 ];
 
-                $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
+                $api = One_Map_Api::get("/api/public/routingsvc/route", $param);
 
                 if (isset($api["error"])) {
                     return Zippy_Response_Handler::error($api["error"]);

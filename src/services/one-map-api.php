@@ -96,6 +96,7 @@ class One_Map_Api
             $is_access_token_expired = true;
         }
 
+        // re-call API
         if($is_access_token_expired == true){
             self::call($method, $endpoint, $param);
         }
