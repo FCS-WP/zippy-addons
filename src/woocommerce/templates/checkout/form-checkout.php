@@ -83,9 +83,9 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 						<tr>
 							<th class="product-thumbnail">Image</th>
 							<th class="product-name">Product Name</th>
-							<th class="product-price">Price</th>
+							<th class="product-price_custom">Price</th>
 							<th class="product-quantity">Quantity</th>
-							<th class="product-subtotal">Total</th>
+							<th class="product-subtotal_custom">Total</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -111,7 +111,7 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 										</a>
 									</td>
 
-									<td class="product-price">
+									<td class="product-price_custom">
 										<?php echo wc_price( $_product->get_price() ); ?>
 									</td>
 
@@ -119,7 +119,7 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 										x <?php echo esc_html( $cart_item['quantity'] ); ?>
 									</td>
 
-									<td class="product-subtotal">
+									<td class="product-subtotal_custom">
 										<?php echo wc_price( $cart_item['line_total'] ); ?>
 									</td>
 								</tr>
@@ -136,10 +136,9 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 							<td><?php echo wc_price( $cart_subtotal ); ?></td>
 						</tr>
 						<tr>
-							<td colspan="4" class="text-right"><strong>Shipping Fee:</strong></td>
+							<td colspan="4" class="text-right"><strong><?php if($_SESSION['order_mode'] == 'takeaway'){echo 'Takeaway';}else{echo 'Delivery';}?> Fee:</strong></td>
 							<td><?php echo wc_price( $_SESSION['shipping_fee'] ); ?></td>
 						</tr>
-
 						<tr>
 							<td colspan="4" class="text-right"><strong>GST:</strong></td>
 							<td><?php echo wc_price( $gst ); ?></td>
