@@ -32,7 +32,7 @@ class Zippy_Admin_Booking_Location_Controller
                 "getAddrDetails" => "Y",
             ];
 
-            $api = One_Map_Api::call("GET", "/api/common/elastic/search", $param);
+            $api = One_Map_Api::get("/api/common/elastic/search", $param);
 
             if(isset($api["error"])){
                 return Zippy_Response_Handler::error($api["error"]);
@@ -87,7 +87,7 @@ class Zippy_Admin_Booking_Location_Controller
                 "mode" => "TRANSIT",
             ];
 
-            $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
+            $api = One_Map_Api::get("/api/public/routingsvc/route", $param);
 
             if(isset($api["error"])){
                 return Zippy_Response_Handler::error($api["error"]);

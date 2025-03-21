@@ -11,6 +11,7 @@ namespace Zippy_Booking\Src\Admin;
 defined('ABSPATH') or die();
 
 use Zippy_Booking\Utils\Zippy_Utils_Core;
+use Zippy_Booking\Src\Services\One_Map_Api;
 use  WC_Order_Item_Product;
 
 class Zippy_Admin_Settings
@@ -40,11 +41,13 @@ class Zippy_Admin_Settings
 
 
     /* Create Zippy API Token */
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'generate_zippy_booking_api_token'));
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_one_map_credentials'));
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_log_table'));
   
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_table'));
+
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'get_one_map_access_token'));
   }
 
   public function admin_booking_assets()
@@ -172,16 +175,16 @@ class Zippy_Admin_Settings
   }
 
 
-  function generate_zippy_booking_api_token()
+  function create_one_map_credentials()
   {
-    if (get_option(ZIPPY_BOOKING_API_TOKEN_NAME) == false) {
-      add_option(ZIPPY_BOOKING_API_TOKEN_NAME, ZIPPY_BOOKING_API_TOKEN);
-    }
-  }
-  function remove_zippy_booking_api_token()
-  {
-    if (get_option(ZIPPY_BOOKING_API_TOKEN_NAME) == true) {
-      delete_option(ZIPPY_BOOKING_API_TOKEN_NAME);
+    if (get_option(ONEMAP_META_KEY) == false) {
+
+      $credentials = [
+        "email" => "dev@zippy.sg",
+        "password" => Zippy_Utils_Core::encrypt_data_input("Zippy12345678@"),
+      ];
+
+      add_option(ONEMAP_META_KEY, Zippy_Utils_Core::encrypt_data_input(json_encode($credentials), true));
     }
   }
 
@@ -232,5 +235,25 @@ class Zippy_Admin_Settings
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
+  }
+
+
+  function get_one_map_access_token(){
+
+    $one_map_credentials = get_option(ONEMAP_META_KEY);
+    if(empty($one_map_credentials)){
+        return [
+            "status_message"=> "No credentials found",
+        ];
+    }
+    $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
+    $credentials = json_decode($credentials_json, true);
+
+    $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
+
+    $authen = One_Map_Api::authentication($credentials);
+    if(!empty($authen["access_token"])){
+      add_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
+    }
   }
 }
