@@ -18,7 +18,6 @@ const Item = styled(Paper)(({ theme, selected, disabled }) => ({
     ? theme.palette.primary.main
     : theme.palette.white.main,
   ...theme.typography.body2,
-  padding: theme.spacing(2),
   textAlign: "center",
   color: selected ? theme.palette.white.main : theme.palette.text.secondary,
   transition: "background-color 0.3s ease",
@@ -46,14 +45,19 @@ const DateBoxed = ({ date, selected, onClick, disabled }) => {
       selected={selected}
       disabled={disabled}
       onClick={!disabled ? () => onClick(date) : undefined}
+      sx={{ padding: { xs: 1, md: 2 } }}
     >
-      <Typography variant="body1" fontSize={14}>
+      <Typography variant="body1" fontSize={{ xs: 10, md: 14 }}>
         {dayOfWeek}
       </Typography>
-      <Typography variant="h4" fontSize={20} my={2}>
+      <Typography
+        variant="h4"
+        fontSize={{ xs: 14, md: 20 }}
+        my={{ xs: 1, md: 2 }}
+      >
         {day}
       </Typography>
-      <Typography variant="body1" fontSize={14}>
+      <Typography variant="body1" fontSize={{ xs: 10, md: 14 }}>
         {month}
       </Typography>
     </Item>
@@ -110,23 +114,52 @@ const OutletDate = ({ onChangeDate }) => {
 
   return (
     <Box>
-      <Box display={"flex"} justifyContent={"space-between"} alignItems={'center'} flexWrap={'wrap'} mb={1}>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+        flexWrap={"wrap"}
+      >
         <Box>
-        <h5>
-          Select date: <span style={{ color: 'red' }}>(*)</span> {selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
-        </h5>
+          <h5>
+            Select date: <span style={{ color: "red" }}>(*)</span>{" "}
+            {selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
+          </h5>
         </Box>
         <Button
-          sx={{ textWrap: "nowrap", textTransform: "capitalize" }}
+          sx={{
+            textWrap: "nowrap",
+            textTransform: "capitalize",
+            display: { xs: "none", md: "block" },
+          }}
           onClick={changeDateMode}
         >
           {mode === "boxed" ? "More Date" : "Less date"}
         </Button>
       </Box>
+      <Box textAlign={'end'} mb={1}>
+        <Typography
+          fontSize={12}
+          color="#525252"
+          sx={{
+            textWrap: "nowrap",
+            textTransform: "capitalize",
+            display: { xs: "block", md: "none" },
+            textDecoration: 'underline',
+          }}
+          onClick={changeDateMode}
+        >
+          {mode === "boxed" ? "More Date" : "Less date"}
+        </Typography>
+      </Box>
       {mode == "boxed" ? (
-        <Grid container justifyContent={"space-between"} spacing={2}>
+        <Grid
+          container
+          justifyContent={"space-between"}
+          spacing={{ xs: 1, sm: 2 }}
+        >
           {dates.map((date, index) => (
-            <Grid key={index} size={{ xs: 6, md: 2.4 }}>
+            <Grid key={index} size={2.4}>
               <DateBoxed
                 date={date}
                 selected={selectedDate?.toDateString() === date.toDateString()}
