@@ -16,6 +16,16 @@ class One_Map_Api
 {
     public static function call($method, $endpoint, $param)
     {   
+        static $interval = 0;
+
+        $interval++;
+
+        if ($interval > 5) {
+            return [
+                "status_message"=> "Unable to get access_token",
+            ];
+        }
+
         $is_access_token_expired = false;
 
         $url = ONEMAP_API_URL . $endpoint;
