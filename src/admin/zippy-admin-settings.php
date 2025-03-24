@@ -70,8 +70,11 @@ class Zippy_Admin_Settings
     // SubPage
     add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
     add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
-    add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
     add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
+    add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
+    add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
+
+   
   }
 
   function delete_booking_table()
@@ -118,6 +121,10 @@ class Zippy_Admin_Settings
   public function store_render()
   {
     echo Zippy_Utils_Core::get_template('booking-store.php', [], dirname(__FILE__), '/templates');
+  }
+  public function shipping_render()
+  {
+    echo Zippy_Utils_Core::get_template('shipping.php', [], dirname(__FILE__), '/templates');
   }
   public function calendar_render()
   {
