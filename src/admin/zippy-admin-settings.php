@@ -45,6 +45,8 @@ class Zippy_Admin_Settings
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_log_table'));
   
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_table'));
+    
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_shipping_config_table'));
   }
 
   public function admin_booking_assets()
@@ -232,5 +234,36 @@ class Zippy_Admin_Settings
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
+  }
+
+
+  function create_outlet_shipping_config_table()
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_addons_shipping_config';
+    $outlet_table = $wpdb->prefix . 'zippy_addons_outlet';
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $table_name (
+        id VARCHAR(255) NOT NULL,
+        outlet_id VARCHAR(255) NOT NULL,
+        min_distance VARCHAR(255) NOT NULL,
+        max_distance VARCHAR(255) NULL,
+        shipping_fee LONGTEXT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+
+    $fk_sql = "ALTER TABLE $table_name 
+               ADD CONSTRAINT fk_outlet_id 
+               FOREIGN KEY (outlet_id) 
+               REFERENCES $outlet_table(id);";
+    $wpdb->query($fk_sql);
+
   }
 }
