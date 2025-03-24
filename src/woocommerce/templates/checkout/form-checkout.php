@@ -135,6 +135,10 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 							<td colspan="4" class="text-right"><strong>Sub-total:</strong></td>
 							<td><?php echo wc_price( $cart_subtotal ); ?></td>
 						</tr>
+						<tr>
+							<td colspan="4" class="text-right"><strong>Shipping Fee:</strong></td>
+							<td><?php echo wc_price( $_SESSION['shipping_fee'] ); ?></td>
+						</tr>
 
 						<tr>
 							<td colspan="4" class="text-right"><strong>GST:</strong></td>
@@ -143,7 +147,7 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 
 						<tr>
 							<td colspan="4" class="text-right"><strong>Total:</strong></td>
-							<td><strong><?php echo wc_price( $cart_total ); ?></strong></td>
+							<td><strong><?php echo wc_price( $cart_total + $_SESSION['shipping_fee'] ); ?></strong></td>
 						</tr>
 					</tbody>
 				</table>
@@ -170,10 +174,10 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 									<p>Please select the preferred shipping method to use on this order.</p>
 									<div class="row_item_method_shipping">
 										<div class="select_method_shipping">
-											<input type="radio" id="Takeaway" name="Takeaway" checked value="Takeaway"><label for="Takeaway">Takeaway</label>
+											<input type="radio" id="<?php echo $_SESSION['order_mode'];?>" name="<?php echo $_SESSION['order_mode'];?>" checked value="<?php echo $_SESSION['order_mode'];?>"><label for="<?php echo $_SESSION['order_mode'];?>"><?php echo $_SESSION['order_mode'];?></label>
 										</div>
 										<div class="price_method_shipping">
-											<span>$0.00</span>
+											<span>$<?php echo $_SESSION ["shipping_fee"];?></span>
 										</div>
 									</div>
 								</div>
@@ -190,15 +194,25 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 									<table>
 										<tbody>
 											<tr>
-												<td>Outlet:</td>
+												<td>Outlet Name:</td>
 												<td><?php echo $_SESSION['outlet_name']; ?></td>
 											</tr>
+											<?php
+											if($_SESSION['order_mode'] == 'delivery'){
+												?>
+												<tr>
+													<td>Delivery Address:</td>
+													<td><?php echo $_SESSION['delivery_address']; ?></td>
+												</tr>
+												<?php
+											}
+											?>
 											<tr>
-												<td>Pick-Up Date:</td>
+												<td>Date:</td>
 												<td><?php echo $_SESSION['date']; ?></td>
 											</tr>
 											<tr>
-												<td>Pick-Up Time:</td>
+												<td>Time:</td>
 												<td><?php echo 'From ' . $_SESSION['time']['from'] . ' To ' . $_SESSION['time']['to']; ?></td>
 											</tr>
 										</tbody>
