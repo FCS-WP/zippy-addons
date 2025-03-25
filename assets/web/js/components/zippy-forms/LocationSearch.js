@@ -46,6 +46,9 @@ const LocationSearch = ({ onSelectLocation }) => {
 
   const handleChangeInput = (e) => {
     setSearchQuery(e.target.value);
+    if (e.target.value === '') {
+      onSelectLocation(null);
+    }
   };
 
   const handleSelectLocation = (location) => {
