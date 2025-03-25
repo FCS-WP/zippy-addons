@@ -8,11 +8,15 @@ import {
   InputLabel,
   FormControl,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import { Api } from "../../api";
 
-const StoreForm = ({ onAddStore, loading }) => {
+const StoreForm = ({ open, onClose, onAddStore, loading }) => {
   const [store, setStore] = useState({
     store_name: "",
     postal_code: "",
@@ -106,7 +110,7 @@ const StoreForm = ({ onAddStore, loading }) => {
         if (response.data.status === "success") {
           toast.success("Store created successfully!");
           onAddStore();
-
+          onClose();
           setStore({
             store_name: "",
             postal_code: "",
@@ -115,7 +119,6 @@ const StoreForm = ({ onAddStore, loading }) => {
             longitude: "",
             phone: "",
           });
-
           setAddressOptions([]);
           setSelectedAddress(null);
         } else {
@@ -128,81 +131,74 @@ const StoreForm = ({ onAddStore, loading }) => {
   };
 
   return (
-    <Box p={3} boxShadow={3} borderRadius={2} bgcolor="white" mb={2}>
-      <Typography variant="h5" gutterBottom>
-        Add Store
-      </Typography>
-
-      <Box mb={2}>
-        <Typography>Store Name</Typography>
-        <TextField
-          name="store_name"
-          value={store.store_name}
-          onChange={handleChange}
-          error={!!errors.store_name}
-          helperText={errors.store_name}
-          fullWidth
-        />
-      </Box>
-
-      <Box mb={2}>
-        <Typography>Phone Number</Typography>
-        <TextField
-          name="phone"
-          value={store.phone}
-          onChange={handleChange}
-          error={!!errors.phone}
-          helperText={errors.phone}
-          fullWidth
-        />
-      </Box>
-
-      <Box mb={2}>
-        <Typography>Postal Code</Typography>
-        <TextField
-          name="postal_code"
-          value={store.postal_code}
-          onChange={handlePostalCodeChange}
-          error={!!errors.postal_code}
-          helperText={errors.postal_code}
-          fullWidth
-        />
-      </Box>
-
-      <Box mb={2}>
-        <Typography>Address</Typography>
-        <FormControl fullWidth error={!!errors.address}>
-          <InputLabel>Choose an address</InputLabel>
-          <Select
-            name="address"
-            value={store.address}
-            onChange={handleAddressChange}
-            disabled={!addressOptions.length}
-          >
-            {addressOptions.map((option, index) => (
-              <MenuItem key={index} value={option.address}>
-                {option.address}
-              </MenuItem>
-            ))}
-          </Select>
-          {errors.address && (
-            <Typography color="error">{errors.address}</Typography>
-          )}
-        </FormControl>
-      </Box>
-
-      <Box mt={2}>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Add Store</DialogTitle>
+      <DialogContent>
+        <Box mt={2}>
+          <TextField
+            label="Store Name"
+            name="store_name"
+            value={store.store_name}
+            onChange={handleChange}
+            error={!!errors.store_name}
+            helperText={errors.store_name}
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            label="Phone Number"
+            name="phone"
+            value={store.phone}
+            onChange={handleChange}
+            error={!!errors.phone}
+            helperText={errors.phone}
+            fullWidth
+            margin="dense"
+          />
+          <TextField
+            label="Postal Code"
+            name="postal_code"
+            value={store.postal_code}
+            onChange={handlePostalCodeChange}
+            error={!!errors.postal_code}
+            helperText={errors.postal_code}
+            fullWidth
+            margin="dense"
+          />
+          <FormControl fullWidth margin="dense" error={!!errors.address}>
+            <InputLabel>Choose an address</InputLabel>
+            <Select
+              name="address"
+              value={store.address}
+              onChange={handleAddressChange}
+              disabled={!addressOptions.length}
+            >
+              {addressOptions.map((option, index) => (
+                <MenuItem key={index} value={option.address}>
+                  {option.address}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.address && (
+              <Typography color="error">{errors.address}</Typography>
+            )}
+          </FormControl>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="secondary">
+          Cancel
+        </Button>
         <Button
           onClick={handleSubmit}
-          variant="outlined"
+          variant="contained"
           color="primary"
-          fullWidth
           disabled={loading || !selectedAddress}
         >
           {loading ? "Loading..." : "Add Store"}
         </Button>
-      </Box>
-    </Box>
+      </DialogActions>
+    </Dialog>
   );
 };
 

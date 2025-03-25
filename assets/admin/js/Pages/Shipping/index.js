@@ -17,29 +17,63 @@ import {
   DialogTitle,
   Tab,
   Tabs,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import { Api } from "../../api";
+import { LogarithmicScale } from "chart.js";
 
 const ShippingFeeCalculator = () => {
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState("");
   const [config, setConfig] = useState([]);
-  const [minimumShippingFee, setMinimumShippingFee] = useState("");
+  const [minimumTotalToShipping, setMinimumTotalToShipping] = useState("");
   const [open, setOpen] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-  const [newConfig, setNewConfig] = useState({ from: "", to: "", value: "" });
+  const [newConfig, setNewConfig] = useState({
+    min_distance: "",
+    max_distance: "",
+    shipping_fee: "",
+  });
   const [tabIndex, setTabIndex] = useState(0);
 
   useEffect(() => {
-    const fetchConfig = async () => {
+    const fetchStores = async () => {
       try {
-        const response = await Api.getShipping();
-        setConfig(Array.isArray(response.data.data) ? response.data.data : []);
+        const response = await Api.getStore();
+        setStores(response.data.data);
       } catch (error) {
-        console.error("Error fetching shipping config:", error);
+        console.error("Error fetching stores:", error);
       }
     };
-    fetchConfig();
+    fetchStores();
   }, []);
+
+  const fetchConfig = async (storeId) => {
+    if (!storeId) return;
+
+    try {
+      const response = await Api.getShipping({ outlet_id: storeId });
+      setConfig(response.data.data.shipping_config.shipping_config || []);
+
+      setMinimumTotalToShipping(
+        response.data.data.minimum_total_to_shipping || ""
+      );
+    } catch (error) {
+      console.error("Error fetching shipping config:", error);
+      setConfig([]);
+      setMinimumTotalToShipping("");
+    }
+  };
+
+  const handleStoreChange = (event) => {
+    const storeId = event.target.value;
+    setSelectedStore(storeId);
+    fetchConfig(storeId);
+  };
 
   const handleTabChange = (event, newIndex) => {
     setTabIndex(newIndex);
@@ -48,7 +82,9 @@ const ShippingFeeCalculator = () => {
   const handleOpen = (index = null) => {
     setEditIndex(index);
     setNewConfig(
-      index !== null ? config[index] : { from: "", to: "", value: "" }
+      index !== null
+        ? config[index]
+        : { min_distance: "", max_distance: "", shipping_fee: "" }
     );
     setOpen(true);
   };
@@ -59,15 +95,23 @@ const ShippingFeeCalculator = () => {
 
   const handleChange = (e) => {
     setNewConfig({ ...newConfig, [e.target.name]: e.target.value });
+    console.log(newConfig);
+    
   };
 
   const handleAddOrUpdateConfig = () => {
-    if (!newConfig.from || !newConfig.to || !newConfig.value) {
+    console.log(newConfig);
+    
+    if (
+      !newConfig.min_distance ||
+      !newConfig.max_distance ||
+      !newConfig.shipping_fee
+    ) {
       alert("Please fill in all fields before saving.");
       return;
     }
 
-    const updatedConfig = [...config];
+    const updatedConfig = [config];
     if (editIndex !== null) {
       updatedConfig[editIndex] = newConfig;
     } else {
@@ -78,13 +122,21 @@ const ShippingFeeCalculator = () => {
   };
 
   const handleDeleteConfig = (index) => {
-    const updatedConfig = config.filter((_, i) => i !== index);
-    setConfig(updatedConfig);
+    setConfig(config.filter((_, i) => i !== index));
   };
 
   const handleSaveConfig = async () => {
+    if (!selectedStore) {
+      toast.error("Please select a store.");
+      return;
+    }
+
     try {
-      const payload = { config, minimum_shipping_fee: minimumShippingFee };
+      const payload = {
+        outlet_id: selectedStore,
+        config,
+        minimum_total_to_shipping: minimumTotalToShipping,
+      };
       const response = await Api.addShipping(payload);
 
       if (response.data.status === "success") {
@@ -103,118 +155,87 @@ const ShippingFeeCalculator = () => {
       <Typography variant="h5" gutterBottom>
         Shipping Fee Configuration
       </Typography>
-      <Tabs
-        value={tabIndex}
-        onChange={handleTabChange}
-        sx={{
-          backgroundColor: "#f5f5f5",
-          borderRadius: "10px",
-          padding: "5px",
-        }}
-      >
-        <Tab
-          label="Minimum Shipping Fee"
-          sx={{
-            "&.Mui-selected": {
-              backgroundColor: "#3d7730",
-              color: "white",
-              borderRadius: "10px 10px 0 0",
-            },
-          }}
-        />
-        <Tab
-          label="Shipping Configuration"
-          sx={{
-            "&.Mui-selected": {
-              backgroundColor: "#3d7730",
-              color: "white",
-              borderRadius: "10px 10px 0 0",
-            },
-          }}
-        />
+
+      <FormControl fullWidth margin="normal">
+        <InputLabel>Select Store</InputLabel>
+        <Select value={selectedStore} onChange={handleStoreChange}>
+          {stores.map((store) => (
+            <MenuItem key={store.id} value={store.id}>
+              {store.outlet_name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <Tabs value={tabIndex} onChange={handleTabChange}>
+        <Tab label="Minimum Total to Shipping" />
+        <Tab label="Shipping Configuration" />
       </Tabs>
 
       {tabIndex === 0 && (
         <Paper style={{ padding: 20, marginTop: 20 }}>
-          <Typography variant="subtitle1">Minimum Shipping Fee</Typography>
           <TextField
             variant="outlined"
-            type="text"
-            value={minimumShippingFee}
-            onChange={(e) => setMinimumShippingFee(e.target.value)}
-            style={{ marginBottom: 20 }}
+            fullWidth
+            label="Minimum Total to Shipping"
+            value={minimumTotalToShipping}
+            onChange={(e) => setMinimumTotalToShipping(e.target.value)}
           />
         </Paper>
       )}
+
       {tabIndex === 1 && (
         <Paper style={{ padding: 20, marginTop: 20 }}>
           <Button
             variant="contained"
             color="primary"
             onClick={() => handleOpen()}
-            style={{ marginBottom: 10 }}
           >
             Add New Configuration
           </Button>
-          <TableContainer component={Paper}>
+          <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>From Value</TableCell>
-                  <TableCell>To Value</TableCell>
+                  <TableCell>Min Distance</TableCell>
+                  <TableCell>Max Distance</TableCell>
                   <TableCell>Shipping Fee</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {config.length > 0 ? (
-                  config.map((row, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{row.from}</TableCell>
-                      <TableCell>{row.to}</TableCell>
-                      <TableCell>{row.value}</TableCell>
-                      <TableCell>
-                        <Button
-                          color="primary"
-                          variant="contained"
-                          onClick={() => handleOpen(index)}
-                          style={{ marginRight: 10 }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          color="error"
-                          variant="contained"
-                          onClick={() => handleDeleteConfig(index)}
-                          style={{ marginRight: 10 }}
-                        >
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      style={{ textAlign: "center", padding: "16px" }}
-                    >
-                      No shipping configuration available.
+                {config.map((row, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{row.min_distance}</TableCell>
+                    <TableCell>{row.max_distance}</TableCell>
+                    <TableCell>{row.shipping_fee}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleOpen(index)}
+                        style={{ marginRight: 10 }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => handleDeleteConfig(index)}
+                        style={{ marginRight: 10 }}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
-                )}
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
         </Paper>
       )}
 
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={handleSaveConfig}
-        style={{ marginTop: 20 }}
-      >
+      <Button variant="contained" color="secondary" onClick={handleSaveConfig}>
         Save
       </Button>
 
@@ -226,30 +247,30 @@ const ShippingFeeCalculator = () => {
         </DialogTitle>
         <DialogContent>
           <TextField
-            name="from"
+            name="min_distance"
             type="text"
             fullWidth
             margin="dense"
             label="From Value"
-            value={newConfig.from}
+            value={newConfig.min_distance}
             onChange={handleChange}
           />
           <TextField
-            name="to"
+            name="max_distance"
             type="text"
             fullWidth
             margin="dense"
             label="To Value"
-            value={newConfig.to}
+            value={newConfig.max_distance}
             onChange={handleChange}
           />
           <TextField
-            name="value"
+            name="shipping_fee"
             type="text"
             fullWidth
             margin="dense"
             label="Shipping Fee"
-            value={newConfig.value}
+            value={newConfig.shipping_fee}
             onChange={handleChange}
           />
         </DialogContent>

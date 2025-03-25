@@ -137,7 +137,7 @@ class Zippy_Admin_Settings
       'toplevel_page_zippy-bookings',
       'zippy-bookings_page_bookings',
       'zippy-bookings_page_calendar',
-      'zippy-bookings_page_products-booking',
+      'zippy-add-ons_page_store',
       'zippy-bookings_page_customize'
     ];
 

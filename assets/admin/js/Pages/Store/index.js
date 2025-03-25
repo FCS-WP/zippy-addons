@@ -10,7 +10,10 @@ import {
   Paper,
   Button,
   CircularProgress,
-  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
@@ -21,6 +24,7 @@ const Store = () => {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editStore, setEditStore] = useState(null);
+  const [openAddModal, setOpenAddModal] = useState(false);
   const lastFetchedStoreId = useRef(null);
 
   useEffect(() => {
@@ -55,11 +59,9 @@ const Store = () => {
 
   const handleDeleteClick = async (storeId) => {
     if (!window.confirm("Are you sure you want to delete this store?")) return;
-
     setLoading(true);
     try {
       const response = await Api.deleteStore({ outlet_id: storeId });
-
       if (response.data.status === "success") {
         setStores((prevStores) =>
           prevStores.filter((store) => store.id !== storeId)
@@ -84,96 +86,106 @@ const Store = () => {
       p={3}
     >
       <Box width="100%">
-        <StoreForm onAddStore={fetchStores} loading={loading} />
-        <Box mt={3}>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenAddModal(true)}
+          sx={{ mb: 2 }}
+        >
+          Add Store
+        </Button>
+
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <strong>Name</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Phone</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Postal Code</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Address</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Actions</strong>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
                 <TableRow>
-                  <TableCell>
-                    <strong>Name</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Phone</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Postal Code</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Address</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Actions</strong>
+                  <TableCell colSpan={5} align="center">
+                    <CircularProgress />
                   </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <Box
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        height="100%"
+              ) : stores.length > 0 ? (
+                stores.map((s, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{s.outlet_name}</TableCell>
+                    <TableCell>{s.outlet_phone}</TableCell>
+                    <TableCell>
+                      {s.outlet_address?.postal_code || "N/A"}
+                    </TableCell>
+                    <TableCell>{s.outlet_address?.address || "N/A"}</TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => handleEditClick(s)}
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        sx={{ mr: 1 }}
+                        disabled={loading}
                       >
-                        <CircularProgress />
-                      </Box>
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteClick(s.id)}
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        disabled={loading}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
-                ) : stores.length > 0 ? (
-                  stores.map((s, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{s.outlet_name}</TableCell>
-                      <TableCell>{s.outlet_phone}</TableCell>
-                      <TableCell>
-                        {s.outlet_address?.postal_code || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        {s.outlet_address?.address || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          onClick={() => handleEditClick(s)}
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          sx={{ mr: 1 }}
-                          disabled={loading}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={() => handleDeleteClick(s.id)}
-                          variant="contained"
-                          color="error"
-                          size="small"
-                          disabled={loading}
-                        >
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      No stores found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    No stores found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
 
+      {/* Add Store Modal */}
+      <StoreForm
+        open={openAddModal}
+        onClose={() => setOpenAddModal(false)}
+        onAddStore={() => {
+          fetchStores();
+          setOpenAddModal(false);
+        }}
+        loading={loading}
+      />
+
+      {/* Edit Store Modal */}
       <StoreFormEdit
         store={editStore}
         loading={loading}
         onClose={handleCloseEditModal}
         onSave={fetchStores}
       />
+
       <ToastContainer />
     </Box>
   );
