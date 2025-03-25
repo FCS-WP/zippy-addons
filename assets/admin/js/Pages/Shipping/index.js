@@ -96,12 +96,11 @@ const ShippingFeeCalculator = () => {
   const handleChange = (e) => {
     setNewConfig({ ...newConfig, [e.target.name]: e.target.value });
     console.log(newConfig);
-    
   };
 
   const handleAddOrUpdateConfig = () => {
     console.log(newConfig);
-    
+
     if (
       !newConfig.min_distance ||
       !newConfig.max_distance ||
