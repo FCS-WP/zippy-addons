@@ -19,27 +19,88 @@ class Zippy_Admin_Booking_Shipping_Controller
     {
 
         $required_fields = [
-            "request" => ["required" => false, "data_type" => "array"],
+            "outlet_id" => ["required" => true, "data_type" => "string"],
+            "minimum_total_to_shipping" => ["required" => false, "data_type" => "number"],
+            "config" => ["required" => true],
         ];
 
-        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if (!empty($validate)) {
-            return Zippy_Response_Handler::error($validate);
+
+        foreach ($request["shipping"] as $key => $value) {
+            $validate = Zippy_Request_Validation::validate_request($required_fields, $value);
+            if (!empty($validate)) {
+                return Zippy_Response_Handler::error($validate);
+            }
         }
 
-        $shipping_fee_config["shipping_fee"] = $request["request"];
-        $shipping_fee_config["updated_at"] = current_time("mysql");
+        $request = $request["shipping"];
+
+        $fields = [
+            "outlet_id",
+            "minimum_total_to_shipping",
+        ];
+
+        $insert_data = [];
+
 
         try {
-            /* insert data to config table */
-            $is_update_options = update_option(SHIPPING_CONFIG_META_KEY, maybe_serialize($shipping_fee_config));
-            if($is_update_options){
-                return Zippy_Response_Handler::success($shipping_fee_config, "Shipping fee config create successfully");
+
+            global $wpdb;
+            $table_name = OUTLET_TABLE_NAME;
+            
+            foreach ($request as $key => $value) {
+                $outlet_id = $value["outlet_id"];
+                $query = "SELECT * FROM $table_name WHERE id ='" . $outlet_id . "'";             
+                $outlets = $wpdb->get_results($query);
+                if(count($outlets) < 1){
+                    return Zippy_Response_Handler::error("outlet_id: $outlet_id not exist!");
+                }
+                
+                foreach ($fields as $key => $field) {
+                    if(!empty($value[$field])){
+                        $insert_data[][] = $value[$field];
+                    }
+                }               
+                
+
             }
+
+            return $insert_data;
+            
+
+            if(count($outlets) < 1){
+                return Zippy_Response_Handler::error("Outlet not exist");
+            }
+
+
+            foreach ($outlets as $key => $value) {
+                $unserialze_fields = [
+                    "outlet_address",
+                    "operating_hours",
+                    "closed_dates",
+                    "takeaway",
+                ];
+                foreach ($unserialze_fields as $field) {
+                    $outlets[$key]->{$field} = maybe_unserialize($outlets[$key]->{$field});
+                }
+            }
+
+            return Zippy_Response_Handler::success($outlets, "Outlet");
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
         }
+
+        // $required_fields = [
+        //     "request" => ["required" => true, "data_type" => "array"],
+        // ];
+
+        // $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        // if (!empty($validate)) {
+        //     return Zippy_Response_Handler::error($validate);
+        // }
+
+        // $shipping_fee_config["shipping_fee"] = $request["request"];
+        // $shipping_fee_config["updated_at"] = current_time("mysql");
     }
 
     public static function get_shipping_config(WP_REST_Request $request)

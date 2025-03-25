@@ -16,6 +16,16 @@ class One_Map_Api
 {
     public static function call($method, $endpoint, $param)
     {   
+        static $interval = 0;
+
+        $interval++;
+
+        if ($interval > 5) {
+            return [
+                "status_message"=> "Unable to get access_token",
+            ];
+        }
+
         $is_access_token_expired = false;
 
         $url = ONEMAP_API_URL . $endpoint;
@@ -84,14 +94,13 @@ class One_Map_Api
 
             // re-authen
             $authen = self::authentication($credentials);
-
             if($authen["error"]){
                 return $authen;
             }
-
+            
 
             // update access_token
-            add_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
+            update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
 
             $is_access_token_expired = true;
         }
