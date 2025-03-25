@@ -19,7 +19,7 @@ class Zippy_Admin_Booking_Shipping_Controller
     {
 
         $required_fields = [
-            "request" => ["required" => true, "data_type" => "array"],
+            "request" => ["required" => false, "data_type" => "array"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);

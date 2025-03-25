@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
-import StoreForm from "../../Components/StoreForm";
-import FormEdit from "../../Components/FormEdit";
+import StoreForm from "../../Components/Stores/StoreForm";
+import StoreFormEdit from "../../Components/Stores/StoreFormEdit";
 
 const Store = () => {
   const [stores, setStores] = useState([]);
@@ -168,7 +168,7 @@ const Store = () => {
         </Box>
       </Box>
 
-      <FormEdit
+      <StoreFormEdit
         store={editStore}
         loading={loading}
         onClose={handleCloseEditModal}

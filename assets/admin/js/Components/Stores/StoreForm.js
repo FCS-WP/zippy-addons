@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import { Api } from "../api";
+import { Api } from "../../api";
 
 const StoreForm = ({ onAddStore, loading }) => {
   const [store, setStore] = useState({
