@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { isWeekend } from "../../helper/datetime";
+import { isCloseDate } from "../../helper/datetime";
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
 
@@ -70,7 +70,7 @@ const dates = Array.from({ length: 5 }, (_, i) => {
   return date;
 });
 
-const DateCalendar = ({ onSelectDate, defaultDate }) => {
+const DateCalendar = ({ onSelectDate, defaultDate, closedDates }) => {
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const handleClick = (date) => {
     setSelectedDate(date);
@@ -88,14 +88,14 @@ const DateCalendar = ({ onSelectDate, defaultDate }) => {
         maxDate={maxDate}
         selected={selectedDate}
         onChange={(date) => handleClick(date)}
-        filterDate={(date) => !isWeekend(date)}
+        filterDate={(date) => !isCloseDate(date, closedDates)}
         inline
       />
     </Box>
   );
 };
 
-const OutletDate = ({ onChangeDate }) => {
+const OutletDate = ({ onChangeDate, closedDates }) => {
   /**
    * Mode: boxed - calendar
    */
@@ -164,7 +164,7 @@ const OutletDate = ({ onChangeDate }) => {
                 date={date}
                 selected={selectedDate?.toDateString() === date.toDateString()}
                 onClick={handleSelectDate}
-                disabled={isWeekend(date)}
+                disabled={isCloseDate(date, closedDates)}
               />
             </Grid>
           ))}
@@ -174,6 +174,7 @@ const OutletDate = ({ onChangeDate }) => {
           <DateCalendar
             defaultDate={selectedDate}
             onSelectDate={handleSelectDate}
+            closedDates={closedDates}
           />
         </div>
       )}
