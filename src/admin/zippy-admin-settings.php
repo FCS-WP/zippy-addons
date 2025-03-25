@@ -233,6 +233,8 @@ class Zippy_Admin_Settings
         operating_hours LONGTEXT NULL,
         closed_dates LONGTEXT NULL,
         takeaway LONGTEXT NULL,
+        shipping_config LONGTEXT NULL,
+        minimum_total_to_shipping VARCHAR(255) NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
