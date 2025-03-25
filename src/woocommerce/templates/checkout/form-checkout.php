@@ -52,6 +52,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_enable_myaccount_registration' ) == 'yes' && ! is_user_logged_in() ) {
 	wc_get_template( 'checkout/social-login.php' );
 }
+
 ?>
 
 <form name="checkout" method="post" class="checkout woocommerce-checkout <?php echo esc_attr( $wrapper_classes ); ?>" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
@@ -176,7 +177,7 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 											<input type="radio" id="<?php echo $_SESSION['order_mode'];?>" name="<?php echo $_SESSION['order_mode'];?>" checked value="<?php echo $_SESSION['order_mode'];?>"><label for="<?php echo $_SESSION['order_mode'];?>"><?php echo $_SESSION['order_mode'];?></label>
 										</div>
 										<div class="price_method_shipping">
-											<span>$<?php echo $_SESSION ["shipping_fee"];?></span>
+											<span>$<?php if(empty($_SESSION ["shipping_fee"])){echo 0;}else{echo $_SESSION ["shipping_fee"];}?></span>
 										</div>
 									</div>
 								</div>
@@ -219,7 +220,7 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 								</div>
 								<div class="quickcheckout-heading"><i class="fa fa-truck"></i> Payment Method</div>
 								<div class="quickcheckout-content">
-									<p>Please select the preferred shipping method to use on this order.</p>
+									<p>Please select the preferred payment method to use on this order.</p>
 								</div>
 							</div>
 							<div id="order_review" class="woocommerce-checkout-review-order">
