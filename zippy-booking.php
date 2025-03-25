@@ -79,11 +79,6 @@ if (!defined('OUTLET_CONFIG_TABLE_NAME')) {
 }
 
 /* Booking Product Mapping table name */
-if (!defined('OUTLET_TABLE_NAME')) {
-  define('OUTLET_TABLE_NAME', 'fcs_data_zippy_addons_outlet');
-}
-
-/* Booking Product Mapping table name */
 if (!defined('ZIPPY_BOOKING_LOG_TABLE_NAME')) {
   define('ZIPPY_BOOKING_LOG_TABLE_NAME', 'fcs_data_zippy_booking_log');
 }

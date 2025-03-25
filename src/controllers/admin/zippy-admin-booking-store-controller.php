@@ -93,6 +93,7 @@ class Zippy_Admin_Booking_Store_Controller
                     "operating_hours",
                     "closed_dates",
                     "takeaway",
+                    "shipping_config",
                 ];
                 foreach ($unserialze_fields as $field) {
                     $outlets[$key]->{$field} = maybe_unserialize($outlets[$key]->{$field});
