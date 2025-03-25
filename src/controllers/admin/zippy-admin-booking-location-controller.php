@@ -14,7 +14,7 @@ class Zippy_Admin_Booking_Location_Controller
 {
 
     public static function get_location_geo(WP_REST_Request $request)
-    {   
+    {
         $required_fields = [
             "keyword" => ["required" => true, "data_type" => "string"],
         ];
@@ -32,14 +32,13 @@ class Zippy_Admin_Booking_Location_Controller
                 "getAddrDetails" => "Y",
             ];
 
-            $api = One_Map_Api::call("GET", "/api/common/elastic/search", $param);
+            $api = One_Map_Api::get("/api/common/elastic/search", $param);
 
-            if(isset($api["error"])){
+            if (isset($api["error"])) {
                 return Zippy_Response_Handler::error($api["error"]);
             }
 
             return Zippy_Response_Handler::success($api, "Success");
-
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('get_location_geo', json_encode($request), 'Failure', $message);
@@ -65,7 +64,7 @@ class Zippy_Admin_Booking_Location_Controller
         $end_lat = $request["to"]["lat"] ?? null;
         $end_lng = $request["to"]["lng"] ?? null;
 
-        if(empty($start_lat) || empty($start_lng) || empty($end_lat) || empty($end_lng)){
+        if (empty($start_lat) || empty($start_lng) || empty($end_lat) || empty($end_lng)) {
             return Zippy_Response_Handler::error("Missing coordinates");
         }
 
@@ -87,26 +86,27 @@ class Zippy_Admin_Booking_Location_Controller
                 "mode" => "TRANSIT",
             ];
 
-            $api = One_Map_Api::call("GET", "/api/public/routingsvc/route", $param);
+            $api = One_Map_Api::get("/api/public/routingsvc/route", $param);
 
-            if(isset($api["error"])){
+            if (isset($api["error"])) {
                 return Zippy_Response_Handler::error($api["error"]);
             }
 
             $route_summary = $api["route_summary"];
-            $total_distance = $route_summary["total_distance"];
 
+            if (empty($route_summary)) {
+                return Zippy_Response_Handler::error("Get distance failed");
+            }
+
+            $total_distance = $route_summary["total_distance"];
             $res_data["start_point"] = $route_summary["start_point"];
             $res_data["end_point"] = $route_summary["end_point"];
             $res_data["total_distance"] = $total_distance;
 
             return Zippy_Response_Handler::success($res_data, $api["status_message"]);
-
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('get_distance_between_locations', json_encode($request), 'Failure', $message);
         }
     }
-
-
 }
