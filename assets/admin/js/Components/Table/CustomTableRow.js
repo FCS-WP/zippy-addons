@@ -17,6 +17,7 @@ import {
   deleteConfirm,
 } from "../../utils/bookingHelper";
 import SubTable from "./SubTable";
+import ModalUpdateMenu from "../menus/ModalUpdateMenu";
 
 const CustomTableRow = memo(
   ({
@@ -46,31 +47,21 @@ const CustomTableRow = memo(
         return false;
       }
       const deletedData = {
-        items_id: data.ID,
-        type: data.Type,
+        item_id: data.ID,
       };
 
       if (isSubtableRow) {
         deletedData.is_product_in_sub = "true";
       }
-      const del = await callDeleteMappingItems([deletedData]);
+      // const del = await callDeleteMappingItems([deletedData]);
+      console.log("deletedData ", data);
       onChangeList();
     };
 
     const ActionGroup = ({ handleListProduct, handleDeleteMappingItem }) => {
       return (
         <Stack direction={"row"} gap={2}>
-          {row.Type == "category" ? (
-            <IconButton size="small" onClick={(e) => handleListProduct(row)}>
-              {showCollapse ? (
-                <KeyboardArrowUp fontSize={"20px"} />
-              ) : (
-                <KeyboardArrowDown fontSize={"20px"} />
-              )}
-            </IconButton>
-          ) : (
-            <ModalUpdatePrice data={row} onChangeData={onChangeList} />
-          )}
+          <ModalUpdateMenu data={row} />
           <IconButton
             aria-label="delete"
             size="small"
