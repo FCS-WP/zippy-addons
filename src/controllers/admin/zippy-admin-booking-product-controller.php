@@ -57,8 +57,6 @@ class Zippy_Admin_Booking_Product_Controller
 
         try {
 
-            $quantity = $request["quantity"];
-
             global $wpdb;
             $table_name = OUTLET_CONFIG_TABLE_NAME;
 
@@ -194,7 +192,7 @@ class Zippy_Admin_Booking_Product_Controller
                 }
             }
 
-            $store_datas["delivery_address"] = $request["delivery_address"]["address_name"] ?? null;
+            $store_datas["delivery_address"] = $delivery_address["address_name"] ?? null;
             $store_datas["outlet_name"] = $outlet[0]->outlet_name;
             $store_datas["outlet_address"] = $outlet_address_name;
 
