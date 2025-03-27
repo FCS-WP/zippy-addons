@@ -59,7 +59,7 @@ class Zippy_Admin_Booking_Product_Controller
 
             // check outlet exist
             $outlet_id = $request['outlet_id'];
-            $query = "SELECT id,outlet_name,outlet_address,minimum_total_to_shipping,shipping_config FROM $table_name WHERE id ='" . $outlet_id . "'";
+            $query = "SELECT id,outlet_name,outlet_address FROM $table_name WHERE id ='" . $outlet_id . "'";
             $outlet = $wpdb->get_results($query);
 
             if (count($outlet) < 1) {
@@ -119,8 +119,7 @@ class Zippy_Admin_Booking_Product_Controller
 
 
                 // Get Shipping Config
-                $shipping_fee_config = $outlet[0]->shipping_config;
-
+                $shipping_fee_config = get_option(SHIPPING_CONFIG_META_KEY);
                 if (empty($shipping_fee_config)) {
                     return Zippy_Response_Handler::error("Missing Config for Shipping Fee");
                 }
@@ -130,8 +129,8 @@ class Zippy_Admin_Booking_Product_Controller
                 // Calculate shipping fee
                 $shipping_fee = "";
                 foreach ($shipping_fee_data as $data) {
-                    if ($total_distance > $data["min_distance"] && $total_distance <= $data["max_distance"]) {
-                        $shipping_fee = $data["shipping_fee"];
+                    if ($total_distance > $data["from"] && $total_distance <= $data["to"]) {
+                        $shipping_fee = $data["value"];
                     }
                 }
                 $store_datas["shipping_fee"] = $shipping_fee;
