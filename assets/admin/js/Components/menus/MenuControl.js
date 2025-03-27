@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyledPaper } from "../mui-custom-styles";
 import MenuContext from "../../contexts/MenuContext";
 import TableView from "../TableView";
 import TablePaginationCustom from "../TablePagination";
-import { Box, Switch } from "@mui/material";
 import CustomSwitch from "./CustomSwitch";
+import ButtonEditMenu from "./ButtonEditMenu";
+import { menuListColumns } from "../../utils/tableHelper";
 
 const MenuControl = () => {
   const { menus } = useContext(MenuContext);
@@ -13,35 +13,25 @@ const MenuControl = () => {
   const [data, setData] = useState([]);
 
   const handleChangeAvailableDate = (event, id, day) => {
-    console.log("Change event: ", event);
-    console.log("Change id: ", id);
-    console.log("Change day: ", day);
+    // console.log("Change event: ", event);
+    // console.log("Change id: ", id);
+    // console.log("Change day: ", day);
   };
 
-  const columns = [
-    "ID",
-    "NAME",
-    "MON",
-    "TUE",
-    "WED",
-    "THU",
-    "FRI",
-    "SAT",
-    "SUN",
-    "Actions",
-  ];
+  const columns = menuListColumns;
 
   const convertData = () => {
     const formattedData = menus.map((menu) => {
       let result = {
         ID: menu.id,
         NAME: menu.name,
+        ACTIONS: <ButtonEditMenu menu={menu} />
       };
 
       menu.availables.map((day) => {
         const dayMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
         const dayName = dayMap[day.weekday];
-        result[dayName] = <CustomSwitch menu={menu} day={day} />;
+        result[dayName] = <CustomSwitch menu={menu} day={day} onChange={handleChangeAvailableDate} />;
       });
 
       return result;

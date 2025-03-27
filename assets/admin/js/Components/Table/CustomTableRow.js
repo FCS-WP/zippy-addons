@@ -78,7 +78,7 @@ const CustomTableRow = memo(
       "Name",
       "Regular Price",
       "Extra Price",
-      "Actions",
+      "ACTIONS",
     ];
 
     return (
@@ -108,11 +108,14 @@ const CustomTableRow = memo(
               key={colIndex}
               style={{ width: columnWidths[col] || "auto" }}
             >
-              {col === "Actions" ? (
-                <ActionGroup
-                  handleDeleteMappingItem={handleDeleteMappingItem}
-                  handleListProduct={handleListProduct}
-                />
+              {col === "ACTIONS" ? (
+                <Stack direction={'row'} spacing={2}>
+                  {row[col]}
+                  <ActionGroup
+                    handleDeleteMappingItem={handleDeleteMappingItem}
+                    handleListProduct={handleListProduct}
+                  />
+                </Stack>
               ) : (
                 row[col]
               )}
