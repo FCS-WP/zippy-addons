@@ -222,10 +222,19 @@ export const getCustomDayOfWeek = (date) => {
   return inputDate.getDay();
 };
 
-export const isWeekend = (date) => {
+export const isCloseDate = (date, listCloseDate = []) => {
   const checkDate = new Date(date);
+  
   if (checkDate.getDay() === 0 || checkDate.getDay() === 6) {
     return true;
   }
+
+  if (listCloseDate.length != 0) {
+    const check = listCloseDate.find((item)=>item.value === format(checkDate, 'dd/MM/yyyy'));
+    if (check) {
+      return true;
+    }
+  }
+  
   return false;
 }
