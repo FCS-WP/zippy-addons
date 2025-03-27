@@ -127,9 +127,19 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 
 							<?php } 
 						} 
-						
-						$gst = $cart_subtotal * 0.09;
+						$gst = (WC()->cart->get_taxes())[1];
 						$cart_total = $cart_subtotal + $gst;
+						$rule = get_minimum_rule_by_order_mode();
+
+						if( $cart_subtotal >= $rule["minimun_total_to_freeship"]){
+							$fee_delivery = 0;
+						}else{
+							if($_SESSION['order_mode'] == 'takeaway'){
+								$fee_delivery = 0;
+							}else{
+								$fee_delivery = $_SESSION['shipping_fee'];
+							}
+						}
 						?>
 
 						<tr>
@@ -138,7 +148,7 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 						</tr>
 						<tr>
 							<td colspan="4" class="text-right"><strong><?php if($_SESSION['order_mode'] == 'takeaway'){echo 'Takeaway';}else{echo 'Delivery';}?> Fee:</strong></td>
-							<td><?php echo wc_price( $_SESSION['shipping_fee'] ); ?></td>
+							<td><?php echo wc_price( $fee_delivery); ?></td>
 						</tr>
 						<tr>
 							<td colspan="4" class="text-right"><strong>GST:</strong></td>
@@ -147,7 +157,7 @@ if ( flatsome_option( 'facebook_login_checkout' ) && get_option( 'woocommerce_en
 
 						<tr>
 							<td colspan="4" class="text-right"><strong>Total:</strong></td>
-							<td><strong><?php echo wc_price( $cart_total + $_SESSION['shipping_fee'] ); ?></strong></td>
+							<td><strong><?php echo wc_price( $cart_total + $fee_delivery ); ?></strong></td>
 						</tr>
 					</tbody>
 				</table>
