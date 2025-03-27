@@ -240,6 +240,30 @@ class Zippy_Admin_Settings
   }
 
 
+  function create_shipping_table()
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_addons_shipping_config';
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $table_name (
+        id VARCHAR(255) NOT NULL,
+        outlet_id VARCHAR(255) NOT NULL,
+        minimum_order_to_delivery VARCHAR(255) NOT NULL,
+        minimum_order_to_freeship VARCHAR(255) NOT NULL,
+        extra_fee VARCHAR(255) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+  }
+
+
+
   function get_one_map_access_token(){
 
     $one_map_credentials = get_option(ONEMAP_META_KEY);
@@ -255,7 +279,7 @@ class Zippy_Admin_Settings
 
     $authen = One_Map_Api::authentication($credentials);
     if(!empty($authen["access_token"])){
-      add_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
+      update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
     }
   }
 }
