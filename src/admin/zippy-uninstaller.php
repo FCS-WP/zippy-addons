@@ -22,7 +22,7 @@ class Zippy_Uninstaller
       "bookings",
       "booking_configs",
       "products_booking",
-      "zippy_booking_log",
+      "zippy_log",
     ];
 
     foreach ($table_names as $name) {

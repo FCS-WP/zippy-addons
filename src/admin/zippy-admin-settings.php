@@ -141,7 +141,6 @@ class Zippy_Admin_Settings
     }
   }
 
-
   function create_one_map_credentials()
   {
     if (get_option(ONEMAP_META_KEY) == false) {

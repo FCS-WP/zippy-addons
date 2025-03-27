@@ -30,7 +30,6 @@ class Zippy_Databases
 
   public function __construct()
   {
-
     /* Create Zippy API Token */
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_log_table'));
 
@@ -40,10 +39,10 @@ class Zippy_Databases
   }
 
 
-  private function create_log_table()
+  public function create_log_table()
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'zippy_booking_log';
+    $table_name = $wpdb->prefix . 'zippy_log';
 
     $charset_collate = $wpdb->get_charset_collate();
 
@@ -61,9 +60,7 @@ class Zippy_Databases
     dbDelta($sql);
   }
 
-
-
-  private function create_outlet_table()
+  public function create_outlet_table()
   {
     global $wpdb;
     $table_name = $wpdb->prefix . 'zippy_addons_outlet';
@@ -88,11 +85,10 @@ class Zippy_Databases
     dbDelta($sql);
   }
 
-
-  private function create_menus_table()
+  public function create_menus_table()
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'menus';
+    $table_name = $wpdb->prefix . 'zippy_menus';
     $charset_collate = $wpdb->get_charset_collate();
 
     $sql = "CREATE TABLE $table_name (
