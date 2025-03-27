@@ -279,6 +279,7 @@ class Zippy_Admin_Settings
 
     $authen = One_Map_Api::authentication($credentials);
     if(!empty($authen["access_token"])){
+      
       update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
     }
   }
