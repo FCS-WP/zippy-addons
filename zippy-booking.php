@@ -170,6 +170,8 @@ require ZIPPY_ADDONS_DIR_PATH . '/includes/autoload.php';
 
 use  Zippy_Booking\Src\Admin\Zippy_Admin_Settings;
 
+use  Zippy_Booking\Src\Database\Zippy_Databases;
+
 use Zippy_Booking\Src\Routers\Zippy_Booking_Routers;
 
 use Zippy_Booking\Src\Web\Zippy_Booking_Web;
@@ -180,6 +182,8 @@ use Zippy_Booking\Src\Woocommerce\Zippy_Woo_Booking;
  *
  * Init Zippy Booking
  */
+
+Zippy_Databases::get_instance();
 
 Zippy_Admin_Settings::get_instance();
 
