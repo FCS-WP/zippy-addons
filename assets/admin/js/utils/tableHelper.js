@@ -10,3 +10,9 @@ export const menuListColumns = [
   "SUN",
   "ACTIONS",
 ];
+
+export const productListColumns = [
+  "ID",
+  "NAME",
+  "ACTIONS"
+]

@@ -1,23 +1,5 @@
-import {
-  Box,
-  Checkbox,
-  Collapse,
-  FormControlLabel,
-  IconButton,
-  Stack,
-  TableCell,
-  TableRow,
-} from "@mui/material";
-import React, { memo, useEffect, useState } from "react";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ModalUpdatePrice from "../Products/ModalUpdatePrice";
-import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
-import {
-  callDeleteMappingItems,
-  deleteConfirm,
-} from "../../utils/bookingHelper";
-import SubTable from "./SubTable";
-import ModalUpdateMenu from "../menus/ModalUpdateMenu";
+import { Checkbox, FormControlLabel, TableCell, TableRow } from "@mui/material";
+import React, { memo } from "react";
 
 const CustomTableRow = memo(
   ({
@@ -27,60 +9,9 @@ const CustomTableRow = memo(
     selectedRows,
     cols,
     columnWidths,
-    onChangeList = () => {},
     onChangeCheckbox,
     isSubtableRow = false,
   }) => {
-    const [showCollapse, setShowCollapse] = useState(false);
-
-    const handleListProduct = (row) => {
-      if (showCollapse) {
-        setShowCollapse(false);
-        return false;
-      }
-      setShowCollapse(true);
-    };
-
-    const handleDeleteMappingItem = async (data) => {
-      const confirm = await deleteConfirm();
-      if (!confirm) {
-        return false;
-      }
-      const deletedData = {
-        item_id: data.ID,
-      };
-
-      if (isSubtableRow) {
-        deletedData.is_product_in_sub = "true";
-      }
-      // const del = await callDeleteMappingItems([deletedData]);
-      console.log("deletedData ", data);
-      onChangeList();
-    };
-
-    const ActionGroup = ({ handleListProduct, handleDeleteMappingItem }) => {
-      return (
-        <Stack direction={"row"} gap={2}>
-          <ModalUpdateMenu data={row} />
-          <IconButton
-            aria-label="delete"
-            size="small"
-            onClick={(e) => handleDeleteMappingItem(row)}
-          >
-            <DeleteIcon sx={{ fontSize: "20px" }} />
-          </IconButton>
-        </Stack>
-      );
-    };
-
-    const subTableColumns = [
-      "ID",
-      "Name",
-      "Regular Price",
-      "Extra Price",
-      "ACTIONS",
-    ];
-
     return (
       <>
         <TableRow
@@ -108,32 +39,9 @@ const CustomTableRow = memo(
               key={colIndex}
               style={{ width: columnWidths[col] || "auto" }}
             >
-              {col === "ACTIONS" ? (
-                <Stack direction={'row'} spacing={2}>
-                  {row[col]}
-                  <ActionGroup
-                    handleDeleteMappingItem={handleDeleteMappingItem}
-                    handleListProduct={handleListProduct}
-                  />
-                </Stack>
-              ) : (
-                row[col]
-              )}
+              {row[col]}
             </TableCell>
           ))}
-        </TableRow>
-        <TableRow>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
-            <Collapse in={showCollapse} timeout="auto" unmountOnExit>
-              <Box mt={4} mb={5}>
-                <SubTable
-                  category={row}
-                  cols={subTableColumns}
-                  onChangeData={onChangeList}
-                />
-              </Box>
-            </Collapse>
-          </TableCell>
         </TableRow>
       </>
     );

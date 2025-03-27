@@ -1,4 +1,4 @@
-import { Box, Paper, styled } from "@mui/material";
+import { Box, Dialog, Paper, styled } from "@mui/material";
 
 export const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -27,4 +27,13 @@ export const ChipContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexWrap: "wrap",
   gap: theme.spacing(1),
+}));
+
+export const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialogContent-root": {
+    padding: theme.spacing(2),
+  },
+  "& .MuiDialogActions-root": {
+    padding: theme.spacing(1),
+  },
 }));
