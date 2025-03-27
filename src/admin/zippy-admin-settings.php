@@ -47,6 +47,8 @@ class Zippy_Admin_Settings
   
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_table'));
 
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_shipping_table'));
+
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'get_one_map_access_token'));
   }
 
@@ -250,9 +252,9 @@ class Zippy_Admin_Settings
     $sql = "CREATE TABLE $table_name (
         id VARCHAR(255) NOT NULL,
         outlet_id VARCHAR(255) NOT NULL,
-        minimum_order_to_delivery VARCHAR(255) NOT NULL,
-        minimum_order_to_freeship VARCHAR(255) NOT NULL,
-        extra_fee VARCHAR(255) NOT NULL,
+        minimum_order_to_delivery LONGTEXT NULL,
+        minimum_order_to_freeship LONGTEXT NULL,
+        extra_fee LONGTEXT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
