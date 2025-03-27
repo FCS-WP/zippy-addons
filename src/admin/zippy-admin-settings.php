@@ -12,7 +12,6 @@ defined('ABSPATH') or die();
 
 use Zippy_Booking\Utils\Zippy_Utils_Core;
 use Zippy_Booking\Src\Services\One_Map_Api;
-use  WC_Order_Item_Product;
 
 class Zippy_Admin_Settings
 {
@@ -35,17 +34,12 @@ class Zippy_Admin_Settings
 
     /* Register Menu Admin Part */
     add_action('admin_menu',  array($this, 'zippy_booking_page'));
+
     add_action('admin_enqueue_scripts', array($this, 'remove_default_stylesheets'));
     /* Register Assets Admin Part */
     add_action('admin_enqueue_scripts', array($this, 'admin_booking_assets'));
-
-
     /* Create Zippy API Token */
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_one_map_credentials'));
-
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_log_table'));
-  
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_table'));
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'get_one_map_access_token'));
   }
@@ -76,33 +70,6 @@ class Zippy_Admin_Settings
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
     // add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
   }
-
-  function delete_booking_table()
-  {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'bookings';
-
-    $wpdb->query("DROP TABLE IF EXISTS $table_name");
-  }
-
-  function delete_booking_config_table()
-  {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'booking_configs';
-
-    $wpdb->query("DROP TABLE IF EXISTS $table_name");
-  }
-  function delete_product_booking_mapping()
-  {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'products_booking';
-
-    $wpdb->query("DROP TABLE IF EXISTS $table_name");
-  }
-
 
   public function render()
   {
@@ -174,7 +141,6 @@ class Zippy_Admin_Settings
     }
   }
 
-
   function create_one_map_credentials()
   {
     if (get_option(ONEMAP_META_KEY) == false) {
@@ -188,63 +154,14 @@ class Zippy_Admin_Settings
     }
   }
 
-
-  function create_log_table()
+  function get_one_map_access_token()
   {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'zippy_booking_log';
-
-    $charset_collate = $wpdb->get_charset_collate();
-
-    $sql = "CREATE TABLE $table_name (
-        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-        action VARCHAR(255) NOT NULL,
-        details LONGTEXT NOT NULL,
-        status VARCHAR(20) NOT NULL,
-        message LONGTEXT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-  }
-
-
-
-  function create_outlet_table()
-  {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'zippy_addons_outlet';
-
-    $charset_collate = $wpdb->get_charset_collate();
-
-    $sql = "CREATE TABLE $table_name (
-        id VARCHAR(255) NOT NULL,
-        outlet_name VARCHAR(255) NOT NULL,
-        display VARCHAR(255) NOT NULL,
-        outlet_phone VARCHAR(255) NULL,
-        outlet_address LONGTEXT NULL,
-        operating_hours LONGTEXT NULL,
-        closed_dates LONGTEXT NULL,
-        takeaway LONGTEXT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-  }
-
-
-  function get_one_map_access_token(){
 
     $one_map_credentials = get_option(ONEMAP_META_KEY);
-    if(empty($one_map_credentials)){
-        return [
-            "status_message"=> "No credentials found",
-        ];
+    if (empty($one_map_credentials)) {
+      return [
+        "status_message" => "No credentials found",
+      ];
     }
     $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
     $credentials = json_decode($credentials_json, true);
@@ -252,7 +169,7 @@ class Zippy_Admin_Settings
     $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
 
     $authen = One_Map_Api::authentication($credentials);
-    if(!empty($authen["access_token"])){
+    if (!empty($authen["access_token"])) {
       update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
     }
   }
