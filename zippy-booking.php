@@ -64,6 +64,11 @@ if (!defined('OUTLET_CONFIG_TABLE_NAME')) {
   define('OUTLET_CONFIG_TABLE_NAME', 'fcs_data_zippy_addons_outlet');
 }
 
+/* Booking Shipping Config table name */
+if (!defined('OUTLET_SHIPPING_CONFIG_TABLE_NAME')) {
+  define('OUTLET_SHIPPING_CONFIG_TABLE_NAME', 'fcs_data_zippy_addons_shipping_config');
+}
+
 /* Booking Product Mapping table name */
 if (!defined('ZIPPY_LOG_TABLE_NAME')) {
   define('ZIPPY_LOG_TABLE_NAME', 'fcs_data_zippy_log');
@@ -120,9 +125,9 @@ date_default_timezone_set("Asia/Singapore");
 
 
 
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 /* ------------------------------------------
 // Includes

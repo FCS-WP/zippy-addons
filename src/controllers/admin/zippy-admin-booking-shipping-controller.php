@@ -19,7 +19,10 @@ class Zippy_Admin_Booking_Shipping_Controller
     {
 
         $required_fields = [
-            "request" => ["required" => true, "data_type" => "array"],
+            "outlet_id" => ["required" => true, "data_type" => "string"],
+            "minimum_order_to_delivery" => ["required" => false, "data_type" => "array"],
+            "minimum_order_to_freeship" => ["required" => true, "data_type" => "array"],
+            "extra_fee" => ["required" => false, "data_type" => "array"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -31,10 +34,39 @@ class Zippy_Admin_Booking_Shipping_Controller
         $shipping_fee_config["updated_at"] = current_time("mysql");
 
         try {
-            /* insert data to config table */
-            $is_update_options = update_option(SHIPPING_CONFIG_META_KEY, maybe_serialize($shipping_fee_config));
-            if($is_update_options){
-                return Zippy_Response_Handler::success($shipping_fee_config, "Shipping fee config create successfully");
+
+            $outlet_id = $request["outlet_id"];
+
+            global $wpdb;
+            $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
+            if(!empty($outlet_id)){
+                $query = "SELECT * FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
+            }
+            
+            $outlet = count($wpdb->get_results($query));
+
+            if($outlet < 1){
+                return Zippy_Response_Handler::error("Outlet not exist");
+            }
+
+
+            $table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
+
+            $insert_data = [
+                "id" => wp_generate_uuid4(),
+                "outlet_id" => $outlet_id,
+                "minimum_order_to_delivery" => maybe_serialize($request["minimum_order_to_delivery"]),
+                "minimum_order_to_freeship" => maybe_serialize($request["minimum_order_to_freeship"]),
+                "extra_fee" => maybe_serialize($request["extra_fee"]),
+            ];
+            
+            $insert_data["created_at"] = current_time('mysql');
+            $insert_data["updated_at"] = current_time('mysql');
+
+            $is_insert = $wpdb->insert($table_name, $insert_data);
+
+            if($is_insert){
+                return Zippy_Response_Handler::success($insert_data, "Oulet Updated");
             }
         } catch (\Throwable $th) {
             $message = $th->getMessage();

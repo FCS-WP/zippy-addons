@@ -153,9 +153,7 @@ class Zippy_Admin_Settings
       add_option(ONEMAP_META_KEY, Zippy_Utils_Core::encrypt_data_input(json_encode($credentials), true));
     }
   }
-
-  function get_one_map_access_token()
-  {
+  function get_one_map_access_token(){
 
     $one_map_credentials = get_option(ONEMAP_META_KEY);
     if (empty($one_map_credentials)) {
