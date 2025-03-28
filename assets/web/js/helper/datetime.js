@@ -222,19 +222,50 @@ export const getCustomDayOfWeek = (date) => {
   return inputDate.getDay();
 };
 
-export const isCloseDate = (date, listCloseDate = []) => {
-  const checkDate = new Date(date);
+export const getDisabledDays = (outletConfig, type) => {
+  let results = [];
+  outletConfig.operating_hours.map((item)=>{
+    const timeConditions1 = !item.open_at || !item.close_at;
+    const timeConditions2 = type === 'delivery' && item.delivery.enabled == 'F';
+    const timeConditions3 = type === 'delivery' && item.delivery.enabled == 'T' && item.delivery.delivery_hours.length == 0;
   
-  if (checkDate.getDay() === 0 || checkDate.getDay() === 6) {
+    if (timeConditions1 || timeConditions2 || timeConditions3) {
+      results.push(item.week_day);
+    }
+
+    if (type === 'delivery' && item.delivery.enabled == 'T') {
+      const invalidTimes = item.delivery.delivery_hours.filter(item=>{
+        return !item.from || !item.to;
+      })
+      if (invalidTimes.length === item.delivery.delivery_hours.length) {
+        results.push(item.week_day);
+      }
+    }
+  });
+  return results
+}
+
+export const isCloseDate = (date, closedDays, closedDates) => {
+  const checkDate = new Date(date);
+  const isDisabledDay = closedDays.find(item=> parseInt(item) === checkDate.getDay());
+
+  if (isDisabledDay) {
     return true;
   }
 
-  if (listCloseDate.length != 0) {
-    const check = listCloseDate.find((item)=>item.value === format(checkDate, 'dd/MM/yyyy'));
+  if (closedDates.length != 0) {
+    const check = closedDates.find((item)=>item.value === format(checkDate, 'dd/MM/yyyy'));
     if (check) {
       return true;
     }
   }
   
   return false;
+}
+
+export const getAvailableDeliveryTimes = (deliveryHours) => {
+  const availableTimes = deliveryHours.filter(item=>{
+    return item.from && item.to;
+  })
+  return availableTimes;
 }

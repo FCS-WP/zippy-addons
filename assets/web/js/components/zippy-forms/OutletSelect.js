@@ -7,15 +7,19 @@ import {
   styled,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import OutletDate from "./OutletDate";
 import StoreIcon from "@mui/icons-material/Store";
 import WatchLaterIcon from "@mui/icons-material/WatchLater";
 import { format } from "date-fns";
 import { webApi } from "../../api";
 import { toast } from "react-toastify";
-import { generateTimeSlots } from "../../helper/datetime";
+import {
+  generateTimeSlots,
+  getAvailableDeliveryTimes,
+} from "../../helper/datetime";
 import { convertTime24to12 } from "../../../../admin/js/utils/dateHelper";
+import OutletContext from "../../contexts/OutletContext";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -37,16 +41,20 @@ const OutletSelect = ({
   onChangeData,
   selectedLocation = null,
 }) => {
-  const [outlets, setOutlets] = useState([]);
-  const [selectedOutlet, setSelectedOutlet] = useState("");
+  const { outlets, selectedOutlet, setSelectedOutlet } =
+    useContext(OutletContext);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
   const [times, setTimes] = useState();
 
   const handleTimes = () => {
-    if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) return false();
     let configTime = [];
+    if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) {
+      setSelectedTime("");
+      setTimes(configTime);
+      return false;
+    }
 
     const openingHours = selectedOutlet?.operating_hours.find((item) => {
       return parseInt(item.week_day) === selectedDate.getDay();
@@ -54,11 +62,21 @@ const OutletSelect = ({
 
     switch (type) {
       case "delivery":
-        if (!openingHours.delivery || openingHours.delivery.enable === 'F') return false();
-        configTime = openingHours.delivery.delivery_hours;
+        if (!openingHours.delivery || openingHours.delivery.enable === "F") {
+          setSelectedTime("");
+          setTimes(configTime);
+          return false;
+        }
+        configTime = getAvailableDeliveryTimes(
+          openingHours.delivery.delivery_hours
+        );
         break;
       case "takeaway":
-        if (!selectedOutlet.takeaway) return false();
+        if (!selectedOutlet.takeaway) {
+          setSelectedTime("");
+          setTimes(configTime);
+          return false;
+        }
         configTime = generateTimeSlots(
           openingHours?.open_at,
           openingHours?.close_at,
@@ -91,7 +109,7 @@ const OutletSelect = ({
         to: {
           lat: selectedLocation.LATITUDE,
           lng: selectedLocation.LONGITUDE,
-        }
+        },
       };
 
       const { data: response } = await webApi.searchRoute(params);
@@ -116,24 +134,13 @@ const OutletSelect = ({
     return value >= 1000 ? (value / 1000).toFixed(2) + " km" : value + " m";
   };
 
-  const getConfigOutlet = async () => {
-    try {
-      const { data: response } = await webApi.getStores();
-      if (response) {
-        setOutlets(response.data);
-      }
-    } catch (error) {
-      toast.error("Failed to get outlet.");
-    }
-  };
-
   useEffect(() => {
     if (selectedOutlet && selectedDate && selectedTime) {
       onChangeData({
         outlet: selectedOutlet.id,
         date: format(selectedDate, "yyyy-MM-dd"),
         time: selectedTime,
-        mapRoute: mapRoute ?? '',
+        mapRoute: mapRoute ?? "",
       });
     }
   }, [selectedOutlet, selectedDate, selectedTime]);
@@ -145,15 +152,18 @@ const OutletSelect = ({
   }, [selectedLocation, selectedOutlet]);
 
   useEffect(() => {
-    if (selectedDate) {
-      handleTimes();
-      onChangeData(null);
-    }
+    handleTimes();
+    onChangeData(null);
   }, [selectedDate]);
 
   useEffect(() => {
-    getConfigOutlet();
+    if (times && times[0]) {
+      setSelectedTime(times[0]);
+    }
+  }, [times]);
 
+  useEffect(() => {
+    setSelectedOutlet(outlets[0]);
     return () => {
       clearOldData();
     };
@@ -166,11 +176,11 @@ const OutletSelect = ({
           Select an outlet: <span style={{ color: "red" }}>(*)</span>
         </h5>
         <CustomSelect
-          sx={{mb: 1}}
+          sx={{ mb: 1 }}
           variant="outlined"
           id="outlet-id"
           size="small"
-          value={selectedOutlet}
+          value={selectedOutlet ?? ""}
           onChange={handleChangeOutlet}
           displayEmpty
           startAdornment={
@@ -180,10 +190,10 @@ const OutletSelect = ({
           }
         >
           <MenuItem value={""} disabled>
-              <Typography sx={{ textWrap: "wrap" }} color="#ccc" fontSize={14}>
-                SELECT AN OUTLET
-              </Typography>
-            </MenuItem>
+            <Typography sx={{ textWrap: "wrap" }} color="#ccc" fontSize={14}>
+              SELECT AN OUTLET
+            </Typography>
+          </MenuItem>
           {/* Multi outlets */}
           {outlets.length > 0 &&
             outlets.map((outlet, index) => (
@@ -195,7 +205,9 @@ const OutletSelect = ({
             ))}
         </CustomSelect>
         {mapRoute && (
-          <Typography fontWeight={600} fontSize={13}>Distance: {formatMetersToKm(mapRoute.total_distance)}</Typography>
+          <Typography fontWeight={600} fontSize={13}>
+            Distance: {formatMetersToKm(mapRoute.total_distance)}
+          </Typography>
         )}
       </FormControl>
 
@@ -203,7 +215,7 @@ const OutletSelect = ({
         <Box>
           {/* Select Date */}
           <Box my={3}>
-            <OutletDate onChangeDate={handleChangeDate} closedDates={selectedOutlet?.closed_dates} />
+            <OutletDate onChangeDate={handleChangeDate} type={type} />
           </Box>
 
           {/* Select Time */}
@@ -229,7 +241,9 @@ const OutletSelect = ({
               }
             >
               <MenuItem value="" disabled>
-                <Typography fontSize={14} color="#ccc">SELECT TIME</Typography>
+                <Typography fontSize={14} color="#ccc">
+                  SELECT TIME
+                </Typography>
               </MenuItem>
               {times &&
                 times.map((time, index) => (
