@@ -12,13 +12,117 @@ defined('ABSPATH') or die();
 
 class Zippy_Api_Menu_Model
 {
+  public static function get_menu_args()
+  {
+    return array(
+      'id' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_numeric($param);
+        }
+      ),
+    );
+  }
+
   public static function set_menu_args()
   {
     return array(
-      'booking_id' => array(
-        'required' => false,
+      'name' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+      'start_date' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+      'end_date' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+      'days_of_week' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+    );
+  }
+  public static function add_products_menu_args()
+  {
+    return array(
+      'name' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+      'start_date' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+      'end_date' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+      'days_of_week' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_string($param);
+        }
+      ),
+    );
+  }
+  public static function get_products_menu_args()
+  {
+    return array(
+      'id_menu' => array(
+        'required' => true,
         'validate_callback' => function ($param) {
           return is_numeric($param);
+        }
+      ),
+    );
+  }
+  public static function add_product_to_menu_args()
+  {
+    return array(
+      'id_menu' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_numeric($param);
+        }
+      ),
+      'id_product' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_numeric($param);
+        }
+      ),
+    );
+  }
+  public static function delete_product_in_menu_args()
+  {
+    return array(
+      'id_menu' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_numeric($param);
+        }
+      ),
+      'id_products' => array(
+        'required' => true,
+        'validate_callback' => function ($param) {
+          return is_array($param);
         }
       ),
     );
