@@ -36,6 +36,8 @@ class Zippy_Databases
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_table'));
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_menus_table'));
+
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_shipping_table'));
   }
 
 
@@ -106,3 +108,27 @@ class Zippy_Databases
     dbDelta($sql);
   }
 }
+
+
+
+  function create_shipping_table()
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_addons_shipping_config';
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $table_name (
+        id VARCHAR(255) NOT NULL,
+        outlet_id VARCHAR(255) NOT NULL,
+        minimum_order_to_delivery LONGTEXT NULL,
+        minimum_order_to_freeship LONGTEXT NULL,
+        extra_fee LONGTEXT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+  }
