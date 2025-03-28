@@ -99,6 +99,16 @@ class Zippy_Request_Validation
                 json_decode($request[$field]);
                 return (json_last_error() === JSON_ERROR_NONE);
             }
+
+            // Ensure end_date is after start_date
+            if ($field === "end_date" && isset($request["start_date"])) {
+                $start_timestamp = strtotime($request["start_date"]);
+                $end_timestamp = strtotime($request["end_date"]);
+
+                if ($end_timestamp <= $start_timestamp) {
+                    return "end_date must be later than start_date.";
+                }
+            }
         }
     }
 

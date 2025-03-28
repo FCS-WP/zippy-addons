@@ -3,6 +3,8 @@ import { Api } from "../api";
 import Swal from "sweetalert2";
 import theme from "../../theme/theme";
 
+export const linkMenuAdmin = '/wp-admin/admin.php?page=menus';
+
 export const callDeleteMappingItems = async (ids) => {
   try {
     const params = {

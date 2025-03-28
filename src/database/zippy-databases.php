@@ -107,8 +107,6 @@ class Zippy_Databases
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
   }
-
-
   public function create_shipping_table()
   {
     global $wpdb;
