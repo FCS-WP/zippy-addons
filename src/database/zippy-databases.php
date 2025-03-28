@@ -98,8 +98,7 @@ class Zippy_Databases
         name VARCHAR(255) NOT NULL,
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
-        days_of_week VARCHAR(50) NOT NULL,
-        is_active BOOLEAN DEFAULT TRUE,
+        days_of_week VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
     ) $charset_collate;";
@@ -107,6 +106,7 @@ class Zippy_Databases
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
   }
+
   public function create_shipping_table()
   {
     global $wpdb;
