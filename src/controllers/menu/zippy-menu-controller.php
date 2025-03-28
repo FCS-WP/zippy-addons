@@ -70,10 +70,9 @@ class Zippy_Menu_Controller
     // Define validation rules
     $required_fields = [
       "name"         => ["data_type" => "string", "required" => true],
-      "is_active"    => ["data_type" => "range", "allowed_values" => ["0", "1"], "required" => true],
       "start_date"   => ["data_type" => "date", "required" => true],
       "end_date"     => ["data_type" => "date", "required" => true],
-      "days_of_week" => ["data_type" => "array", "required" => true],
+      "days_of_week" => ["data_type" => "string", "required" => true],
     ];
 
     // Validate request fields
@@ -85,7 +84,6 @@ class Zippy_Menu_Controller
     try {
       // Sanitize and format input values
       $name         = sanitize_text_field($request['name']);
-      $is_active    = (int) $request['is_active'];
       $start_date   = sanitize_text_field($request['start_date']);
       $end_date     = sanitize_text_field($request['end_date']);
       $days_of_week = implode(',', array_map('intval', (array) $request['days_of_week']));
@@ -107,10 +105,9 @@ class Zippy_Menu_Controller
           'start_date'   => $start_date,
           'end_date'     => $end_date,
           'days_of_week' => $days_of_week,
-          'is_active'    => $is_active,
           'created_at'   => current_time('mysql')
         ],
-        ['%s', '%s', '%s', '%s', '%d', '%s']
+        ['%s', '%s', '%s', '%s', '%s']
       );
 
       if ($inserted === false) {
