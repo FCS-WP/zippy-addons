@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import LocationSearch from "../LocationSearch";
 import OutletSelect from "../OutletSelect";
@@ -12,6 +12,7 @@ const DeliveryForm = ({ onChangeMode }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [deliveryData, setDeliveryData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
 
   const handleSelectLocation = (location) => {
     setSelectedLocation(location);
@@ -56,6 +57,14 @@ const DeliveryForm = ({ onChangeMode }) => {
     }, 2000);
   };
 
+  useEffect(()=>{
+    if (selectedLocation && deliveryData) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [selectedLocation, deliveryData]);
+
   return (
     <Box>
       <FormHeading
@@ -81,7 +90,7 @@ const DeliveryForm = ({ onChangeMode }) => {
       <Box p={2}>
         <Button
           fullWidth
-          disabled={isLoading}
+          disabled={isDisabled}
           loading={isLoading}
           sx={{
             paddingY: "10px",

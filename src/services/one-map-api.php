@@ -22,7 +22,7 @@ class One_Map_Api
 
         if ($interval > 5) {
             return [
-                "status_message"=> "Unable to get access_token",
+                "status_message"=> "Request timeout!",
             ];
         }
 

@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FormHeading from "../FormHeading";
 import OutletSelect from "../OutletSelect";
 import theme from "../../../../theme/customTheme";
@@ -10,6 +10,7 @@ import { showAlert } from "../../../helper/showAlert";
 const TakeAwayForm = ({ onChangeMode }) => {
   const [takeawayData, setTakeawayData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
 
   const handletakeawayData = (data) => {
     setTakeawayData(data);
@@ -46,6 +47,14 @@ const TakeAwayForm = ({ onChangeMode }) => {
     }, 2000);
   };
 
+  useEffect(()=>{
+    if (takeawayData) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [takeawayData]);
+
   return (
     <Box>
       <Box>
@@ -62,7 +71,7 @@ const TakeAwayForm = ({ onChangeMode }) => {
 
         <Box p={2}>
           <Button
-            disabled={isLoading}
+            disabled={isDisabled}
             loading={isLoading}
             fullWidth
             sx={{

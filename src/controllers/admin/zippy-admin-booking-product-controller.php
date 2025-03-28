@@ -45,6 +45,8 @@ class Zippy_Admin_Booking_Product_Controller
         }
 
 
+        $delivery_address = $request["delivery_address"];
+
         $stored_fields = [
             "product_id",
             "quantity",
@@ -54,12 +56,13 @@ class Zippy_Admin_Booking_Product_Controller
         ];
 
         try {
+
             global $wpdb;
             $table_name = OUTLET_CONFIG_TABLE_NAME;
 
             // check outlet exist
             $outlet_id = $request['outlet_id'];
-            $query = "SELECT id,outlet_name,outlet_address,minimum_total_to_shipping,shipping_config FROM $table_name WHERE id ='" . $outlet_id . "'";
+            $query = "SELECT id,outlet_name,outlet_address FROM $table_name WHERE id ='" . $outlet_id . "'";
             $outlet = $wpdb->get_results($query);
 
             if (count($outlet) < 1) {
@@ -104,7 +107,7 @@ class Zippy_Admin_Booking_Product_Controller
                 // Call Api to get distance between outlet and delivery address
                 $param = [
                     "start" => $outlet_address["coordinates"]["lat"] . "," . $outlet_address["coordinates"]["lng"],
-                    "end" => $request["delivery_address"]["lat"] . "," . $request["delivery_address"]["lng"],
+                    "end" => $delivery_address["lat"] . "," . $delivery_address["lng"],
                     "routeType" => "drive",
                     "mode" => "TRANSIT",
                 ];
@@ -119,23 +122,66 @@ class Zippy_Admin_Booking_Product_Controller
 
 
                 // Get Shipping Config
-                $shipping_fee_config = $outlet[0]->shipping_config;
+
+                global $wpdb;
+                $shipping_config_table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
+                if(!empty($outlet_id)){
+                    $query = "SELECT * FROM $shipping_config_table_name WHERE outlet_id ='" . $outlet_id . "'";
+                }
+                
+                $config = $wpdb->get_results($query);
+
+                if(count($config) < 1){
+                    return Zippy_Response_Handler::error("Outlet not exist");
+                }
+                
+                $shipping_fee_config = $config[0];
 
                 if (empty($shipping_fee_config)) {
                     return Zippy_Response_Handler::error("Missing Config for Shipping Fee");
                 }
 
-                $shipping_fee_data = maybe_unserialize($shipping_fee_config)["shipping_fee"];
+                $minimum_order_to_delivery_config = maybe_unserialize($shipping_fee_config->minimum_order_to_delivery);
+                $minimum_order_to_freeship_config = maybe_unserialize($shipping_fee_config->minimum_order_to_freeship);
+                $extra_fee_config = maybe_unserialize($shipping_fee_config->extra_fee);
 
-                // Calculate shipping fee
-                $shipping_fee = "";
-                foreach ($shipping_fee_data as $data) {
-                    if ($total_distance > $data["min_distance"] && $total_distance <= $data["max_distance"]) {
-                        $shipping_fee = $data["shipping_fee"];
+
+                $minimum_order_to_delivery = 0;
+                $minimum_order_to_freeship = 0;
+                $extra_fee = 0;
+
+                //calculate minimum order to delivery
+                foreach ($minimum_order_to_delivery_config as $key => $value) {
+                    $value["lower_than"] = $value["lower_than"] == null ? 99999999999999 : $value["lower_than"];
+
+                    if($total_distance >= $value["greater_than"] && $total_distance <= $value["lower_than"])  {
+                        $minimum_order_to_delivery = $value["fee"];
                     }
                 }
-                $store_datas["shipping_fee"] = $shipping_fee;
+
+                // Calculate shipping fee
+                foreach ($minimum_order_to_freeship_config as $key => $value) {
+                    $value["lower_than"] = $value["lower_than"] == null ? 99999999999999 : $value["lower_than"];
+
+                    if($total_distance >= $value["greater_than"] && $total_distance <= $value["lower_than"])  {
+                        $minimum_order_to_freeship = $value["fee"];
+                    }
+                }
+
+
+                // calculate extra fee
+                foreach ($extra_fee_config as $key => $value) {
+                    if($value["type"] == "postal_code"){
+                        if($delivery_address["postal_code"] >= $value["greater_than"] && $delivery_address["postal_code"] <= $value["lower_than"])  {
+                            $extra_fee = 10;
+                        }
+                    }
+                }
+
                 $store_datas["total_distance"] = $total_distance;
+                $store_datas["minimum_order_to_freeship"] = $minimum_order_to_freeship;
+                $store_datas["minimum_order_to_delivery"] = $minimum_order_to_delivery;
+                $store_datas["extra_fee"] = $extra_fee;
             }
 
 
@@ -146,7 +192,7 @@ class Zippy_Admin_Booking_Product_Controller
                 }
             }
 
-            $store_datas["delivery_address"] = $request["delivery_address"]["address_name"] ?? null;
+            $store_datas["delivery_address"] = $delivery_address["address_name"] ?? null;
             $store_datas["outlet_name"] = $outlet[0]->outlet_name;
             $store_datas["outlet_address"] = $outlet_address_name;
 

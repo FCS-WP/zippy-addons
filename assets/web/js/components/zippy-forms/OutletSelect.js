@@ -203,7 +203,7 @@ const OutletSelect = ({
         <Box>
           {/* Select Date */}
           <Box my={3}>
-            <OutletDate onChangeDate={handleChangeDate} />
+            <OutletDate onChangeDate={handleChangeDate} closedDates={selectedOutlet?.closed_dates} />
           </Box>
 
           {/* Select Time */}
