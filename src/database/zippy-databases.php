@@ -107,11 +107,7 @@ class Zippy_Databases
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
   }
-}
-
-
-
-  function create_shipping_table()
+  public function create_shipping_table()
   {
     global $wpdb;
     $table_name = $wpdb->prefix . 'zippy_addons_shipping_config';
@@ -132,3 +128,4 @@ class Zippy_Databases
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
   }
+}
