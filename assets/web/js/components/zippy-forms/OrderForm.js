@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import SelectMethod from "./SelectMethod";
 import DeliveryForm from "./delivery/DeliveryForm";
 import TakeAwayForm from "./takeaway/TakeAwayForm";
+import OutletProvider from "../../providers/OutletProvider";
 
 const OrderForm = () => {
   /**
@@ -18,7 +19,7 @@ const OrderForm = () => {
   }
 
   return (
-    <Box>
+    <OutletProvider>
       {mode === "select-method" && (
         <Box>
           <SelectMethod onChangeMode={handleChangeMethod} />
@@ -36,7 +37,7 @@ const OrderForm = () => {
           <TakeAwayForm onChangeMode={handleChangeMethod}/>
         </Box>
       )}
-    </Box>
+    </OutletProvider>
   );
 };
 

@@ -2,67 +2,14 @@ import {
   Box,
   Button,
   Grid2 as Grid,
-  Paper,
-  styled,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
-import { isCloseDate } from "../../helper/datetime";
-import DatePicker from "react-datepicker";
+import React, { useContext, useEffect, useState } from "react";
+import { getDisabledDays, isCloseDate } from "../../helper/datetime";
 import { format } from "date-fns";
-
-const Item = styled(Paper)(({ theme, selected, disabled }) => ({
-  backgroundColor: disabled
-    ? "#E0E0E0"
-    : selected
-    ? theme.palette.primary.main
-    : theme.palette.white.main,
-  ...theme.typography.body2,
-  textAlign: "center",
-  color: selected ? theme.palette.white.main : theme.palette.text.secondary,
-  transition: "background-color 0.3s ease",
-  cursor: disabled ? "not-allowed" : "pointer",
-  "&:hover": {
-    backgroundColor: disabled
-      ? "#E0E0E0"
-      : selected
-      ? theme.palette.primary.main
-      : theme.palette.mode === "dark"
-      ? "#2C3740"
-      : "#f0f0f0",
-  },
-}));
-
-const DateBoxed = ({ date, selected, onClick, disabled }) => {
-  const dayOfWeek = date
-    .toLocaleString("en-US", { weekday: "short" })
-    .toUpperCase();
-  const day = date.getDate();
-  const month = date.toLocaleString("en-US", { month: "short" }).toUpperCase();
-
-  return (
-    <Item
-      selected={selected}
-      disabled={disabled}
-      onClick={!disabled ? () => onClick(date) : undefined}
-      sx={{ padding: { xs: 1, md: 2 } }}
-    >
-      <Typography variant="body1" fontSize={{ xs: 10, md: 14 }}>
-        {dayOfWeek}
-      </Typography>
-      <Typography
-        variant="h4"
-        fontSize={{ xs: 14, md: 20 }}
-        my={{ xs: 1, md: 2 }}
-      >
-        {day}
-      </Typography>
-      <Typography variant="body1" fontSize={{ xs: 10, md: 14 }}>
-        {month}
-      </Typography>
-    </Item>
-  );
-};
+import DateBoxed from "./dates/DateBoxed";
+import DateCalendar from "./dates/DateCalendar";
+import OutletContext from "../../contexts/OutletContext";
 
 const dates = Array.from({ length: 5 }, (_, i) => {
   const date = new Date();
@@ -70,37 +17,15 @@ const dates = Array.from({ length: 5 }, (_, i) => {
   return date;
 });
 
-const DateCalendar = ({ onSelectDate, defaultDate, closedDates }) => {
-  const [selectedDate, setSelectedDate] = useState(defaultDate);
-  const handleClick = (date) => {
-    setSelectedDate(date);
-    onSelectDate(date);
-  };
-  let minDate = new Date();
-  minDate.setDate(minDate.getDate() + 2);
-  let maxDate = new Date();
-  maxDate.setMonth(maxDate.getMonth() + 1);
-
-  return (
-    <Box className="date-box">
-      <DatePicker
-        minDate={minDate}
-        maxDate={maxDate}
-        selected={selectedDate}
-        onChange={(date) => handleClick(date)}
-        filterDate={(date) => !isCloseDate(date, closedDates)}
-        inline
-      />
-    </Box>
-  );
-};
-
-const OutletDate = ({ onChangeDate, closedDates }) => {
+const OutletDate = ({ onChangeDate, type }) => {
   /**
    * Mode: boxed - calendar
    */
   const [mode, setMode] = useState("boxed");
   const [selectedDate, setSelectedDate] = useState(null);
+  const { selectedOutlet } = useContext(OutletContext);
+
+  const closedDays = getDisabledDays(selectedOutlet, type);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -111,6 +36,10 @@ const OutletDate = ({ onChangeDate, closedDates }) => {
     const newMode = mode === "boxed" ? "calendar" : "boxed";
     setMode(newMode);
   };
+
+  useEffect(()=>{
+    handleSelectDate(null)
+  }, [selectedOutlet])
 
   return (
     <Box>
@@ -137,7 +66,7 @@ const OutletDate = ({ onChangeDate, closedDates }) => {
           {mode === "boxed" ? "More Date" : "Less date"}
         </Button>
       </Box>
-      <Box textAlign={'end'} mb={1}>
+      <Box textAlign={"end"} mb={1}>
         <Typography
           fontSize={12}
           color="#525252"
@@ -145,7 +74,7 @@ const OutletDate = ({ onChangeDate, closedDates }) => {
             textWrap: "nowrap",
             textTransform: "capitalize",
             display: { xs: "block", md: "none" },
-            textDecoration: 'underline',
+            textDecoration: "underline",
           }}
           onClick={changeDateMode}
         >
@@ -164,7 +93,7 @@ const OutletDate = ({ onChangeDate, closedDates }) => {
                 date={date}
                 selected={selectedDate?.toDateString() === date.toDateString()}
                 onClick={handleSelectDate}
-                disabled={isCloseDate(date, closedDates)}
+                disabled={isCloseDate(date, closedDays, selectedOutlet.closed_dates)}
               />
             </Grid>
           ))}
@@ -174,7 +103,8 @@ const OutletDate = ({ onChangeDate, closedDates }) => {
           <DateCalendar
             defaultDate={selectedDate}
             onSelectDate={handleSelectDate}
-            closedDates={closedDates}
+            selectedOutlet={selectedOutlet}
+            type={type}
           />
         </div>
       )}
