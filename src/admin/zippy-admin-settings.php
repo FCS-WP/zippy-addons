@@ -65,11 +65,14 @@ class Zippy_Admin_Settings
   {
     add_menu_page('Zippy Add-ons', 'Zippy Add-ons', 'manage_options', 'zippy-bookings', array($this, 'store_render'), 'dashicons-list-view', 6);
     // SubPage
+    add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
+    add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
+    add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
+    add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
     // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
     // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
     add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
-    // add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
   }
 
   public function render()
@@ -93,6 +96,10 @@ class Zippy_Admin_Settings
   {
     echo Zippy_Utils_Core::get_template('booking-store.php', [], dirname(__FILE__), '/templates');
   }
+  public function shipping_render()
+  {
+    echo Zippy_Utils_Core::get_template('shipping.php', [], dirname(__FILE__), '/templates');
+  }
   public function calendar_render()
   {
     echo Zippy_Utils_Core::get_template('booking-calendar.php', [], dirname(__FILE__), '/templates');
@@ -103,7 +110,7 @@ class Zippy_Admin_Settings
       'toplevel_page_zippy-bookings',
       'zippy-bookings_page_bookings',
       'zippy-bookings_page_calendar',
-      'zippy-bookings_page_products-booking',
+      'zippy-add-ons_page_store',
       'zippy-bookings_page_customize'
     ];
 

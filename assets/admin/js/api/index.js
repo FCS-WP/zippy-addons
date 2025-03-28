@@ -61,4 +61,10 @@ export const Api = {
   async addStoreConfig(params) {
     return await makeRequest("/store-config", params, "POST");
   },
+  async addShipping(params) {
+    return await makeRequest("/shipping", params, "POST");
+  },
+  async getShipping(params) {
+    return await makeRequest("/shipping", params);
+  },
 };

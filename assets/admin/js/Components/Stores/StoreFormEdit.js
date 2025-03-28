@@ -11,10 +11,10 @@ import {
   InputLabel,
   Button,
 } from "@mui/material";
-import { Api } from "../api";
+import { Api } from "../../api";
 import { toast, ToastContainer } from "react-toastify";
 
-const FormEdit = ({ store, loading, onClose, onSave }) => {
+const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     outlet_name: "",
     outlet_phone: "",
@@ -225,4 +225,4 @@ const FormEdit = ({ store, loading, onClose, onSave }) => {
   );
 };
 
-export default FormEdit;
+export default StoreFormEdit;
