@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
 
-export const showAlert = async (status, title, text) => {
+export const showAlert = async (status, title, text, timer = 3000) => {
   Swal.fire({
     icon: status,
     title,

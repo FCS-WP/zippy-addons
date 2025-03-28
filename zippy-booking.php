@@ -59,20 +59,6 @@ if (!defined('ZIPPY_BOOKING_API_NAMESPACE')) {
   define('ZIPPY_BOOKING_API_NAMESPACE', 'zippy-addons/v1');
 }
 
-/* Booking table name */
-if (!defined('ZIPPY_BOOKING_TABLE_NAME')) {
-  define('ZIPPY_BOOKING_TABLE_NAME', 'fcs_data_bookings');
-}
-
-/* Booking Configs table name */
-if (!defined('ZIPPY_BOOKING_CONFIG_TABLE_NAME')) {
-  define('ZIPPY_BOOKING_CONFIG_TABLE_NAME', 'fcs_data_booking_configs');
-}
-/* Booking Options table name */
-if (!defined('ZIPPY_BOOKING_OPTIONS_TABLE_NAME')) {
-  define('ZIPPY_BOOKING_OPTIONS_TABLE_NAME', 'fcs_data_options');
-}
-
 /* Booking Product Mapping table name */
 if (!defined('OUTLET_CONFIG_TABLE_NAME')) {
   define('OUTLET_CONFIG_TABLE_NAME', 'fcs_data_zippy_addons_outlet');
@@ -84,33 +70,8 @@ if (!defined('OUTLET_SHIPPING_CONFIG_TABLE_NAME')) {
 }
 
 /* Booking Product Mapping table name */
-if (!defined('ZIPPY_BOOKING_LOG_TABLE_NAME')) {
-  define('ZIPPY_BOOKING_LOG_TABLE_NAME', 'fcs_data_zippy_booking_log');
-}
-
-/* Booking status */
-if (!defined('ZIPPY_BOOKING_BOOKING_STATUS_PENDING')) {
-  define('ZIPPY_BOOKING_BOOKING_STATUS_PENDING', 'pending');
-}
-
-if (!defined('ZIPPY_BOOKING_BOOKING_STATUS_COMPLETED')) {
-  define('ZIPPY_BOOKING_BOOKING_STATUS_COMPLETED', 'completed');
-}
-
-if (!defined('ZIPPY_BOOKING_BOOKING_STATUS_ONHOLD')) {
-  define('ZIPPY_BOOKING_BOOKING_STATUS_ONHOLD', 'on-hold');
-}
-
-if (!defined('ZIPPY_BOOKING_BOOKING_STATUS_CANCELLED')) {
-  define('ZIPPY_BOOKING_BOOKING_STATUS_CANCELLED', 'cancelled');
-}
-
-if (!defined('ZIPPY_BOOKING_BOOKING_STATUS_PROCESSING')) {
-  define('ZIPPY_BOOKING_BOOKING_STATUS_PROCESSING', 'processing');
-}
-
-if (!defined('ZIPPY_BOOKING_BOOKING_STATUS_APPROVE')) {
-  define('ZIPPY_BOOKING_BOOKING_STATUS_APPROVE', 'approved');
+if (!defined('ZIPPY_LOG_TABLE_NAME')) {
+  define('ZIPPY_LOG_TABLE_NAME', 'fcs_data_zippy_log');
 }
 
 
@@ -175,6 +136,8 @@ require ZIPPY_ADDONS_DIR_PATH . '/includes/autoload.php';
 
 use  Zippy_Booking\Src\Admin\Zippy_Admin_Settings;
 
+use  Zippy_Booking\Src\Database\Zippy_Databases;
+
 use Zippy_Booking\Src\Routers\Zippy_Booking_Routers;
 
 use Zippy_Booking\Src\Web\Zippy_Booking_Web;
@@ -185,6 +148,8 @@ use Zippy_Booking\Src\Woocommerce\Zippy_Woo_Booking;
  *
  * Init Zippy Booking
  */
+
+Zippy_Databases::get_instance();
 
 Zippy_Admin_Settings::get_instance();
 

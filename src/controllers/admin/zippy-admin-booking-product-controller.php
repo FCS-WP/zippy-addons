@@ -62,7 +62,7 @@ class Zippy_Admin_Booking_Product_Controller
 
             // check outlet exist
             $outlet_id = $request['outlet_id'];
-            $query = "SELECT id,outlet_name,outlet_address,minimum_total_to_shipping,shipping_config FROM $table_name WHERE id ='" . $outlet_id . "'";
+            $query = "SELECT id,outlet_name,outlet_address FROM $table_name WHERE id ='" . $outlet_id . "'";
             $outlet = $wpdb->get_results($query);
 
             if (count($outlet) < 1) {

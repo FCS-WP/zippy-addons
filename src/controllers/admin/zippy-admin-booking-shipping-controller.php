@@ -30,6 +30,9 @@ class Zippy_Admin_Booking_Shipping_Controller
             return Zippy_Response_Handler::error($validate);
         }
 
+        $shipping_fee_config["shipping_fee"] = $request["request"];
+        $shipping_fee_config["updated_at"] = current_time("mysql");
+
         try {
 
             $outlet_id = $request["outlet_id"];
@@ -65,7 +68,6 @@ class Zippy_Admin_Booking_Shipping_Controller
             if($is_insert){
                 return Zippy_Response_Handler::success($insert_data, "Oulet Updated");
             }
-
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
@@ -74,31 +76,16 @@ class Zippy_Admin_Booking_Shipping_Controller
 
     public static function get_shipping_config(WP_REST_Request $request)
     {
-
-        $required_fields = [
-            "outlet_id" => ["required" => true, "data_type" => "string"],
-        ];
-
-        foreach ($request as $key => $value) {
-            $validate = Zippy_Request_Validation::validate_request($required_fields, $value);
-            if (!empty($validate)) {
-                return Zippy_Response_Handler::error($validate);
-            }
-        }
-
         try {
-            global $wpdb;
-            $table_name = OUTLET_CONFIG_TABLE_NAME;
+            $options = get_option(SHIPPING_CONFIG_META_KEY);
 
-            $outlet_id = $request['outlet_id'];
-            $query = "SELECT id,minimum_total_to_shipping,shipping_config FROM $table_name WHERE id ='" . $outlet_id . "'";
-            $outlet = $wpdb->get_results($query);
-            if(count($outlet) < 1){
-                return Zippy_Response_Handler::error("Outlet not exist!");
-            } 
-            $outlet[0]->shipping_config = maybe_unserialize($outlet[0]->shipping_config);
-            
-            return Zippy_Response_Handler::success($outlet[0], "Success");
+            if($options){
+                $options = maybe_unserialize($options);
+                unset($options["updated_at"]);
+                return Zippy_Response_Handler::success($options, "Success");
+            } else {
+                return Zippy_Response_Handler::error("No config found");
+            }
 
         } catch (\Throwable $th) {
             $message = $th->getMessage();
