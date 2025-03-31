@@ -11,33 +11,24 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Tab,
   Tabs,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
+  IconButton,
 } from "@mui/material";
+import { Delete } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { Api } from "../../api";
-import { LogarithmicScale } from "chart.js";
 
 const ShippingFeeCalculator = () => {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
-  const [config, setConfig] = useState([]);
-  const [minimumTotalToShipping, setMinimumTotalToShipping] = useState("");
-  const [open, setOpen] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [newConfig, setNewConfig] = useState({
-    min_distance: "",
-    max_distance: "",
-    shipping_fee: "",
-  });
+  const [minimumOrderToDelivery, setMinimumOrderToDelivery] = useState([]);
+  const [minimumOrderToFreeship, setMinimumOrderToFreeship] = useState([]);
+  const [extraFee, setExtraFee] = useState([]);
   const [tabIndex, setTabIndex] = useState(0);
 
   useEffect(() => {
@@ -54,18 +45,14 @@ const ShippingFeeCalculator = () => {
 
   const fetchConfig = async (storeId) => {
     if (!storeId) return;
-
     try {
       const response = await Api.getShipping({ outlet_id: storeId });
-      setConfig(response.data.data.shipping_config.shipping_config || []);
-
-      setMinimumTotalToShipping(
-        response.data.data.minimum_total_to_shipping || ""
-      );
+      const data = response.data.data;
+      setMinimumOrderToDelivery(data.minimum_order_to_delivery || []);
+      setMinimumOrderToFreeship(data.minimum_order_to_freeship || []);
+      setExtraFee(data.extra_fee || []);
     } catch (error) {
       console.error("Error fetching shipping config:", error);
-      setConfig([]);
-      setMinimumTotalToShipping("");
     }
   };
 
@@ -79,84 +66,49 @@ const ShippingFeeCalculator = () => {
     setTabIndex(newIndex);
   };
 
-  const handleOpen = (index = null) => {
-    setEditIndex(index);
-    setNewConfig(
-      index !== null
-        ? config[index]
-        : { min_distance: "", max_distance: "", shipping_fee: "" }
-    );
-    setOpen(true);
+  const handleAddNewRow = (setState, newRow) => {
+    setState((prev) => [...prev, newRow]);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleInputChange = (index, field, value, setState, state) => {
+    const updatedData = [...state];
+    updatedData[index][field] = value;
+    setState(updatedData);
   };
 
-  const handleChange = (e) => {
-    setNewConfig({ ...newConfig, [e.target.name]: e.target.value });
-    console.log(newConfig);
+  const handleDeleteRow = (index, setState, state) => {
+    setState(state.filter((_, i) => i !== index));
   };
-
-  const handleAddOrUpdateConfig = () => {
-    console.log(newConfig);
-
-    if (
-      !newConfig.min_distance ||
-      !newConfig.max_distance ||
-      !newConfig.shipping_fee
-    ) {
-      alert("Please fill in all fields before saving.");
-      return;
-    }
-
-    const updatedConfig = [config];
-    if (editIndex !== null) {
-      updatedConfig[editIndex] = newConfig;
-    } else {
-      updatedConfig.push(newConfig);
-    }
-    setConfig(updatedConfig);
-    handleClose();
-  };
-
-  const handleDeleteConfig = (index) => {
-    setConfig(config.filter((_, i) => i !== index));
-  };
-
   const handleSaveConfig = async () => {
     if (!selectedStore) {
       toast.error("Please select a store.");
       return;
     }
 
-    try {
-      const payload = {
-        outlet_id: selectedStore,
-        config,
-        minimum_total_to_shipping: minimumTotalToShipping,
-      };
-      const response = await Api.addShipping(payload);
+    const payload = {
+      outlet_id: selectedStore,
+      minimum_order_to_delivery: minimumOrderToDelivery,
+      minimum_order_to_freeship: minimumOrderToFreeship,
+      extra_fee: extraFee,
+    };
 
-      if (response.data.status === "success") {
-        toast.success("Shipping configuration saved successfully!");
-      } else {
-        toast.error("Failed to save shipping configuration!");
-      }
+    try {
+      const response = await Api.addShipping(payload);
+      toast.success("Shipping fee configuration saved successfully!");
+      console.log("Saved Configuration:", response.data);
     } catch (error) {
       console.error("Error saving shipping config:", error);
-      toast.error("An error occurred while saving!");
+      toast.error("Failed to save shipping fee configuration.");
     }
   };
 
   return (
-    <Container maxWidth="100" style={{ marginTop: 20 }}>
-      <Typography variant="h5" gutterBottom>
+    <Container maxWidth="100">
+      <Typography variant="h5" style={{ marginBottom: 20 }}>
         Shipping Fee Configuration
       </Typography>
-
-      <FormControl fullWidth margin="normal">
-        <InputLabel>Select Store</InputLabel>
+      <FormControl fullWidth style={{ marginBottom: 20 }}>
+        <Typography>Select Store</Typography>
         <Select value={selectedStore} onChange={handleStoreChange}>
           {stores.map((store) => (
             <MenuItem key={store.id} value={store.id}>
@@ -167,64 +119,224 @@ const ShippingFeeCalculator = () => {
       </FormControl>
 
       <Tabs value={tabIndex} onChange={handleTabChange}>
-        <Tab label="Minimum Total to Shipping" />
-        <Tab label="Shipping Configuration" />
+        <Tab label="Minimum Order to Delivery" />
+        <Tab label="Minimum Order to Freeship" />
+        <Tab label="Extra Fee" />
       </Tabs>
 
-      {tabIndex === 0 && (
-        <Paper style={{ padding: 20, marginTop: 20 }}>
-          <TextField
-            variant="outlined"
-            fullWidth
-            label="Minimum Total to Shipping"
-            value={minimumTotalToShipping}
-            onChange={(e) => setMinimumTotalToShipping(e.target.value)}
-          />
-        </Paper>
+      {[minimumOrderToDelivery, minimumOrderToFreeship].map(
+        (state, idx) =>
+          tabIndex === idx && (
+            <Paper style={{ padding: 20, marginTop: 20 }} key={idx}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() =>
+                  handleAddNewRow(
+                    idx === 0
+                      ? setMinimumOrderToDelivery
+                      : setMinimumOrderToFreeship,
+                    { greater_than: "", lower_than: "", fee: "" }
+                  )
+                }
+              >
+                Add New
+              </Button>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Greater Than</TableCell>
+                      <TableCell>Lower Than</TableCell>
+                      <TableCell>Fee</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {state.map((row, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <TextField
+                            type="number"
+                            value={row.greater_than}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "greater_than",
+                                e.target.value,
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                state
+                              )
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="number"
+                            value={row.lower_than}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "lower_than",
+                                e.target.value,
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                state
+                              )
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="number"
+                            value={row.fee}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "fee",
+                                e.target.value,
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                state
+                              )
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <IconButton
+                            color="error"
+                            onClick={() =>
+                              handleDeleteRow(
+                                index,
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                state
+                              )
+                            }
+                          >
+                            <Delete />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )
       )}
 
-      {tabIndex === 1 && (
+      {tabIndex === 2 && (
         <Paper style={{ padding: 20, marginTop: 20 }}>
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handleOpen()}
+            onClick={() =>
+              handleAddNewRow(setExtraFee, {
+                type: "",
+                from: "",
+                to: "",
+                fee: "",
+              })
+            }
           >
-            Add New Configuration
+            Add New
           </Button>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Min Distance</TableCell>
-                  <TableCell>Max Distance</TableCell>
-                  <TableCell>Shipping Fee</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>From</TableCell>
+                  <TableCell>To</TableCell>
+                  <TableCell>Fee</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {config.map((row, index) => (
+                {extraFee.map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell>{row.min_distance}</TableCell>
-                    <TableCell>{row.max_distance}</TableCell>
-                    <TableCell>{row.shipping_fee}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleOpen(index)}
-                        style={{ marginRight: 10 }}
+                    <TableCell sx={{ width: "20%" }}>
+                      <Select
+                        fullWidth
+                        value={row.type}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "type",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
                       >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="contained"
+                        <MenuItem value="fixed">Fixed</MenuItem>
+                        <MenuItem value="percentage">Percentage</MenuItem>
+                      </Select>
+                    </TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={row.from}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "from",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={row.to}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "to",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={row.fee}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "fee",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell sx={{ width: "20%" }}>
+                      <IconButton
                         color="error"
-                        onClick={() => handleDeleteConfig(index)}
-                        style={{ marginRight: 10 }}
+                        onClick={() =>
+                          handleDeleteRow(index, setExtraFee, extraFee)
+                        }
                       >
-                        Delete
-                      </Button>
+                        <Delete />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -234,58 +346,14 @@ const ShippingFeeCalculator = () => {
         </Paper>
       )}
 
-      <Button variant="contained" color="secondary" onClick={handleSaveConfig}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSaveConfig}
+        style={{ marginTop: 20, marginBottom: 20 }}
+      >
         Save
       </Button>
-
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editIndex !== null
-            ? "Edit Shipping Configuration"
-            : "Add Shipping Configuration"}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            name="min_distance"
-            type="text"
-            fullWidth
-            margin="dense"
-            label="From Value"
-            value={newConfig.min_distance}
-            onChange={handleChange}
-          />
-          <TextField
-            name="max_distance"
-            type="text"
-            fullWidth
-            margin="dense"
-            label="To Value"
-            value={newConfig.max_distance}
-            onChange={handleChange}
-          />
-          <TextField
-            name="shipping_fee"
-            type="text"
-            fullWidth
-            margin="dense"
-            label="Shipping Fee"
-            value={newConfig.shipping_fee}
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleAddOrUpdateConfig}
-            variant="contained"
-            color="primary"
-          >
-            {editIndex !== null ? "Update" : "Add"}
-          </Button>
-          <Button onClick={handleClose} variant="outlined" color="secondary">
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };
