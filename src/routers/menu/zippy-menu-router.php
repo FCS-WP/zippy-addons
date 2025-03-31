@@ -60,11 +60,10 @@ class Zippy_Menu_Router
       'callback' => [Zippy_Menu_Controller::class, 'get_products_in_menu'],
       'args' => Zippy_Api_Menu_Model::get_products_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-
     ));
     register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/products-menu', array(
       'methods' => 'POST',
-      'callback' => [Zippy_Menu_Controller::class, 'add_product_to_menu'],
+      'callback' => [Zippy_Menu_Controller::class, 'add_products_to_menu'],
       'args' => Zippy_Api_Menu_Model::add_product_to_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
 
