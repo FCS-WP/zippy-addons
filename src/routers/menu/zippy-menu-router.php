@@ -44,14 +44,24 @@ class Zippy_Menu_Router
       'callback' => [Zippy_Menu_Controller::class, 'get_menus'],
       'args' => Zippy_Api_Menu_Model::set_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-
     ));
     register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/menus', array(
       'methods' => 'POST',
       'callback' => [Zippy_Menu_Controller::class, 'set_menu'],
       'args' => Zippy_Api_Menu_Model::set_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-
+    ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/create-menu', array(
+      'methods' => 'POST',
+      'callback' => [Zippy_Menu_Controller::class, 'create_menu'],
+      'args' => Zippy_Api_Menu_Model::set_menu_args(),
+      'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+    ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/update-menu', array(
+      'methods' => 'PUT',
+      'callback' => [Zippy_Menu_Controller::class, 'update_menu'],
+      'args' => Zippy_Api_Menu_Model::set_menu_args(),
+      'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
   }
 }

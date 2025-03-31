@@ -8,6 +8,8 @@ export const menuListColumns = [
   "FRI",
   "SAT",
   "SUN",
+  "Start Date",
+  "End Date",
   "ACTIONS",
 ];
 

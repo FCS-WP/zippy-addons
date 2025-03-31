@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyledPaper } from "../mui-custom-styles";
 import { Box, Divider, Grid, Grid2, Typography } from "@mui/material";
 import MenuContext from "../../contexts/MenuContext";
 import theme from "../../../theme/theme";

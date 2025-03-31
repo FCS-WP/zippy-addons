@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MenuContext from "../contexts/MenuContext";
+import { Api } from "../api";
 
 const defaultMenus = [
   {
@@ -33,11 +34,16 @@ const defaultMenus = [
 ];
 
 const MenuProvider = ({ children }) => {
-  const [menus, setMenus] = useState(defaultMenus);
+  const [menus, setMenus] = useState([]);
   const [selectedMenu, setSelectedMenu] = useState();
 
-  const handleAddNewMenu = (newMenu) => {
-    setMenus((prev) => [...prev, newMenu]);
+  const refetchMenus = async (newMenu) => {
+    const response = await Api.getMenus();
+    if (!response.data || response.data.status !== 'success') {
+      console.log("Error when get menus");
+      return;
+    } 
+    setMenus(response.data.data);
   };
 
   const value = {
@@ -45,8 +51,16 @@ const MenuProvider = ({ children }) => {
     setSelectedMenu,
     menus,
     setMenus,
-    handleAddNewMenu,
+    refetchMenus,
   };
+
+  useEffect(()=>{
+    refetchMenus();
+    
+    return () => {
+      
+    }
+  }, [])
 
   return <MenuContext.Provider value={value}>{children}</MenuContext.Provider>;
 };
