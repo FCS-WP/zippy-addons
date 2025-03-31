@@ -13,11 +13,10 @@ const AdminMenus = () => {
   
   return (
     <MenuProvider>
-      <Header title="Menu" />
       {page === "menus" && (
         <Routes>
           {!menuId && (<Route path='/wp-admin/admin.php' element={<Menus />} />)}
-          {menuId && <Route path="/wp-admin/admin.php" element={<MenuDetail />} />}
+          {menuId && <Route path="/wp-admin/admin.php" element={<MenuDetail menuId={menuId}/>} />}
         </Routes>
       )}
     </MenuProvider>

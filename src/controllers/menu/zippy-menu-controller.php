@@ -2,6 +2,7 @@
 
 namespace Zippy_Booking\Src\Controllers\Menu;
 
+use Exception;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
@@ -20,7 +21,6 @@ class Zippy_Menu_Controller
     $required_fields = [
       "id" => ["data_type" => "number", "required" => false],
     ];
-
     // Validate request fields
     $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
 
@@ -38,12 +38,24 @@ class Zippy_Menu_Controller
         $query = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $menu_id);
         $menus = $wpdb->get_results($query);
 
+        foreach ($menus as $key => $menu) {
+          if (!empty($menu->days_of_week)) {
+            $menu->days_of_week = json_decode($menu->days_of_week);
+          }
+        }
+
         if (empty($menus)) {
           return Zippy_Response_Handler::error("Menu with ID $menu_id does not exist!");
         }
       } else {
         $query = "SELECT * FROM $table_name";
         $menus = $wpdb->get_results($query);
+
+        foreach ($menus as $key => $menu) {
+          if (!empty($menu->days_of_week)) {
+            $menu->days_of_week = json_decode($menu->days_of_week);
+          }
+        }
 
         if (empty($menus)) {
           return Zippy_Response_Handler::error("No menus found!");
@@ -57,7 +69,6 @@ class Zippy_Menu_Controller
       return Zippy_Response_Handler::error("An error occurred while fetching menus.");
     }
   }
-
 
   /**
    * SET MENU
@@ -300,6 +311,136 @@ class Zippy_Menu_Controller
       Zippy_Log_Action::log('remove_products_from_menu', json_encode($request->get_params()), 'Failure', $error_message);
 
       return Zippy_Response_Handler::error("An error occurred while removing the products. Please try again.", 500);
+    }
+  }
+
+  public static function create_menu(WP_REST_Request $request)
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_menus';
+    $required_fields = ["name" => ["data_type" => "string"]];
+
+    // Validate request fields
+    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    if (!empty($validate)) {
+      return Zippy_Response_Handler::error($validate, 400);
+    }
+
+    $name = sanitize_text_field($request['name']);
+    try {
+      $wpdb->query('START TRANSACTION');
+      // Insert into the database
+      $inserted = $wpdb->insert(
+        $table_name,
+        [
+          'name'         => $name,
+          'start_date'   => '',
+          'end_date'     => '',
+          'days_of_week' => '',
+          'created_at'   => current_time('mysql')
+        ],
+        ['%s', '%s', '%s', '%s', '%s']
+      );
+
+      if ($inserted === false) {
+        throw new Exception("Database insert failed: " . $wpdb->last_error);
+      }
+
+      $insert_id = $wpdb->insert_id;
+      $wpdb->query('COMMIT');
+
+      return Zippy_Response_Handler::success($insert_id, "Menu created successfully.");
+    } catch (Exception $e) {
+      $wpdb->query('ROLLBACK');
+
+      $error_message = $e->getMessage();
+      Zippy_Log_Action::log('create_menu', json_encode($request->get_params()), 'Failure', $error_message);
+
+      return Zippy_Response_Handler::error("An error occurred while creating the menu. Please try again.", 500);
+    }
+  }
+
+  public static function update_menu(WP_REST_Request $request)
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_menus';
+    $required_fields = [
+      "menu_id" => ["data_type" => "number", "required" => true],
+      "date_of_weeks" => ["data_type" => "string", "required" => false],
+      "start_date"   => ["data_type" => "date", "required" => false],
+      "end_date"     => ["data_type" => "date", "required" => false],
+    ];
+
+    // Validate request fields
+    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    if (!empty($validate)) {
+      return Zippy_Response_Handler::error($validate, 400);
+    }
+
+    try {
+      $wpdb->query('START TRANSACTION');
+      $menu_id = $request->get_param('menu_id');
+      $start_date   = sanitize_text_field($request['start_date']);
+      $end_date     = sanitize_text_field($request['end_date']);
+      $days_of_week = json_encode($request->get_param('days_of_week'));
+
+      $updated = $wpdb->update(
+        $table_name,
+        [
+          'start_date'   => $start_date ?? '',
+          'end_date'     => $end_date ?? '',
+          'days_of_week' => $days_of_week ?? '',
+        ],
+        array('id' => $menu_id),
+        ['%s', '%s', '%s']
+      );
+
+      if ($updated === false) {
+        throw new Exception("Database update failed: " . $wpdb->last_error);
+      }
+
+      $wpdb->query('COMMIT');
+
+      return Zippy_Response_Handler::success($updated, "Menu has been updated.");
+    } catch (Exception $e) {
+      $wpdb->query('ROLLBACK');
+
+      $error_message = $e->getMessage();
+      Zippy_Log_Action::log('update_menu', json_encode($request->get_params()), 'Failure', $error_message);
+
+      return Zippy_Response_Handler::error("An error occurred while update the menu. Please try again.", 500);
+    }
+  }
+
+  public static function delete_menu(WP_REST_Request $request)
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_menus';
+
+    $required_fields = ["menu_id" => ["required" => "true", "data_type" => "number"]];
+
+    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    if (!empty($validate)) {
+      return Zippy_Response_Handler::error($validate, 400);
+    }
+
+    $menu_id = $request->get_param('menu_id');
+    try {
+      $deleted = $wpdb->delete(
+        $table_name,
+        array('id' => $menu_id),
+        array('%d')
+      );
+      if ($deleted === false) {
+        throw new Exception("Delete row failed: " . $wpdb->last_error);
+      }
+
+      return Zippy_Response_Handler::success($menu_id, "Menu has been deleted.");
+    } catch (\Exception $e) {
+      $error_message = $e->getMessage();
+      Zippy_Log_Action::log('create_menu', json_encode($request->get_params()), 'Failure', $error_message);
+
+      return Zippy_Response_Handler::error("An error occurred while creating the menu. Please try again.", 500);
     }
   }
 }

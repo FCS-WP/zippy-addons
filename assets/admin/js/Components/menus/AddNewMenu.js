@@ -14,54 +14,28 @@ import { BsFillQuestionCircleFill, BsSearch } from "react-icons/bs";
 import { FiPlus } from "react-icons/fi";
 import { AlertStatus, showAlert } from "../../utils/alertHelper";
 import MenuContext from "../../contexts/MenuContext";
+import { Api } from "../../api";
 
 const AddNewMenu = () => {
-  const { handleAddNewMenu } = useContext(MenuContext);
+  const { refetchMenus } = useContext(MenuContext);
   const [isLoading, setIsLoading] = useState(false);
   const [menuName, setMenuName] = useState("");
 
-  const handleAddMenus = () => {
+  const handleAddMenus = async () => {
     if (!menuName || menuName === "hello") {
       showAlert(AlertStatus.error, "Failed!", "Menu name invalid ");
     } else {
+
       const newItem = {
-        id:  Math.floor(Math.random() * 10000), 
-        name: menuName,
-        slug: menuName.toLowerCase(),
-        availables: [
-          {
-            weekday: 0,
-            is_available: 0,
-          },
-          {
-            weekday: 1,
-            is_available: 0,
-          },
-          {
-            weekday: 2,
-            is_available: 0,
-          },
-          {
-            weekday: 3,
-            is_available: 0,
-          },
-          {
-            weekday: 4,
-            is_available: 0,
-          },
-          {
-            weekday: 5,
-            is_available: 0,
-          },
-          {
-            weekday: 6,
-            is_available: 0,
-          },
-        ],
-      };
-      handleAddNewMenu(newItem);
+        name: menuName
+      }
+      const { data : res } = await Api.createMenu(newItem);
+      if (!res || res.status !== 'success') {
+        showAlert(AlertStatus.error, "Failed!", "Can not add menu. Please try again!");
+        return;
+      } 
+      refetchMenus();
       setMenuName("");
-      
       showAlert(AlertStatus.success, "Successfully!", `Menu "${menuName}" had been added`);
     }
   };
