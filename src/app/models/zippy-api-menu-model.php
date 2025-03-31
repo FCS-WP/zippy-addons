@@ -48,7 +48,7 @@ class Zippy_Api_Menu_Model
       'days_of_week' => array(
         'required' => true,
         'validate_callback' => function ($param) {
-          return is_string($param);
+          return is_array($param);
         }
       ),
     );
