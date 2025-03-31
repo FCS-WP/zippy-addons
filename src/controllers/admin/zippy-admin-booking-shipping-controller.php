@@ -76,20 +76,40 @@ class Zippy_Admin_Booking_Shipping_Controller
 
     public static function get_shipping_config(WP_REST_Request $request)
     {
-        try {
-            $options = get_option(SHIPPING_CONFIG_META_KEY);
+        $required_fields = [
+            "outlet_id" => ["required" => true, "data_type" => "string"],
+        ];
 
-            if($options){
-                $options = maybe_unserialize($options);
-                unset($options["updated_at"]);
-                return Zippy_Response_Handler::success($options, "Success");
-            } else {
-                return Zippy_Response_Handler::error("No config found");
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+        try {
+
+            $outlet_id = $request["outlet_id"];
+
+            global $wpdb;
+            $outlet_table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
+            if(!empty($outlet_id)){
+                $query = "SELECT * FROM $outlet_table_name WHERE outlet_id ='" . $outlet_id . "'";
             }
+            
+            $outlet = $wpdb->get_results($query);
+
+            if(count($outlet) < 1){
+                return Zippy_Response_Handler::error("Outlet not exist");
+            }
+
+            $outlet[0]->minimum_order_to_delivery = maybe_unserialize($outlet[0]->minimum_order_to_delivery);
+            $outlet[0]->minimum_order_to_freeship = maybe_unserialize($outlet[0]->minimum_order_to_freeship);
+            $outlet[0]->extra_fee = maybe_unserialize($outlet[0]->extra_fee);
+
+            return Zippy_Response_Handler::success($outlet[0], "Success");
 
         } catch (\Throwable $th) {
             $message = $th->getMessage();
-            Zippy_Log_Action::log('get_shipping_fee', json_encode($request), 'Failure', $message);
+            Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
         }
     }
 }
