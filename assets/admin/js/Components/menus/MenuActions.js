@@ -1,7 +1,7 @@
 import { Stack } from "@mui/material";
 import React from "react";
 import ButtonEditMenu from "./actions/ButtonEditMenu";
-import ButtonDeleteMenu from "./actions/ButtonDeleteMenu";
+import ButtonDelete from "./actions/ButtonDelete";
 import ButtonUpdateMenu from "./actions/ButtonUpdateMenu";
 
 const MenuActions = ({ menu }) => {
@@ -9,7 +9,7 @@ const MenuActions = ({ menu }) => {
     <Stack spacing={1} direction={"row"}>
       <ButtonEditMenu menu={menu} />
       <ButtonUpdateMenu data={menu} />
-      <ButtonDeleteMenu data={menu} />
+      <ButtonDelete data={menu} type="menu" />
     </Stack>
   );
 };

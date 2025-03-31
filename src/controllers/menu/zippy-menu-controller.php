@@ -21,7 +21,6 @@ class Zippy_Menu_Controller
     $required_fields = [
       "id" => ["data_type" => "number", "required" => false],
     ];
-
     // Validate request fields
     $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
 
@@ -355,7 +354,7 @@ class Zippy_Menu_Controller
     global $wpdb;
     $table_name = $wpdb->prefix . 'zippy_menus';
     $required_fields = [
-      "id" => ["data_type" => "number", "required" => true],
+      "menu_id" => ["data_type" => "number", "required" => true],
       "date_of_weeks" => ["data_type" => "string", "required" => false],
       "start_date"   => ["data_type" => "date", "required" => false],
       "end_date"     => ["data_type" => "date", "required" => false],
@@ -373,6 +372,8 @@ class Zippy_Menu_Controller
       $start_date   = sanitize_text_field($request['start_date']);
       $end_date     = sanitize_text_field($request['end_date']);
       $days_of_week = implode(',', array_map('intval', (array) $request['days_of_week']));
+
+      var_dump($request['days_of_week']); die;
 
       $updated = $wpdb->update(
         $table_name,
@@ -396,7 +397,7 @@ class Zippy_Menu_Controller
       $wpdb->query('ROLLBACK');
 
       $error_message = $e->getMessage();
-      Zippy_Log_Action::log('create_menu', json_encode($request->get_params()), 'Failure', $error_message);
+      Zippy_Log_Action::log('update_menu', json_encode($request->get_params()), 'Failure', $error_message);
 
       return Zippy_Response_Handler::error("An error occurred while update the menu. Please try again.", 500);
     }

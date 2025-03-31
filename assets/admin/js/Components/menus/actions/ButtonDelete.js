@@ -2,7 +2,7 @@ import { Box, IconButton } from "@mui/material";
 import React from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const ButtonDeleteMenu = ({ data }) => {
+const ButtonDelete = ({ data, type }) => {
   const handleDeleteItem = () => {
     console.log("Delete ", data);
   };
@@ -19,4 +19,4 @@ const ButtonDeleteMenu = ({ data }) => {
   );
 };
 
-export default ButtonDeleteMenu;
+export default ButtonDelete;

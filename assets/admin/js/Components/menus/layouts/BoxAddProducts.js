@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChipContainer, SearchContainer, SuggestionsContainer } from "../mui-custom-styles";
+
 import {
   Box,
   Button,
@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { BsFillQuestionCircleFill, BsSearch } from "react-icons/bs";
 import { FiPlus } from "react-icons/fi";
+import { ChipContainer, SearchContainer, SuggestionsContainer } from "../../mui-custom-styles";
 
 const BoxAddProducts = ({ selectedMenu }) => {
   const [productSearch, setProductSearch] = useState("");

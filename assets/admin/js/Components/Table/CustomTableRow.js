@@ -1,8 +1,9 @@
 import { Checkbox, FormControlLabel, TableCell, TableRow } from "@mui/material";
-import React, { memo } from "react";
+import React from "react";
 
-const CustomTableRow = memo(
-  ({
+const CustomTableRow = (props) => {
+  const {
+    hideCheckbox = false,
     hover,
     row,
     rowIndex,
@@ -11,41 +12,40 @@ const CustomTableRow = memo(
     columnWidths,
     onChangeCheckbox,
     isSubtableRow = false,
-  }) => {
-    return (
-      <>
-        <TableRow
-          hover={hover}
-          key={rowIndex}
-          sx={{
-            backgroundColor: rowIndex % 2 === 0 && !hover ? "#fafafa" : "#fff",
-          }}
-        >
-          {!isSubtableRow && (
-            <TableCell padding="checkbox" style={{ textAlign: "center" }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedRows[rowIndex] || false}
-                    onChange={() => onChangeCheckbox(rowIndex)}
-                  />
-                }
-                style={{ marginRight: 0 }}
-              />
-            </TableCell>
-          )}
-          {cols.map((col, colIndex) => (
-            <TableCell
-              key={colIndex}
-              style={{ width: columnWidths[col] || "auto" }}
-            >
-              {row[col]}
-            </TableCell>
-          ))}
-        </TableRow>
-      </>
-    );
-  }
-);
+  } = props;
+  return (
+    <>
+      <TableRow
+        hover={hover}
+        key={rowIndex}
+        sx={{
+          backgroundColor: rowIndex % 2 === 0 && !hover ? "#fafafa" : "#fff",
+        }}
+      >
+        {!isSubtableRow && !hideCheckbox && (
+          <TableCell padding="checkbox" style={{ textAlign: "center" }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={selectedRows[rowIndex] || false}
+                  onChange={() => onChangeCheckbox(rowIndex)}
+                />
+              }
+              style={{ marginRight: 0 }}
+            />
+          </TableCell>
+        )}
+        {cols.map((col, colIndex) => (
+          <TableCell
+            key={colIndex}
+            style={{ width: columnWidths[col] || "auto" }}
+          >
+            {row[col]}
+          </TableCell>
+        ))}
+      </TableRow>
+    </>
+  );
+};
 
 export default CustomTableRow;
