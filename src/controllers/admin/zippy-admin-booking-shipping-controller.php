@@ -30,8 +30,6 @@ class Zippy_Admin_Booking_Shipping_Controller
             return Zippy_Response_Handler::error($validate);
         }
 
-        $shipping_fee_config["shipping_fee"] = $request["request"];
-        $shipping_fee_config["updated_at"] = current_time("mysql");
 
         try {
 
@@ -52,23 +50,47 @@ class Zippy_Admin_Booking_Shipping_Controller
 
             $table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
 
-            $insert_data = [
-                "id" => wp_generate_uuid4(),
-                "outlet_id" => $outlet_id,
-                "minimum_order_to_delivery" => maybe_serialize($request["minimum_order_to_delivery"]),
-                "minimum_order_to_freeship" => maybe_serialize($request["minimum_order_to_freeship"]),
-                "extra_fee" => maybe_serialize($request["extra_fee"]),
-            ];
+            $outlet_shipping_config_table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
             
-            $insert_data["created_at"] = current_time('mysql');
-            $insert_data["updated_at"] = current_time('mysql');
-
-            $is_insert = $wpdb->insert($table_name, $insert_data);
-
-            if($is_insert){
-                return Zippy_Response_Handler::success($insert_data, "Oulet Updated");
+            if(!empty($outlet_id)){
+                $query = "SELECT * FROM $outlet_shipping_config_table_name WHERE outlet_id ='" . $outlet_id . "'";
             }
+            
+            $outlet = count($wpdb->get_results($query));
+
+            if($outlet < 1){
+                $insert_data = [
+                    "id" => wp_generate_uuid4(),
+                    "outlet_id" => $outlet_id,
+                    "minimum_order_to_delivery" => maybe_serialize($request["minimum_order_to_delivery"]),
+                    "minimum_order_to_freeship" => maybe_serialize($request["minimum_order_to_freeship"]),
+                    "extra_fee" => maybe_serialize($request["extra_fee"]),
+                    "created_at" => current_time("mysql"),
+                    "updated_at" => current_time("mysql"),
+                ];
+
+                $is_insert = $wpdb->insert($table_name, $insert_data);
+                if($is_insert){
+                    return Zippy_Response_Handler::success($insert_data, "Oulet Inserted");
+                }
+            } else {
+                $update_data = [
+                    "outlet_id" => $outlet_id,
+                    "minimum_order_to_delivery" => maybe_serialize($request["minimum_order_to_delivery"]),
+                    "minimum_order_to_freeship" => maybe_serialize($request["minimum_order_to_freeship"]),
+                    "extra_fee" => maybe_serialize($request["extra_fee"]),
+                    "updated_at" => current_time('mysql')
+                ];
+
+                $is_updated = $wpdb->update($outlet_shipping_config_table_name, $update_data, ["outlet_id" => $outlet_id]);
+               
+                if($is_updated){
+                    return Zippy_Response_Handler::success($update_data, "Oulet Updated");
+                }
+            }
+
         } catch (\Throwable $th) {
+
             $message = $th->getMessage();
             Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
         }
@@ -106,6 +128,44 @@ class Zippy_Admin_Booking_Shipping_Controller
             $outlet[0]->extra_fee = maybe_unserialize($outlet[0]->extra_fee);
 
             return Zippy_Response_Handler::success($outlet[0], "Success");
+
+        } catch (\Throwable $th) {
+            $message = $th->getMessage();
+            Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
+        }
+    }
+
+    public static function delete_shipping_config(WP_REST_Request $request)
+    {
+        $required_fields = [
+            "id" => ["required" => true, "data_type" => "string"],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+        try {
+
+            $shipping_id = $request["id"];
+
+            global $wpdb;
+            $shiping_table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
+
+            if(!empty($shipping_id)){
+                $query = "SELECT * FROM $shiping_table_name WHERE id ='" . $shipping_id . "'";
+            }
+
+            if(count($wpdb->get_results($query)) < 1){
+                return Zippy_Response_Handler::error("Shipping not exist");
+            }
+
+            $is_deleted = $wpdb->delete( $shiping_table_name, ["id" => $shipping_id ] );
+
+            if($is_deleted){
+                return Zippy_Response_Handler::success("Success");
+            }
 
         } catch (\Throwable $th) {
             $message = $th->getMessage();
