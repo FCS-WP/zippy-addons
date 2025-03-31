@@ -37,6 +37,8 @@ class Zippy_Databases
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_menus_table'));
 
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_menu_products_table'));
+
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_shipping_table'));
   }
 
@@ -94,19 +96,40 @@ class Zippy_Databases
     $charset_collate = $wpdb->get_charset_collate();
 
     $sql = "CREATE TABLE $table_name (
-        id INT NOT NULL AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        start_date DATE NOT NULL,
-        end_date DATE NOT NULL,
-        days_of_week VARCHAR(50) NOT NULL,
-        is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
+          id INT NOT NULL AUTO_INCREMENT,
+          name VARCHAR(255) NOT NULL,
+          start_date DATE NOT NULL,
+          end_date DATE NOT NULL,
+          days_of_week VARCHAR(255) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (id)
+      ) $charset_collate;";
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
   }
+
+  public function create_menu_products_table()
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_menu_products';
+    $menus_table = $wpdb->prefix . 'zippy_menus';
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $table_name (
+          id INT NOT NULL AUTO_INCREMENT,
+          id_menu INT NOT NULL,
+          id_product INT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (id),
+          CONSTRAINT fk_menu FOREIGN KEY (id_menu) REFERENCES $menus_table(id) ON DELETE CASCADE ON UPDATE CASCADE
+      ) $charset_collate;";
+
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    dbDelta($sql);
+  }
+
+
   public function create_shipping_table()
   {
     global $wpdb;
