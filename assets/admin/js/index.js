@@ -6,6 +6,7 @@ import Settings from "./Pages/Settings";
 // import ProductsBooking from "./Pages/ProductsBooking";
 // import Calendar from "./Pages/Calendar";
 import Store from "./Pages/Store";
+import Shipping from "./Pages/Shipping";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../theme/theme";
@@ -17,6 +18,7 @@ function initializeApp() {
   const zippyDashboard = document.getElementById("zippy_dashboard");
   const zippySettings = document.getElementById("zippy_settings");
   const zippyStore = document.getElementById("zippy_store_booking");
+  const zippyShipping = document.getElementById("zippy_shipping");
   const zippyMenus = document.getElementById("zippy_menus");
 
   if (zippyMenus) {
@@ -63,6 +65,15 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Store />
+      </ThemeProvider>
+    );
+  }
+  if (zippyShipping) {
+    const root = ReactDOM.createRoot(zippyShipping);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Shipping />
       </ThemeProvider>
     );
   }
