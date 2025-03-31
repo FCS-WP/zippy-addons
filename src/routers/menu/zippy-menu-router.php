@@ -64,6 +64,12 @@ class Zippy_Menu_Router
       // 'args' => Zippy_Api_Menu_Model::set_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/delete-menu', array(
+      'methods' => 'DELETE',
+      'callback' => [Zippy_Menu_Controller::class, 'delete_menu'],
+      // 'args' => Zippy_Api_Menu_Model::set_menu_args(),
+      'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+    ));
 
     register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/products-menu', array(
       'methods' => 'GET',

@@ -3,19 +3,21 @@ import { StyledPaper } from "../../mui-custom-styles";
 import TableView from "../../TableView";
 import { detailMenuColumn } from "../../../utils/tableHelper";
 import CustomSwitch from "./CustomSwitch";
-import { Button } from "@mui/material";
+import { Button, TextField, Typography } from "@mui/material";
 import { NavLink } from "react-router";
 import { linkMenuAdmin } from "../../../utils/bookingHelper";
 import DateTimeInput from "../inputs/DateTimeInput";
 import { format } from "date-fns";
 import { Api } from "../../../api";
+import { AlertStatus, showAlert } from "../../../utils/alertHelper";
 
 const BoxEditMenu = ({ menu }) => {
   const [dataRows, setDataRows] = useState([]);
   const [daysOfWeek, setDaysOfWeek] = useState(menu.days_of_week ? menu.days_of_week : []);
   const [startDate, setStartDate] = useState(menu.start_date);
   const [endDate, setEndDate] = useState(menu.end_date);
- 
+  const [menuName, setMenuName] = useState(menu.name);
+
   const handleChangeMenuDate = (date, type) => {
     switch (type) {
       case "start":
@@ -36,56 +38,72 @@ const BoxEditMenu = ({ menu }) => {
 
   const handleChangeAvailableDate = (value, day) => {
     const valueInt = value ? 1 : 0;
-    
+
     setDaysOfWeek((prevDays) => {
       let updatedData = Array.isArray(prevDays) ? [...prevDays] : [];
   
-      const dayIndex = updatedData.findIndex((item) => item.weekday === day);
+      const dayIndex = updatedData.findIndex((item) => item.weekday === day.weekday);
   
       if (dayIndex !== -1) {
         updatedData[dayIndex] = { ...updatedData[dayIndex], is_available: valueInt };
       } else {
-        updatedData.push({ weekday: day, is_available: valueInt });
+        updatedData.push({ weekday: day.weekday, is_available: valueInt });
       }
   
       return updatedData;
     });
   };
-
-  const handleDate = (val) => {
-    const result =
-      val === "0000-00-00" || val == "" ? "" : format(new Date(val), 'yyyy-MM-dd');
-    return result;
-  };
   
+  const handleChangeName = (name) => {
+    setMenuName(name);
+  }
+ 
   const handleUpdateMenu = async () => {
     const data = {
       menu_id: parseInt(menu.id),
+      name: menuName,
       days_of_week: daysOfWeek,
       start_date: handleDate(startDate),
       end_date: handleDate(endDate)
     }
 
     const { data: response } = await Api.updateMenu(data);
+    if (!response || response.status !== 'success') {
+      showAlert(AlertStatus.error, "Update menu failed!");
+      return;
+    }
+    showAlert(AlertStatus.success, "Menu Updated!");
+  }
+
+  const InputChangeName = ({ val, handleChangeName }) => {
+    const [name, setName] = useState(val)
+    const handleChange = (e) => {
+      setName(e.target.value);
+      handleChangeName(e.target.value);
+    }
+    return (
+      <TextField value={name} onChange={handleChange}/>
+    )
   }
  
   const convertData = () => {
     const rows = [];
     let result = {
       ID: menu.id,
-      NAME: (
-        <NavLink to={linkMenuAdmin + "&id=" + menu.id}>{menu.name}</NavLink>
-      ),
+      NAME: 
+        <InputChangeName val={menuName} handleChangeName={handleChangeName}/>
+      ,
       ACTIONS: <Button variant="contained" onClick={handleUpdateMenu}>Save</Button>,
       "Start Date": (
         <DateTimeInput
           onChange={handleChangeMenuDate}
           minDate={new Date()}
+          value={menu.start_date}
           type="start"
         />
       ),
       "End Date": (
-        <DateTimeInput onChange={handleChangeMenuDate} minDate={startDate} type="end" />
+        <DateTimeInput onChange={handleChangeMenuDate} minDate={startDate} value={menu.end_date} type="end" />
       ),
     };
 
@@ -113,6 +131,7 @@ const BoxEditMenu = ({ menu }) => {
 
   return (
     <>
+      <Typography variant="h6" mb={2} fontWeight={600}>Menu Configs</Typography>
       <TableView
         hideCheckbox={true}
         columnWidths={columnWidths}

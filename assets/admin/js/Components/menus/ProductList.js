@@ -52,7 +52,7 @@ const ProductList = ({ products, menuId }) => {
 
   return (
     <Box>
-      <Typography variant="h5" mb={2} fontWeight={600}>PRODUCTS IN MENU</Typography>
+      <Typography variant="h6" mb={2} fontWeight={600}>Products In Menu</Typography>
       {products.length > 0 && (
         <>
           <TableView

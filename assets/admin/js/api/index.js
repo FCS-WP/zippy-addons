@@ -76,4 +76,7 @@ export const Api = {
   async updateMenu(params) {
     return await makeRequest("/update-menu", params, "PUT");
   },
+  async deleteMenu(params) {
+    return await makeRequest("/delete-menu", params, "DELETE");
+  },
 };

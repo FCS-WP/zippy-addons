@@ -2,7 +2,7 @@ import { TextField } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 
-const DateTimeInput = ({ onChange, minDate = "", type }) => {
+const DateTimeInput = ({ onChange, minDate = "", value, type }) => {
   const [selectedDate, setSelectedDate] = useState();
 
   const handleChangeDate = (date) => {
@@ -23,6 +23,12 @@ const DateTimeInput = ({ onChange, minDate = "", type }) => {
       }
     }
   }, [minDate]);
+
+  useEffect(()=>{
+    if (value && value != '0000-00-00') {
+      setSelectedDate(value);
+    }
+  }, [])
 
   return (
     <>
