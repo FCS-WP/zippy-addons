@@ -11,33 +11,23 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Tab,
   Tabs,
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
+  IconButton,
 } from "@mui/material";
-import { toast } from "react-toastify";
+import { Delete } from "@mui/icons-material";
+import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
-import { LogarithmicScale } from "chart.js";
 
 const ShippingFeeCalculator = () => {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
-  const [config, setConfig] = useState([]);
-  const [minimumTotalToShipping, setMinimumTotalToShipping] = useState("");
-  const [open, setOpen] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [newConfig, setNewConfig] = useState({
-    min_distance: "",
-    max_distance: "",
-    shipping_fee: "",
-  });
+  const [minimumOrderToDelivery, setMinimumOrderToDelivery] = useState([]);
+  const [minimumOrderToFreeship, setMinimumOrderToFreeship] = useState([]);
+  const [extraFee, setExtraFee] = useState([]);
   const [tabIndex, setTabIndex] = useState(0);
 
   useEffect(() => {
@@ -54,18 +44,28 @@ const ShippingFeeCalculator = () => {
 
   const fetchConfig = async (storeId) => {
     if (!storeId) return;
-
     try {
       const response = await Api.getShipping({ outlet_id: storeId });
-      setConfig(response.data.data.shipping_config.shipping_config || []);
+      console.log("Shipping Config Response:", response.data);
+      const data = response.data.data;
 
-      setMinimumTotalToShipping(
-        response.data.data.minimum_total_to_shipping || ""
-      );
+      if (response.data.status === "error") {
+        toast.error(response.data.message || "Failed to fetch shipping data");
+        setMinimumOrderToDelivery([]);
+        setMinimumOrderToFreeship([]);
+        setExtraFee([]);
+        return;
+      }
+
+      setMinimumOrderToDelivery(data?.minimum_order_to_delivery || []);
+      setMinimumOrderToFreeship(data?.minimum_order_to_freeship || []);
+      setExtraFee(data?.extra_fee || []);
     } catch (error) {
       console.error("Error fetching shipping config:", error);
-      setConfig([]);
-      setMinimumTotalToShipping("");
+      toast.error("An error occurred while fetching shipping configuration.");
+      setMinimumOrderToDelivery([]);
+      setMinimumOrderToFreeship([]);
+      setExtraFee([]);
     }
   };
 
@@ -79,85 +79,163 @@ const ShippingFeeCalculator = () => {
     setTabIndex(newIndex);
   };
 
-  const handleOpen = (index = null) => {
-    setEditIndex(index);
-    setNewConfig(
-      index !== null
-        ? config[index]
-        : { min_distance: "", max_distance: "", shipping_fee: "" }
-    );
-    setOpen(true);
+  const handleAddNewRow = (setState, newRow) => {
+    setState((prev) => [...prev, newRow]);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleChange = (e) => {
-    setNewConfig({ ...newConfig, [e.target.name]: e.target.value });
-    console.log(newConfig);
-  };
-
-  const handleAddOrUpdateConfig = () => {
-    console.log(newConfig);
+  const isOverlapping = (index, field, value, state, type) => {
+    let newState = [...state];
+    newState[index][field] = value;
+    let newEntry = newState[index];
 
     if (
-      !newConfig.min_distance ||
-      !newConfig.max_distance ||
-      !newConfig.shipping_fee
+      newEntry.greater_than !== undefined &&
+      newEntry.lower_than !== undefined &&
+      parseFloat(newEntry.lower_than) <= parseFloat(newEntry.greater_than)
     ) {
-      alert("Please fill in all fields before saving.");
+      toast.error(
+        `Error: 'Lower Than' (${newEntry.lower_than}) must be greater than 'Greater Than' (${newEntry.greater_than})!`
+      );
+      return true;
+    }
+
+    if (
+      newEntry.from !== undefined &&
+      newEntry.to !== undefined &&
+      parseFloat(newEntry.to) <= parseFloat(newEntry.from)
+    ) {
+      toast.error(
+        `Error: 'To' (${newEntry.to}) must be greater than 'From' (${newEntry.from})!`
+      );
+      return true;
+    }
+
+    for (let i = 0; i < newState.length; i++) {
+      if (i !== index) {
+        let current = newState[i];
+
+        if (type === "order_range") {
+          if (
+            (newEntry.greater_than >= current.greater_than &&
+              newEntry.greater_than < current.lower_than) ||
+            (newEntry.lower_than > current.greater_than &&
+              newEntry.lower_than <= current.lower_than) ||
+            (newEntry.greater_than <= current.greater_than &&
+              newEntry.lower_than >= current.lower_than)
+          ) {
+            toast.error(
+              `Error: Overlapping order range with another entry. ` +
+                `Greater Than: ${newEntry.greater_than}, Lower Than: ${newEntry.lower_than}`
+            );
+            return true;
+          }
+        }
+
+        if (type === "extra_fee" && newEntry.type === current.type) {
+          if (
+            (newEntry.from >= current.from && newEntry.from < current.to) ||
+            (newEntry.to > current.from && newEntry.to <= current.to) ||
+            (newEntry.from <= current.from && newEntry.to >= current.to)
+          ) {
+            toast.error(
+              `Error: Overlapping extra fee range for type '${newEntry.type}'. ` +
+                `From: ${newEntry.from}, To: ${newEntry.to}`
+            );
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+
+  const handleInputChange = (index, field, value, setState, state) => {
+    const updatedData = [...state];
+    updatedData[index][field] = value;
+    setState(updatedData);
+  };
+
+  const handleBlur = (index, field, state, type) => {
+    if (isOverlapping(index, field, state[index][field], state, type)) {
       return;
     }
-
-    const updatedConfig = [config];
-    if (editIndex !== null) {
-      updatedConfig[editIndex] = newConfig;
-    } else {
-      updatedConfig.push(newConfig);
-    }
-    setConfig(updatedConfig);
-    handleClose();
   };
 
-  const handleDeleteConfig = (index) => {
-    setConfig(config.filter((_, i) => i !== index));
+  const handleDeleteRow = (index, setState, state) => {
+    setState(state.filter((_, i) => i !== index));
   };
-
   const handleSaveConfig = async () => {
     if (!selectedStore) {
       toast.error("Please select a store.");
       return;
     }
 
-    try {
-      const payload = {
-        outlet_id: selectedStore,
-        config,
-        minimum_total_to_shipping: minimumTotalToShipping,
-      };
-      const response = await Api.addShipping(payload);
-
-      if (response.data.status === "success") {
-        toast.success("Shipping configuration saved successfully!");
-      } else {
-        toast.error("Failed to save shipping configuration!");
+    for (let i = 0; i < minimumOrderToDelivery.length; i++) {
+      if (
+        isOverlapping(
+          i,
+          "greater_than",
+          minimumOrderToDelivery[i].greater_than,
+          minimumOrderToDelivery,
+          "order_range"
+        )
+      ) {
+        return;
       }
+    }
+
+    for (let i = 0; i < minimumOrderToFreeship.length; i++) {
+      if (
+        isOverlapping(
+          i,
+          "greater_than",
+          minimumOrderToFreeship[i].greater_than,
+          minimumOrderToFreeship,
+          "order_range"
+        )
+      ) {
+        return;
+      }
+    }
+
+    for (let i = 0; i < extraFee.length; i++) {
+      if (isOverlapping(i, "from", extraFee[i].from, extraFee, "extra_fee")) {
+        return;
+      }
+    }
+
+    const payload = {
+      outlet_id: selectedStore,
+      minimum_order_to_delivery: minimumOrderToDelivery,
+      minimum_order_to_freeship: minimumOrderToFreeship,
+      extra_fee: extraFee,
+    };
+
+    try {
+      const response = await Api.addShipping(payload);
+      toast.success("Shipping fee configuration saved successfully!");
+      console.log("Saved Configuration:", response.data);
     } catch (error) {
       console.error("Error saving shipping config:", error);
-      toast.error("An error occurred while saving!");
+      toast.error("Failed to save shipping fee configuration.");
     }
   };
 
   return (
-    <Container maxWidth="100" style={{ marginTop: 20 }}>
-      <Typography variant="h5" gutterBottom>
+    <Container maxWidth="100">
+      <Typography variant="h5" style={{ marginBottom: 20 }}>
         Shipping Fee Configuration
       </Typography>
-
-      <FormControl fullWidth margin="normal">
-        <InputLabel>Select Store</InputLabel>
-        <Select value={selectedStore} onChange={handleStoreChange}>
+      <FormControl fullWidth style={{ marginBottom: 20 }}>
+        <Typography>Select Store</Typography>
+        <Select
+          value={selectedStore || ""}
+          onChange={handleStoreChange}
+          displayEmpty
+        >
+          <MenuItem value="" disabled>
+            Please choose
+          </MenuItem>
           {stores.map((store) => (
             <MenuItem key={store.id} value={store.id}>
               {store.outlet_name}
@@ -167,64 +245,259 @@ const ShippingFeeCalculator = () => {
       </FormControl>
 
       <Tabs value={tabIndex} onChange={handleTabChange}>
-        <Tab label="Minimum Total to Shipping" />
-        <Tab label="Shipping Configuration" />
+        <Tab label="Minimum Order to Delivery" />
+        <Tab label="Minimum Order to Freeship" />
+        <Tab label="Extra Fee" />
       </Tabs>
 
-      {tabIndex === 0 && (
-        <Paper style={{ padding: 20, marginTop: 20 }}>
-          <TextField
-            variant="outlined"
-            fullWidth
-            label="Minimum Total to Shipping"
-            value={minimumTotalToShipping}
-            onChange={(e) => setMinimumTotalToShipping(e.target.value)}
-          />
-        </Paper>
+      {[minimumOrderToDelivery, minimumOrderToFreeship].map(
+        (state, idx) =>
+          tabIndex === idx && (
+            <Paper style={{ padding: 20, marginTop: 20 }} key={idx}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() =>
+                  handleAddNewRow(
+                    idx === 0
+                      ? setMinimumOrderToDelivery
+                      : setMinimumOrderToFreeship,
+                    { greater_than: "", lower_than: "", fee: "" }
+                  )
+                }
+              >
+                Add New
+              </Button>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Greater Than</TableCell>
+                      <TableCell>Lower Than</TableCell>
+                      <TableCell>Fee</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {state.map((row, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <TextField
+                            type="number"
+                            value={row.greater_than || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "greater_than",
+                                e.target.value,
+                                setMinimumOrderToDelivery,
+                                minimumOrderToDelivery
+                              )
+                            }
+                            onBlur={() =>
+                              handleBlur(
+                                index,
+                                "greater_than",
+                                minimumOrderToDelivery,
+                                "order_range"
+                              )
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="number"
+                            value={row.lower_than || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "lower_than",
+                                e.target.value,
+                                setMinimumOrderToDelivery,
+                                minimumOrderToDelivery
+                              )
+                            }
+                            onBlur={() =>
+                              handleBlur(
+                                index,
+                                "lower_than",
+                                minimumOrderToDelivery,
+                                "order_range"
+                              )
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            type="number"
+                            value={row.fee || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "fee",
+                                e.target.value,
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                state
+                              )
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <IconButton
+                            color="error"
+                            onClick={() =>
+                              handleDeleteRow(
+                                index,
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                state
+                              )
+                            }
+                          >
+                            <Delete />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )
       )}
 
-      {tabIndex === 1 && (
+      {tabIndex === 2 && (
         <Paper style={{ padding: 20, marginTop: 20 }}>
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handleOpen()}
+            onClick={() =>
+              handleAddNewRow(setExtraFee, {
+                type: "",
+                from: "",
+                to: "",
+                fee: "",
+              })
+            }
           >
-            Add New Configuration
+            Add New
           </Button>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Min Distance</TableCell>
-                  <TableCell>Max Distance</TableCell>
-                  <TableCell>Shipping Fee</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>From</TableCell>
+                  <TableCell>To</TableCell>
+                  <TableCell>Fee</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {config.map((row, index) => (
+                {extraFee.map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell>{row.min_distance}</TableCell>
-                    <TableCell>{row.max_distance}</TableCell>
-                    <TableCell>{row.shipping_fee}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleOpen(index)}
-                        style={{ marginRight: 10 }}
+                    <TableCell sx={{ width: "20%" }}>
+                      <Select
+                        fullWidth
+                        value={row.type || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "type",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                        displayEmpty
                       >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="contained"
+                        {!extraFee.some(
+                          (fee) => fee.type === "postal_code"
+                        ) && (
+                          <MenuItem value="postal_code">postal_code</MenuItem>
+                        )}
+
+                        {extraFee
+                          .map((fee) => fee.type)
+                          .filter(
+                            (type, idx, self) =>
+                              type && self.indexOf(type) === idx
+                          )
+                          .map((type, idx) => (
+                            <MenuItem key={idx} value={type}>
+                              {type}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </TableCell>
+
+                    <TableCell sx={{ width: "20%" }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={row.from || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "from",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                        onBlur={() =>
+                          handleBlur(index, "from", extraFee, "extra_fee")
+                        }
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={row.to || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "to",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                        onBlur={() =>
+                          handleBlur(index, "to", extraFee, "extra_fee")
+                        }
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={row.fee || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "fee",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell sx={{ width: "20%" }}>
+                      <IconButton
                         color="error"
-                        onClick={() => handleDeleteConfig(index)}
-                        style={{ marginRight: 10 }}
+                        onClick={() =>
+                          handleDeleteRow(index, setExtraFee, extraFee)
+                        }
                       >
-                        Delete
-                      </Button>
+                        <Delete />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -234,58 +507,15 @@ const ShippingFeeCalculator = () => {
         </Paper>
       )}
 
-      <Button variant="contained" color="secondary" onClick={handleSaveConfig}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSaveConfig}
+        style={{ marginTop: 20, marginBottom: 20 }}
+      >
         Save
       </Button>
-
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editIndex !== null
-            ? "Edit Shipping Configuration"
-            : "Add Shipping Configuration"}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            name="min_distance"
-            type="text"
-            fullWidth
-            margin="dense"
-            label="From Value"
-            value={newConfig.min_distance}
-            onChange={handleChange}
-          />
-          <TextField
-            name="max_distance"
-            type="text"
-            fullWidth
-            margin="dense"
-            label="To Value"
-            value={newConfig.max_distance}
-            onChange={handleChange}
-          />
-          <TextField
-            name="shipping_fee"
-            type="text"
-            fullWidth
-            margin="dense"
-            label="Shipping Fee"
-            value={newConfig.shipping_fee}
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleAddOrUpdateConfig}
-            variant="contained"
-            color="primary"
-          >
-            {editIndex !== null ? "Update" : "Add"}
-          </Button>
-          <Button onClick={handleClose} variant="outlined" color="secondary">
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ToastContainer />
     </Container>
   );
 };
