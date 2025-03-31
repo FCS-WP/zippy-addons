@@ -93,7 +93,9 @@ const ShippingFeeCalculator = () => {
       newEntry.lower_than !== undefined &&
       parseFloat(newEntry.lower_than) <= parseFloat(newEntry.greater_than)
     ) {
-      toast.error("'Lower Than' must be greater than 'Greater Than'!");
+      toast.error(
+        `Error: 'Lower Than' (${newEntry.lower_than}) must be greater than 'Greater Than' (${newEntry.greater_than})!`
+      );
       return true;
     }
 
@@ -102,7 +104,9 @@ const ShippingFeeCalculator = () => {
       newEntry.to !== undefined &&
       parseFloat(newEntry.to) <= parseFloat(newEntry.from)
     ) {
-      toast.error("'To' must be greater than 'From'!");
+      toast.error(
+        `Error: 'To' (${newEntry.to}) must be greater than 'From' (${newEntry.from})!`
+      );
       return true;
     }
 
@@ -120,7 +124,8 @@ const ShippingFeeCalculator = () => {
               newEntry.lower_than >= current.lower_than)
           ) {
             toast.error(
-              "Order range is overlapping with another entry. Please adjust!"
+              `Error: Overlapping order range with another entry. ` +
+                `Greater Than: ${newEntry.greater_than}, Lower Than: ${newEntry.lower_than}`
             );
             return true;
           }
@@ -133,7 +138,8 @@ const ShippingFeeCalculator = () => {
             (newEntry.from <= current.from && newEntry.to >= current.to)
           ) {
             toast.error(
-              "Extra Fee range is overlapping with another entry. Please adjust!"
+              `Error: Overlapping extra fee range for type '${newEntry.type}'. ` +
+                `From: ${newEntry.from}, To: ${newEntry.to}`
             );
             return true;
           }
@@ -164,7 +170,6 @@ const ShippingFeeCalculator = () => {
       return;
     }
 
-    // Check for overlap errors in Minimum Order to Delivery
     for (let i = 0; i < minimumOrderToDelivery.length; i++) {
       if (
         isOverlapping(
@@ -279,7 +284,7 @@ const ShippingFeeCalculator = () => {
                         <TableCell>
                           <TextField
                             type="number"
-                            value={row.greater_than}
+                            value={row.greater_than || ""}
                             onChange={(e) =>
                               handleInputChange(
                                 index,
@@ -302,7 +307,7 @@ const ShippingFeeCalculator = () => {
                         <TableCell>
                           <TextField
                             type="number"
-                            value={row.lower_than}
+                            value={row.lower_than || ""}
                             onChange={(e) =>
                               handleInputChange(
                                 index,
@@ -325,7 +330,7 @@ const ShippingFeeCalculator = () => {
                         <TableCell>
                           <TextField
                             type="number"
-                            value={row.fee}
+                            value={row.fee || ""}
                             onChange={(e) =>
                               handleInputChange(
                                 index,
@@ -433,7 +438,7 @@ const ShippingFeeCalculator = () => {
                       <TextField
                         fullWidth
                         type="number"
-                        value={row.from}
+                        value={row.from || ""}
                         onChange={(e) =>
                           handleInputChange(
                             index,
@@ -452,7 +457,7 @@ const ShippingFeeCalculator = () => {
                       <TextField
                         fullWidth
                         type="number"
-                        value={row.to}
+                        value={row.to || ""}
                         onChange={(e) =>
                           handleInputChange(
                             index,
@@ -471,7 +476,7 @@ const ShippingFeeCalculator = () => {
                       <TextField
                         fullWidth
                         type="number"
-                        value={row.fee}
+                        value={row.fee || ""}
                         onChange={(e) =>
                           handleInputChange(
                             index,
