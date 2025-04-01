@@ -36,11 +36,16 @@ body.zippy-bookings_page_products-booking {
 .holiday-table {
   padding: 0 !important;
 }
-.react-datepicker-wrapper{
+.react-datepicker-wrapper {
   width: 100% !important;
 }
 .custom-switch {
   input {
     height: 100%;
+  }
+}
+.css-9uhu6l-MuiButtonBase-root-MuiTab-root {
+  &.Mui-selected {
+    background: #e0f8e1;
   }
 }

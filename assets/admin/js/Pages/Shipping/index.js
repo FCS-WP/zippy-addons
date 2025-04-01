@@ -62,7 +62,7 @@ const ShippingFeeCalculator = () => {
       setExtraFee(data?.extra_fee || []);
     } catch (error) {
       console.error("Error fetching shipping config:", error);
-      toast.error("An error occurred while fetching shipping configuration.");
+      // toast.error("An error occurred while fetching shipping configuration.");
       setMinimumOrderToDelivery([]);
       setMinimumOrderToFreeship([]);
       setExtraFee([]);
@@ -244,7 +244,21 @@ const ShippingFeeCalculator = () => {
         </Select>
       </FormControl>
 
-      <Tabs value={tabIndex} onChange={handleTabChange}>
+      {!selectedStore && (
+        <Paper
+          style={{ padding: 5 ,paddingLeft: 20, marginBottom: 10, backgroundColor: "#ccc" }}
+        >
+          <p style={{ color: "black", fontWeight: "bold" }}>
+            Please select a store to configure shipping fees.
+          </p>
+        </Paper>
+      )}
+
+      <Tabs
+        value={tabIndex}
+        onChange={handleTabChange}
+        disabled={!selectedStore}
+      >
         <Tab label="Minimum Order to Delivery" />
         <Tab label="Minimum Order to Freeship" />
         <Tab label="Extra Fee" />
@@ -253,7 +267,16 @@ const ShippingFeeCalculator = () => {
       {[minimumOrderToDelivery, minimumOrderToFreeship].map(
         (state, idx) =>
           tabIndex === idx && (
-            <Paper style={{ padding: 20, marginTop: 20 }} key={idx}>
+            <Paper style={{ padding: 20, marginTop: 10 }} key={idx}>
+              <p>
+                <strong>Notes:</strong>Define the minimum order amount required
+                for delivery. Each row represents a range of order values and
+                the corresponding fee.
+              </p>
+              <p>
+                <strong>Configuration Example:</strong> Greater Than: 1 , Lower
+                Than : 5 , Fee: 15
+              </p>
               <Button
                 variant="contained"
                 color="primary"
@@ -265,6 +288,7 @@ const ShippingFeeCalculator = () => {
                     { greater_than: "", lower_than: "", fee: "" }
                   )
                 }
+                disabled={!selectedStore}
               >
                 Add New
               </Button>
@@ -302,6 +326,7 @@ const ShippingFeeCalculator = () => {
                                 "order_range"
                               )
                             }
+                            disabled={!selectedStore}
                           />
                         </TableCell>
                         <TableCell>
@@ -325,6 +350,7 @@ const ShippingFeeCalculator = () => {
                                 "order_range"
                               )
                             }
+                            disabled={!selectedStore}
                           />
                         </TableCell>
                         <TableCell>
@@ -342,6 +368,7 @@ const ShippingFeeCalculator = () => {
                                 state
                               )
                             }
+                            disabled={!selectedStore}
                           />
                         </TableCell>
                         <TableCell>
@@ -356,6 +383,7 @@ const ShippingFeeCalculator = () => {
                                 state
                               )
                             }
+                            disabled={!selectedStore}
                           >
                             <Delete />
                           </IconButton>
@@ -371,6 +399,14 @@ const ShippingFeeCalculator = () => {
 
       {tabIndex === 2 && (
         <Paper style={{ padding: 20, marginTop: 20 }}>
+          <p>
+            <strong>Notes:</strong> Set additional fees based on specific
+            criteria, such as postal codes or distance ranges.
+          </p>
+          <p>
+            <strong>Configuration Example:</strong> Type: postal_code , From:
+            12345 , To: 67890 , Fee: 15
+          </p>
           <Button
             variant="contained"
             color="primary"
@@ -382,6 +418,7 @@ const ShippingFeeCalculator = () => {
                 fee: "",
               })
             }
+            disabled={!selectedStore}
           >
             Add New
           </Button>
@@ -413,6 +450,7 @@ const ShippingFeeCalculator = () => {
                           )
                         }
                         displayEmpty
+                        disabled={!selectedStore}
                       >
                         {!extraFee.some(
                           (fee) => fee.type === "postal_code"
@@ -433,7 +471,6 @@ const ShippingFeeCalculator = () => {
                           ))}
                       </Select>
                     </TableCell>
-
                     <TableCell sx={{ width: "20%" }}>
                       <TextField
                         fullWidth
@@ -451,6 +488,7 @@ const ShippingFeeCalculator = () => {
                         onBlur={() =>
                           handleBlur(index, "from", extraFee, "extra_fee")
                         }
+                        disabled={!selectedStore}
                       />
                     </TableCell>
                     <TableCell sx={{ width: "20%" }}>
@@ -470,34 +508,8 @@ const ShippingFeeCalculator = () => {
                         onBlur={() =>
                           handleBlur(index, "to", extraFee, "extra_fee")
                         }
+                        disabled={!selectedStore}
                       />
-                    </TableCell>
-                    <TableCell sx={{ width: "20%" }}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        value={row.fee || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            index,
-                            "fee",
-                            e.target.value,
-                            setExtraFee,
-                            extraFee
-                          )
-                        }
-                      />
-                    </TableCell>
-
-                    <TableCell sx={{ width: "20%" }}>
-                      <IconButton
-                        color="error"
-                        onClick={() =>
-                          handleDeleteRow(index, setExtraFee, extraFee)
-                        }
-                      >
-                        <Delete />
-                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -512,9 +524,11 @@ const ShippingFeeCalculator = () => {
         color="primary"
         onClick={handleSaveConfig}
         style={{ marginTop: 20, marginBottom: 20 }}
+        disabled={!selectedStore}
       >
         Save
       </Button>
+
       <ToastContainer />
     </Container>
   );
