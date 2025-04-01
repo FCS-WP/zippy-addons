@@ -31,14 +31,6 @@ class Zippy_Menu_Products_Controller
     return (bool) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menu_products WHERE id_menu = %d", $menu_id));
   }
 
-  private static function sanitize_product_menu_data($request)
-  {
-    return [
-      'id_menu' => sanitize_text_field($request['name']),
-      'id_product' => $request['start_date'],
-    ];
-  }
-
   private static function execute_db_transaction($query_fn)
   {
     global $wpdb;
@@ -163,7 +155,7 @@ class Zippy_Menu_Products_Controller
     // Define validation rules
     $required_fields = [
       "id_menu"      => ["data_type" => "number", "required" => true],
-      "id_products"  => ["data_type" => "array", "required" => true], // Accepts an array of product IDs
+      "id_products"  => ["data_type" => "array", "required" => true],
     ];
 
     // Validate request fields
@@ -172,42 +164,33 @@ class Zippy_Menu_Products_Controller
       return Zippy_Response_Handler::error($validate, 400);
     }
 
-    try {
-      $menu_id = sanitize_text_field($request['id_menu']);
-      $product_ids = array_map('sanitize_text_field', $request['id_products']); // Sanitize all product IDs
+    $menu_id = sanitize_text_field($request['id_menu']);
+    $product_ids = array_map('sanitize_text_field', $request['id_products']);
 
-      if (empty($product_ids)) {
-        return Zippy_Response_Handler::error("No products provided for removal.", 400);
-      }
-
-      $product_ids_placeholder = implode(',', array_fill(0, count($product_ids), '%d'));
-
-      // Check if the products exist in the menu
-      $existing_products = $wpdb->get_col($wpdb->prepare(
-        "SELECT id_product FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)",
-        array_merge([$menu_id], $product_ids)
-      ));
-
-      if (empty($existing_products)) {
-        return Zippy_Response_Handler::error("None of the provided products exist in menu '$menu_id'.", 404);
-      }
-
-      $deleted = $wpdb->query($wpdb->prepare(
-        "DELETE FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)",
-        array_merge([$menu_id], $product_ids)
-      ));
-
-      if ($deleted) {
-        return Zippy_Response_Handler::success(null, "Selected products removed from menu successfully.");
-      } else {
-        return Zippy_Response_Handler::error("Failed to remove products from menu.", 500);
-      }
-    } catch (Exception $e) {
-
-      $error_message = $e->getMessage();
-      Zippy_Log_Action::log('remove_products_from_menu', json_encode($request->get_params()), 'Failure', $error_message);
-
-      return Zippy_Response_Handler::error("An error occurred while removing the products. Please try again.", 500);
+    if (empty($product_ids)) {
+      return Zippy_Response_Handler::error("No products provided for removal.", 400);
     }
+
+    $product_ids_placeholder = implode(',', array_fill(0, count($product_ids), '%d'));
+
+    // Check if the products exist in the menu
+    $existing_products = $wpdb->get_col($wpdb->prepare(
+      "SELECT id_product FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)",
+      array_merge([$menu_id], $product_ids)
+    ));
+
+    if (empty($existing_products)) {
+      return Zippy_Response_Handler::error("None of the provided products exist in menu '$menu_id'.", 404);
+    }
+    $result = self::execute_db_transaction(function () use ($wpdb, $product_menu_table, $menu_id, $product_ids_placeholder) {
+      return $wpdb->query($wpdb->prepare(
+        "DELETE FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)",
+        array_merge([$menu_id], $product_ids_placeholder)
+      ));
+    });
+
+    return is_string($result)
+      ? Zippy_Response_Handler::error("Failed to remove products from menu.", 500)
+      : Zippy_Response_Handler::success(null, "Selected products removed from menu successfully.");
   }
 }
