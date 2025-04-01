@@ -4,7 +4,10 @@ namespace Zippy_Booking\Src\Routers\Menu;
 
 use Zippy_Booking\Src\Controllers\Menu\Zippy_Menu_Controller;
 
-use Zippy_Booking\Src\App\Models\Zippy_Api_Menu_Model;
+use Zippy_Booking\Src\App\Models\Menus\Zippy_Api_Menu_Model;
+
+use Zippy_Booking\Src\Controllers\Menu\Zippy_Menu_Products_Controller;
+
 
 use Zippy_Booking\Src\Middleware\Admin\Zippy_Booking_Permission;
 
@@ -52,41 +55,39 @@ class Zippy_Menu_Router
       'args' => Zippy_Api_Menu_Model::set_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
-    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/create-menu', array(
-      'methods' => 'POST',
-      'callback' => [Zippy_Menu_Controller::class, 'create_menu'],
-      // 'args' => Zippy_Api_Menu_Model::set_menu_args(),
-      'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-    ));
-    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/update-menu', array(
+
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/menus', array(
       'methods' => 'PUT',
       'callback' => [Zippy_Menu_Controller::class, 'update_menu'],
-      // 'args' => Zippy_Api_Menu_Model::set_menu_args(),
+      'args' => Zippy_Api_Menu_Model::update_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
-    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/delete-menu', array(
+
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/menus', array(
       'methods' => 'DELETE',
       'callback' => [Zippy_Menu_Controller::class, 'delete_menu'],
-      // 'args' => Zippy_Api_Menu_Model::set_menu_args(),
+      'args' => Zippy_Api_Menu_Model::delete_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
 
     register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/products-menu', array(
       'methods' => 'GET',
-      'callback' => [Zippy_Menu_Controller::class, 'get_products_in_menu'],
+      'callback' => [Zippy_Menu_Products_Controller::class, 'get_products_in_menu'],
       'args' => Zippy_Api_Menu_Model::get_products_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
+
     register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/products-menu', array(
       'methods' => 'POST',
-      'callback' => [Zippy_Menu_Controller::class, 'add_products_to_menu'],
+      'callback' => [Zippy_Menu_Products_Controller::class, 'add_products_to_menu'],
       'args' => Zippy_Api_Menu_Model::add_product_to_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
 
     ));
+
     register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/products-menu', array(
       'methods' => 'DELETE',
-      'callback' => [Zippy_Menu_Controller::class, 'remove_product_from_menu'],
+      'callback' => [Zippy_Menu_Products_Controller::class, 'remove_product_from_menu'],
       'args' => Zippy_Api_Menu_Model::delete_product_in_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
 
