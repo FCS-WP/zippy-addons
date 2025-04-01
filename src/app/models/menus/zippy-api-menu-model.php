@@ -6,7 +6,7 @@
  * @package Shin
  */
 
-namespace Zippy_Booking\Src\App\Models;
+namespace Zippy_Booking\Src\App\Models\Menus;
 
 defined('ABSPATH') or die();
 
@@ -16,7 +16,7 @@ class Zippy_Api_Menu_Model
   {
     return array(
       'id' => array(
-        'required' => true,
+        'required' => false,
         'validate_callback' => function ($param) {
           return is_numeric($param);
         }
@@ -48,7 +48,7 @@ class Zippy_Api_Menu_Model
       'days_of_week' => array(
         'required' => true,
         'validate_callback' => function ($param) {
-          return is_string($param);
+          return is_array($param);
         }
       ),
     );
@@ -102,10 +102,10 @@ class Zippy_Api_Menu_Model
           return is_numeric($param);
         }
       ),
-      'id_product' => array(
+      'product_items' => array(
         'required' => true,
         'validate_callback' => function ($param) {
-          return is_numeric($param);
+          return is_array($param);
         }
       ),
     );
