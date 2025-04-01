@@ -2,6 +2,7 @@
 
 namespace Zippy_Booking\Src\Controllers\Menu;
 
+use Exception;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
@@ -50,37 +51,20 @@ class Zippy_Menu_Controller
     }
   }
 
-  public static function get_menus(WP_REST_Request $request)
-  {
-    if ($error = self::validate_request(["id" => ["data_type" => "number", "required" => false]], $request)) {
-      return $error;
-    }
-
-    global $wpdb;
-    $menu_id = (int) $request['id'];
-    $query = $menu_id
-      ? $wpdb->prepare("SELECT * FROM {$wpdb->prefix}zippy_menus WHERE id = %d", $menu_id)
-      : "SELECT * FROM {$wpdb->prefix}zippy_menus";
-
-    $menus = $wpdb->get_results($query);
-    return empty($menus)
-      ? Zippy_Response_Handler::error("No menus found!")
-      : Zippy_Response_Handler::success($menus, "Menus retrieved successfully");
-  }
-
   public static function set_menu(WP_REST_Request $request)
   {
     global $wpdb;
     if ($error = self::validate_request([
       "name" => ["data_type" => "string", "required" => true],
-      "start_date" => ["data_type" => "date", "required" => true],
-      "end_date" => ["data_type" => "date", "required" => true],
-      "days_of_week" => ["data_type" => "array", "required" => true],
+      "start_date" => ["data_type" => "date", "required" => false],
+      "end_date" => ["data_type" => "date", "required" => false],
+      "days_of_week" => ["data_type" => "array", "required" => false],
     ], $request)) {
       return $error;
     }
 
     $data = self::sanitize_menu_data($request);
+
     if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus WHERE name = %s", $data['name']))) {
       return Zippy_Response_Handler::error("The menu name '{$data['name']}' already exists.", 400);
     }
@@ -96,6 +80,30 @@ class Zippy_Menu_Controller
     return is_string($result)
       ? Zippy_Response_Handler::error($result, 500)
       : Zippy_Response_Handler::success($wpdb->insert_id, "Menu created successfully.");
+  }
+
+  public static function get_menus(WP_REST_Request $request)
+  {
+    if ($error = self::validate_request(["id" => ["data_type" => "number", "required" => false]], $request)) {
+      return $error;
+    }
+
+    global $wpdb;
+    $menu_id = (int) $request['id'];
+    $query = $menu_id
+      ? $wpdb->prepare("SELECT * FROM {$wpdb->prefix}zippy_menus WHERE id = %d", $menu_id)
+      : "SELECT * FROM {$wpdb->prefix}zippy_menus";
+
+    $menus = $wpdb->get_results($query);
+
+    // // Decode JSON field
+    foreach ($menus as &$menu) {
+      $menu->days_of_week = !empty($menu->days_of_week) ? json_decode($menu->days_of_week, true) : [];
+    }
+
+    return empty($menus)
+      ? Zippy_Response_Handler::error("No menus found!")
+      : Zippy_Response_Handler::success($menus, "Menus retrieved successfully");
   }
 
   public static function update_menu(WP_REST_Request $request)
@@ -117,6 +125,8 @@ class Zippy_Menu_Controller
     }
 
     $data = self::sanitize_menu_data($request);
+
+
     if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus WHERE name = %s AND id != %d", $data['name'], $id))) {
       return Zippy_Response_Handler::error("The menu name '{$data['name']}' already exists.", 400);
     }
@@ -130,9 +140,37 @@ class Zippy_Menu_Controller
         ['%d']
       );
     });
+    
 
     return is_string($result)
       ? Zippy_Response_Handler::error($result, 500)
       : Zippy_Response_Handler::success($id, "Menu updated successfully.");
+  }
+
+  public static function delete_menu(WP_REST_Request $request)
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'zippy_menus';
+
+    $required_fields = ["menu_id" => ["required" => "true", "data_type" => "number"]];
+
+    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    if (!empty($validate)) {
+      return Zippy_Response_Handler::error($validate, 400);
+    }
+
+    $menu_id = $request->get_param('menu_id');
+
+    $result = self::execute_db_transaction(function () use ($wpdb, $table_name, $menu_id) {
+      return $wpdb->delete(
+        $table_name,
+        array('id' => $menu_id),
+        array('%d')
+      );
+    });
+
+    return is_string($result)
+      ? Zippy_Response_Handler::error($result, 500)
+      : Zippy_Response_Handler::success($menu_id, "Menu has been deleted.");
   }
 }

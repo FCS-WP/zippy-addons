@@ -167,14 +167,14 @@ class Zippy_Admin_Settings
   function get_one_map_access_token(){
 
     $one_map_credentials = get_option(ONEMAP_META_KEY);
-    if (empty($one_map_credentials)) {
+    $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
+    if ($credentials_json == false) {
       return [
-        "status_message" => "No credentials found",
+        "error" => "No credentials found",
       ];
     }
-    $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
-    $credentials = json_decode($credentials_json, true);
 
+    $credentials = json_decode($credentials_json, true);
     $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
 
     $authen = One_Map_Api::authentication($credentials);
