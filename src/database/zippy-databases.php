@@ -98,9 +98,9 @@ class Zippy_Databases
     $sql = "CREATE TABLE $table_name (
           id INT NOT NULL AUTO_INCREMENT,
           name VARCHAR(255) NOT NULL,
-          start_date DATE NOT NULL,
-          end_date DATE NOT NULL,
-          days_of_week VARCHAR(255) NOT NULL,
+          start_date DATE NULL,
+          end_date DATE NULL,
+          days_of_week VARCHAR(255) NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (id)
       ) $charset_collate;";

@@ -2,6 +2,7 @@
 
 namespace Zippy_Booking\Src\Controllers\Menu;
 
+use Exception;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
@@ -11,295 +12,193 @@ defined('ABSPATH') or die();
 
 class Zippy_Menu_Controller
 {
-  /**
-   * GET MENUS
-   */
-  public static function get_menus(WP_REST_Request $request)
+  private static function validate_request($required_fields, WP_REST_Request $request)
   {
-    // Define validation rules
-    $required_fields = [
-      "id" => ["data_type" => "number", "required" => false],
-    ];
-
-    // Validate request fields
     $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    return empty($validate) ? null : Zippy_Response_Handler::error($validate, 400);
+  }
 
-    if (!empty($validate)) {
-      return Zippy_Response_Handler::error($validate);
-    }
+  private static function check_menu_exists($menu_id)
+  {
+    global $wpdb;
+    return (bool) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus WHERE id = %d", $menu_id));
+  }
 
+  private static function sanitize_menu_data($request)
+  {
+    return [
+      'name' => sanitize_text_field($request['name']),
+      'start_date' => sanitize_text_field($request['start_date']),
+      'end_date' => sanitize_text_field($request['end_date']),
+      'days_of_week' => json_encode($request['days_of_week'])
+    ];
+  }
+
+  private static function execute_db_transaction($query_fn)
+  {
+    global $wpdb;
     try {
-      global $wpdb;
-      $table_name = $wpdb->prefix . 'zippy_menus';
-      $menu_id = $request['id'];
-
-      // Build query with optional menu_id filtering
-      if (!empty($menu_id)) {
-        $query = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $menu_id);
-        $menus = $wpdb->get_results($query);
-
-        if (empty($menus)) {
-          return Zippy_Response_Handler::error("Menu with ID $menu_id does not exist!");
-        }
-      } else {
-        $query = "SELECT * FROM $table_name";
-        $menus = $wpdb->get_results($query);
-
-        if (empty($menus)) {
-          return Zippy_Response_Handler::error("No menus found!");
-        }
+      $wpdb->query('START TRANSACTION');
+      $result = $query_fn();
+      if ($result === false) {
+        throw new \Exception("Database operation failed: " . $wpdb->last_error);
       }
-
-      return Zippy_Response_Handler::success($menus, "Menus retrieved successfully");
-    } catch (\Throwable $th) {
-      $message = $th->getMessage();
-      Zippy_Log_Action::log('get_menu', json_encode($request->get_params()), 'Failure', $message);
-      return Zippy_Response_Handler::error("An error occurred while fetching menus.");
+      $wpdb->query('COMMIT');
+      return $result;
+    } catch (\Exception $e) {
+      $wpdb->query('ROLLBACK');
+      return $e->getMessage();
     }
   }
 
+  private static function check_overlap_menu_time_ranges($data)
+  {
+    global $wpdb;
 
-  /**
-   * SET MENU
-   */
+    // Check for overlapping time ranges
+    $overlap_query = $wpdb->prepare(
+      "SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus 
+          WHERE (%s BETWEEN start_date AND end_date OR %s BETWEEN start_date AND end_date OR 
+                 start_date BETWEEN %s AND %s OR end_date BETWEEN %s AND %s)",
+      $data['start_date'],
+      $data['end_date'],
+      $data['start_date'],
+      $data['end_date'],
+      $data['start_date'],
+      $data['end_date']
+    );
+
+    return $wpdb->get_var($overlap_query);
+  }
+
   public static function set_menu(WP_REST_Request $request)
+  {
+    global $wpdb;
+
+    if ($error = self::validate_request([
+      "name"       => ["data_type" => "string", "required" => true],
+      "start_date" => ["data_type" => "date", "required" => false],
+      "end_date"   => ["data_type" => "date", "required" => false],
+      "days_of_week" => ["data_type" => "array", "required" => false],
+    ], $request)) {
+      return $error;
+    }
+
+    $data = self::sanitize_menu_data($request);
+
+    // Check if the menu name already exists
+    if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus WHERE name = %s", $data['name']))) {
+      return Zippy_Response_Handler::error("The menu name '{$data['name']}' already exists.", 400);
+    }
+
+    // Proceed with inserting the menu
+    $result = self::execute_db_transaction(function () use ($wpdb, $data) {
+      return $wpdb->insert(
+        "{$wpdb->prefix}zippy_menus",
+        array_merge($data, ['created_at' => current_time('mysql')]),
+        ['%s', '%s', '%s', '%s', '%s']
+      );
+    });
+
+    return is_string($result)
+      ? Zippy_Response_Handler::error($result, 500)
+      : Zippy_Response_Handler::success($wpdb->insert_id, "Menu created successfully.");
+  }
+
+  public static function get_menus(WP_REST_Request $request)
+  {
+    if ($error = self::validate_request(["id" => ["data_type" => "number", "required" => false]], $request)) {
+      return $error;
+    }
+
+    global $wpdb;
+    $menu_id = (int) $request['id'];
+    $query = $menu_id
+      ? $wpdb->prepare("SELECT * FROM {$wpdb->prefix}zippy_menus WHERE id = %d", $menu_id)
+      : "SELECT * FROM {$wpdb->prefix}zippy_menus";
+
+    $menus = $wpdb->get_results($query);
+
+    // // Decode JSON field
+    foreach ($menus as &$menu) {
+      $menu->days_of_week = !empty($menu->days_of_week) ? json_decode($menu->days_of_week, true) : [];
+    }
+
+    return empty($menus)
+      ? Zippy_Response_Handler::error("No menus found!")
+      : Zippy_Response_Handler::success($menus, "Menus retrieved successfully");
+  }
+
+  public static function update_menu(WP_REST_Request $request)
+  {
+    global $wpdb;
+    if ($error = self::validate_request([
+      "id" => ["data_type" => "number", "required" => true],
+      "name" => ["data_type" => "string", "required" => true],
+      "start_date" => ["data_type" => "date", "required" => true],
+      "end_date" => ["data_type" => "date", "required" => true],
+      "days_of_week" => ["data_type" => "array", "required" => true],
+    ], $request)) {
+      return $error;
+    }
+
+    $id = intval($request['id']);
+    if (!self::check_menu_exists($id)) {
+      return Zippy_Response_Handler::error("Menu not found.", 404);
+    }
+
+    $data = self::sanitize_menu_data($request);
+
+
+    if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus WHERE name = %s AND id != %d", $data['name'], $id))) {
+      return Zippy_Response_Handler::error("The menu name '{$data['name']}' already exists.", 400);
+    }
+
+    $overlapping_menus = self::check_overlap_menu_time_ranges($data);
+
+    if ($overlapping_menus > 0) {
+      return Zippy_Response_Handler::error("The menu dates overlap with an existing menu.", 400);
+    }
+
+    $result = self::execute_db_transaction(function () use ($wpdb, $data, $id) {
+      return $wpdb->update(
+        "{$wpdb->prefix}zippy_menus",
+        array_merge($data, ['updated_at' => current_time('mysql')]),
+        ['id' => $id],
+        ['%s', '%s', '%s', '%s', '%s'],
+        ['%d']
+      );
+    });
+
+    return is_string($result)
+      ? Zippy_Response_Handler::error($result, 500)
+      : Zippy_Response_Handler::success($id, "Menu updated successfully.");
+  }
+
+  public static function delete_menu(WP_REST_Request $request)
   {
     global $wpdb;
     $table_name = $wpdb->prefix . 'zippy_menus';
 
-    // Define validation rules
-    $required_fields = [
-      "name"         => ["data_type" => "string", "required" => true],
-      "start_date"   => ["data_type" => "date", "required" => true],
-      "end_date"     => ["data_type" => "date", "required" => true],
-      "days_of_week" => ["data_type" => "array", "required" => true],
-    ];
+    $required_fields = ["menu_id" => ["required" => "true", "data_type" => "number"]];
 
-    // Validate request fields
     $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
     if (!empty($validate)) {
       return Zippy_Response_Handler::error($validate, 400);
     }
 
-    try {
-      // Sanitize and format input values
-      $name         = sanitize_text_field($request['name']);
-      $start_date   = sanitize_text_field($request['start_date']);
-      $end_date     = sanitize_text_field($request['end_date']);
-      $days_of_week = implode(',', array_map('intval', (array) $request['days_of_week']));
+    $menu_id = $request->get_param('menu_id');
 
-      // Check if the name already exists
-      $existing_menu = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE name = %s", $name));
-
-      if ($existing_menu > 0) {
-        return Zippy_Response_Handler::error("The menu name '$name' already exists. Please choose a different name.", 400);
-      }
-
-      $wpdb->query('START TRANSACTION');
-
-      // Insert into the database
-      $inserted = $wpdb->insert(
+    $result = self::execute_db_transaction(function () use ($wpdb, $table_name, $menu_id) {
+      return $wpdb->delete(
         $table_name,
-        [
-          'name'         => $name,
-          'start_date'   => $start_date,
-          'end_date'     => $end_date,
-          'days_of_week' => $days_of_week,
-          'created_at'   => current_time('mysql')
-        ],
-        ['%s', '%s', '%s', '%s', '%s']
+        array('id' => $menu_id),
+        array('%d')
       );
+    });
 
-      if ($inserted === false) {
-        throw new Exception("Database insert failed: " . $wpdb->last_error);
-      }
-
-      $insert_id = $wpdb->insert_id;
-      $wpdb->query('COMMIT');
-
-      return Zippy_Response_Handler::success($insert_id, "Menu created successfully.");
-    } catch (Exception $e) {
-      $wpdb->query('ROLLBACK');
-
-      $error_message = $e->getMessage();
-      Zippy_Log_Action::log('set_menu', json_encode($request->get_params()), 'Failure', $error_message);
-
-      return Zippy_Response_Handler::error("An error occurred while creating the menu. Please try again.", 500);
-    }
-  }
-
-  /**
-   * GET PRODUCTS IN MENU
-   */
-  public static function get_products_in_menu(WP_REST_Request $request)
-  {
-    global $wpdb;
-    $menu_table = $wpdb->prefix . 'zippy_menus';
-    $product_menu_table = $wpdb->prefix . 'zippy_menu_products';
-
-    // Define validation rules
-    $required_fields = [
-      "id_menu" => ["data_type" => "number", "required" => true],
-    ];
-
-    // Validate request fields
-    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-    if (!empty($validate)) {
-      return Zippy_Response_Handler::error($validate, 400);
-    }
-
-    try {
-      // Sanitize and format input values
-      $menu_id = sanitize_text_field($request['id_menu']);
-
-      // Check if the menu exists (FIXED)
-      $existing_menu = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $menu_table WHERE id = %d", $menu_id));
-
-      if ($existing_menu == 0) { // FIX: Return error if the menu does NOT exist
-        return Zippy_Response_Handler::error("The menu ID '$menu_id' does not exist.", 404);
-      }
-
-      // Fetch products in the menu
-      $query = $wpdb->prepare(
-        "SELECT id, id_product, created_at FROM $product_menu_table WHERE id_menu = %d",
-        $menu_id
-      );
-
-      $products = $wpdb->get_results($query);
-
-      return Zippy_Response_Handler::success($products, "Products retrieved successfully.");
-    } catch (Exception $e) {
-
-      $error_message = $e->getMessage();
-      Zippy_Log_Action::log('get_products_in_menu', json_encode($request->get_params()), 'Failure', $error_message);
-
-      return Zippy_Response_Handler::error("An error occurred while retrieving the products. Please try again.", 500);
-    }
-  }
-
-  /**
-   * ADD PRODUCT TO MENU
-   */
-  public static function add_products_to_menu(WP_REST_Request $request)
-  {
-    global $wpdb;
-    $menu_table = $wpdb->prefix . 'zippy_menus';
-    $product_menu_table = $wpdb->prefix . 'zippy_menu_products';
-
-    // Define validation rules
-    $required_fields = [
-      "id_menu"    => ["data_type" => "number", "required" => true],
-      "id_product" => ["data_type" => "number", "required" => true],
-    ];
-
-    // Validate request fields
-    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-    if (!empty($validate)) {
-      return Zippy_Response_Handler::error($validate, 400);
-    }
-
-    try {
-      // Sanitize input values
-      $menu_id = sanitize_text_field($request['id_menu']);
-      $product_id = sanitize_text_field($request['id_product']);
-
-      // Check if the menu exists
-      $existing_menu = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $menu_table WHERE id = %d", $menu_id));
-      if ($existing_menu == 0) {
-        return Zippy_Response_Handler::error("The menu ID '$menu_id' does not exist.", 404);
-      }
-
-      // Check if the product is already in the menu
-      $existing_product = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $product_menu_table WHERE id_menu = %d AND id_product = %d",
-        $menu_id,
-        $product_id
-      ));
-
-      if ($existing_product > 0) {
-        return Zippy_Response_Handler::error("The product ID '$product_id' is already in menu '$menu_id'.", 400);
-      }
-
-      // Insert product into menu
-      $inserted = $wpdb->insert(
-        $product_menu_table,
-        [
-          'id_menu'    => $menu_id,
-          'id_product' => $product_id,
-          'created_at' => current_time('mysql')
-        ],
-        ['%d', '%d', '%s']
-      );
-
-      if ($inserted) {
-        return Zippy_Response_Handler::success(null, "Product added to menu successfully.");
-      } else {
-        return Zippy_Response_Handler::error("Failed to add product to menu.", 500);
-      }
-    } catch (Exception $e) {
-
-      $error_message = $e->getMessage();
-      Zippy_Log_Action::log('add_product_to_menu', json_encode($request->get_params()), 'Failure', $error_message);
-
-      return Zippy_Response_Handler::error("An error occurred while adding the product. Please try again.", 500);
-    }
-  }
-  /**
-   * REMOVE PRODUCT FROM MENU
-   */
-  public static function remove_product_from_menu(WP_REST_Request $request)
-  {
-    global $wpdb;
-    $product_menu_table = $wpdb->prefix . 'zippy_menu_products';
-
-    // Define validation rules
-    $required_fields = [
-      "id_menu"      => ["data_type" => "number", "required" => true],
-      "id_products"  => ["data_type" => "array", "required" => true], // Accepts an array of product IDs
-    ];
-
-    // Validate request fields
-    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-    if (!empty($validate)) {
-      return Zippy_Response_Handler::error($validate, 400);
-    }
-
-    try {
-      $menu_id = sanitize_text_field($request['id_menu']);
-      $product_ids = array_map('sanitize_text_field', $request['id_products']); // Sanitize all product IDs
-
-      if (empty($product_ids)) {
-        return Zippy_Response_Handler::error("No products provided for removal.", 400);
-      }
-
-      $product_ids_placeholder = implode(',', array_fill(0, count($product_ids), '%d'));
-
-      // Check if the products exist in the menu
-      $existing_products = $wpdb->get_col($wpdb->prepare(
-        "SELECT id_product FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)",
-        array_merge([$menu_id], $product_ids)
-      ));
-
-      if (empty($existing_products)) {
-        return Zippy_Response_Handler::error("None of the provided products exist in menu '$menu_id'.", 404);
-      }
-
-      $deleted = $wpdb->query($wpdb->prepare(
-        "DELETE FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)",
-        array_merge([$menu_id], $product_ids)
-      ));
-
-      if ($deleted) {
-        return Zippy_Response_Handler::success(null, "Selected products removed from menu successfully.");
-      } else {
-        return Zippy_Response_Handler::error("Failed to remove products from menu.", 500);
-      }
-    } catch (Exception $e) {
-
-      $error_message = $e->getMessage();
-      Zippy_Log_Action::log('remove_products_from_menu', json_encode($request->get_params()), 'Failure', $error_message);
-
-      return Zippy_Response_Handler::error("An error occurred while removing the products. Please try again.", 500);
-    }
+    return is_string($result)
+      ? Zippy_Response_Handler::error($result, 500)
+      : Zippy_Response_Handler::success($menu_id, "Menu has been deleted.");
   }
 }

@@ -65,9 +65,9 @@ class Zippy_Admin_Settings
   {
     add_menu_page('Zippy Add-ons', 'Zippy Add-ons', 'manage_options', 'zippy-bookings', array($this, 'store_render'), 'dashicons-list-view', 6);
     // SubPage
-    add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
-    add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
-    add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
+    // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
+    // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
+    // add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
     add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
     // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
     // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
@@ -167,14 +167,14 @@ class Zippy_Admin_Settings
   function get_one_map_access_token(){
 
     $one_map_credentials = get_option(ONEMAP_META_KEY);
-    if (empty($one_map_credentials)) {
+    $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
+    if ($credentials_json == false) {
       return [
-        "status_message" => "No credentials found",
+        "error" => "No credentials found",
       ];
     }
-    $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
-    $credentials = json_decode($credentials_json, true);
 
+    $credentials = json_decode($credentials_json, true);
     $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
 
     $authen = One_Map_Api::authentication($credentials);

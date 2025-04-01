@@ -1,10 +1,12 @@
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { productListColumns } from "../../utils/tableHelper";
 import TableView from "../TableView";
 import TablePaginationCustom from "../TablePagination";
+import BoxAddProducts from "./layouts/BoxAddProducts";
+import ButtonDelete from "./actions/ButtonDelete";
 
-const ProductList = ({ products }) => {
+const ProductList = ({ products, menuId }) => {
   const columns = productListColumns;
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -15,6 +17,7 @@ const ProductList = ({ products }) => {
       let result = {
         ID: product.id,
         NAME: product.name,
+        ACTIONS: <ButtonDelete data={product} type="product" />
       };
 
       return result;
@@ -49,9 +52,11 @@ const ProductList = ({ products }) => {
 
   return (
     <Box>
+      <Typography variant="h6" mb={2} fontWeight={600}>Products In Menu</Typography>
       {products.length > 0 && (
         <>
           <TableView
+            headerElement={<BoxAddProducts selectedMenu={menuId} />}
             cols={columns}
             columnWidths={columnWidths}
             rows={paginatedData.map((row) => ({
