@@ -20,7 +20,7 @@ import { debounce } from "../../../utils/searchHelper";
 import { Api } from "../../../api";
 import { toast } from "react-toastify";
 
-const BoxAddProducts = ({ selectedMenu }) => {
+const BoxAddProducts = ({ selectedMenu, refetchProducts }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -44,14 +44,36 @@ const BoxAddProducts = ({ selectedMenu }) => {
   };
 
   const handleAddProducts = async () => {
-    console.log("Handle Add product");
+    if (selectedProducts.length == 0) {
+      return false;
+    }
+
+    const ids  = selectedProducts.map((item)=>{
+      return item.id;
+    })
+    
+    const params = {
+      menu_id: selectedMenu,
+      product_ids: ids,
+    }
+
+    const {data: response} = await Api.addProductsToMenu(params);
+
+    if (!response || response.status !== "success") {
+      toast.error(response.message ?? "failed to add products");
+      return;
+    }
+    
+    toast.success(response.message);
+    setSelectedProducts([]);
+    refetchProducts();
   };
 
 
   const handleSearchProducts = async (keyword) => {
     try {
       const params = { 
-        query: keyword
+        keyword: keyword
       };
       const { data } = await Api.searchProducts(params);
       return data.data;
@@ -65,7 +87,7 @@ const BoxAddProducts = ({ selectedMenu }) => {
       if (keyword.trim()) {
         const dataProducts = await handleSearchProducts(keyword);
         if (dataProducts) {
-          setFilteredProducts(dataProducts.products);
+          setFilteredProducts(dataProducts);
         } else {
           toast.error("Search error");
           setFilteredProducts([]);

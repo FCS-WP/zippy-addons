@@ -82,4 +82,13 @@ export const Api = {
   async searchProducts(params) {
     return await makeRequest("/search-products", params);
   },
+  async getMenuProducts(params) {
+    return await makeRequest("/products-menu", params);
+  },
+  async addProductsToMenu(params) {
+    return await makeRequest("/products-menu", params, "POST");
+  },
+  async removeProductsFromMenu(params) {
+    return await makeRequest("/products-menu", params, "DELETE");
+  },
 };

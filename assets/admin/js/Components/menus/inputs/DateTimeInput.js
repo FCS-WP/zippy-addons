@@ -33,10 +33,7 @@ const DateTimeInput = ({ onChange, disabledRanges = [], minDate = "", value, typ
       setSelectedDate(value);
     }
   }, [])
-  useEffect(()=>{
-    console.log("disabledRanges", disabledRanges)
-
-  }, [disabledRanges])
+  
   return (
     <>
       <DatePicker

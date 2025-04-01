@@ -190,9 +190,9 @@ class Zippy_Menu_Controller
     }
 
     try {
-      // $ids = array_column($request->get_param('ids'), 'id');
       $ids = array_map('intval', $request->get_param('ids'));
       $ids_placeholder = implode(',', array_fill(0, count($ids), '%d'));
+
       $query = $wpdb->prepare("DELETE FROM $table_name WHERE id IN ($ids_placeholder)", ...$ids);
 
       $result = self::execute_db_transaction(fn() => $wpdb->query($query));

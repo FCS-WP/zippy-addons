@@ -81,7 +81,7 @@ const BoxEditMenu = ({ menu }) => {
 
     const { data: response } = await Api.updateMenu(data);
     if (!response || response.status !== "success") {
-      toast.error("Update failed!");
+      toast.error(response.message ?? "Update failed");
       return;
     }
     toast.success("Menu Updated!");

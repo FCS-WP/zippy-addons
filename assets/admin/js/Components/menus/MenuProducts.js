@@ -4,36 +4,25 @@ import MenuContext from "../../contexts/MenuContext";
 import theme from "../../../theme/theme";
 import ProductList from "./ProductList";
 import BoxAddProducts from "./layouts/BoxAddProducts";
+import { Api } from "../../api";
+import { toast } from "react-toastify";
 
 const MenuProducts = ({ menu }) => {
   const [products, setProducts] = useState([]);
 
-  const fetchMenuProducts = () => {
+  const fetchMenuProducts = async () => {
     // Handle fetch products in menu here;
-    const getProducts = [
-      {
-        id: 32,
-        name: "Product 1",
-      },
-      {
-        id: 33,
-        name: "Product 2",
-      },
-      {
-        id: 34,
-        name: "Product 3",
-      },
-      {
-        id: 36,
-        name: "Product 4",
-      },
-    ];
-    setProducts(getProducts);
+    const { data : response } = await Api.getMenuProducts({ menu_id: menu.id });
+    if (!response || response.status !== "success") {
+      console.warn("Products not found!");
+      setProducts([]);
+      return;
+    }
+    setProducts(response.data);
   };
 
   useEffect(() => {
     fetchMenuProducts();
-
     return () => {};
   }, []);
 
@@ -42,7 +31,7 @@ const MenuProducts = ({ menu }) => {
       {menu && (
         <>
           <Divider sx={{ my: 3 }} />
-          <ProductList products={products} menuId={menu.id} />
+          <ProductList refetchProducts={fetchMenuProducts} products={products}  menuId={menu.id} />
         </>
       )}
     </Box>
