@@ -82,8 +82,7 @@ const ShippingFeeCalculator = () => {
   const handleAddNewRow = (setState, newRow) => {
     setState((prev) => [...prev, newRow]);
   };
-
-  const isOverlapping = (index, field, value, state, type) => {
+  const isOverlapping = (index, field, value, state, type, tabIndex) => {
     let newState = [...state];
     newState[index][field] = value;
     let newEntry = newState[index];
@@ -110,11 +109,11 @@ const ShippingFeeCalculator = () => {
       return true;
     }
 
-    for (let i = 0; i < newState.length; i++) {
+    for (let i = 0; i < state.length; i++) {
       if (i !== index) {
-        let current = newState[i];
+        let current = state[i];
 
-        if (type === "order_range") {
+        if (type === "minimum_order_to_delivery") {
           if (
             (newEntry.greater_than >= current.greater_than &&
               newEntry.greater_than < current.lower_than) ||
@@ -124,24 +123,43 @@ const ShippingFeeCalculator = () => {
               newEntry.lower_than >= current.lower_than)
           ) {
             toast.error(
-              `Error: Overlapping order range with another entry. ` +
+              `Error: Overlapping delivery order range with another entry. ` +
                 `Greater Than: ${newEntry.greater_than}, Lower Than: ${newEntry.lower_than}`
             );
             return true;
           }
         }
 
-        if (type === "extra_fee" && newEntry.type === current.type) {
+        if (type === "minimum_order_to_freeship") {
           if (
-            (newEntry.from >= current.from && newEntry.from < current.to) ||
-            (newEntry.to > current.from && newEntry.to <= current.to) ||
-            (newEntry.from <= current.from && newEntry.to >= current.to)
+            (newEntry.greater_than >= current.greater_than &&
+              newEntry.greater_than < current.lower_than) ||
+            (newEntry.lower_than > current.greater_than &&
+              newEntry.lower_than <= current.lower_than) ||
+            (newEntry.greater_than <= current.greater_than &&
+              newEntry.lower_than >= current.lower_than)
           ) {
             toast.error(
-              `Error: Overlapping extra fee range for type '${newEntry.type}'. ` +
-                `From: ${newEntry.from}, To: ${newEntry.to}`
+              `Error: Overlapping freeship order range with another entry. ` +
+                `Greater Than: ${newEntry.greater_than}, Lower Than: ${newEntry.lower_than}`
             );
             return true;
+          }
+        }
+
+        if (type === "extra_fee") {
+          if (newEntry.type === current.type) {
+            if (
+              (newEntry.from >= current.from && newEntry.from < current.to) ||
+              (newEntry.to > current.from && newEntry.to <= current.to) ||
+              (newEntry.from <= current.from && newEntry.to >= current.to)
+            ) {
+              toast.error(
+                `Error: Overlapping extra fee range for type '${newEntry.type}'. ` +
+                  `From: ${newEntry.from}, To: ${newEntry.to}`
+              );
+              return true;
+            }
           }
         }
       }
@@ -246,7 +264,12 @@ const ShippingFeeCalculator = () => {
 
       {!selectedStore && (
         <Paper
-          style={{ padding: 5,paddingLeft:20, marginBottom: 20, backgroundColor: "#eccdcda1" }}
+          style={{
+            padding: 5,
+            paddingLeft: 20,
+            marginBottom: 20,
+            backgroundColor: "#eccdcda1",
+          }}
         >
           <p style={{ color: "red", fontWeight: "bold" }}>
             Please select a store to configure shipping fees.
@@ -277,21 +300,31 @@ const ShippingFeeCalculator = () => {
                 <strong>Configuration Example:</strong> From: 1 , To : 5 , Fee:
                 15
               </p>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() =>
-                  handleAddNewRow(
-                    idx === 0
-                      ? setMinimumOrderToDelivery
-                      : setMinimumOrderToFreeship,
-                    { greater_than: "", lower_than: "", fee: "" }
-                  )
-                }
-                disabled={!selectedStore}
+              <div
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginBottom: 10,
+                }}
               >
-                Add New
-              </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() =>
+                    handleAddNewRow(
+                      idx === 0
+                        ? setMinimumOrderToDelivery
+                        : setMinimumOrderToFreeship,
+                      { greater_than: "", lower_than: "", fee: "" }
+                    )
+                  }
+                  disabled={!selectedStore}
+                >
+                  Add New
+                </Button>
+              </div>
+
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -314,15 +347,21 @@ const ShippingFeeCalculator = () => {
                                 index,
                                 "greater_than",
                                 e.target.value,
-                                setMinimumOrderToDelivery,
-                                minimumOrderToDelivery
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                idx === 0
+                                  ? minimumOrderToDelivery
+                                  : minimumOrderToFreeship
                               )
                             }
                             onBlur={() =>
                               handleBlur(
                                 index,
                                 "greater_than",
-                                minimumOrderToDelivery,
+                                idx === 0
+                                  ? minimumOrderToDelivery
+                                  : minimumOrderToFreeship,
                                 "order_range"
                               )
                             }
@@ -338,15 +377,21 @@ const ShippingFeeCalculator = () => {
                                 index,
                                 "lower_than",
                                 e.target.value,
-                                setMinimumOrderToDelivery,
-                                minimumOrderToDelivery
+                                idx === 0
+                                  ? setMinimumOrderToDelivery
+                                  : setMinimumOrderToFreeship,
+                                idx === 0
+                                  ? minimumOrderToDelivery
+                                  : minimumOrderToFreeship
                               )
                             }
                             onBlur={() =>
                               handleBlur(
                                 index,
                                 "lower_than",
-                                minimumOrderToDelivery,
+                                idx === 0
+                                  ? minimumOrderToDelivery
+                                  : minimumOrderToFreeship,
                                 "order_range"
                               )
                             }
@@ -407,6 +452,14 @@ const ShippingFeeCalculator = () => {
             <strong>Configuration Example:</strong> Type: postal_code , From:
             12345 , To: 67890 , Fee: 15
           </p>
+          <div
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginBottom: 10,
+                }}
+              >
           <Button
             variant="contained"
             color="primary"
@@ -422,6 +475,7 @@ const ShippingFeeCalculator = () => {
           >
             Add New
           </Button>
+          </div>
           <TableContainer>
             <Table>
               <TableHead>
@@ -510,6 +564,34 @@ const ShippingFeeCalculator = () => {
                         }
                         disabled={!selectedStore}
                       />
+                    </TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={row.fee || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            index,
+                            "fee",
+                            e.target.value,
+                            setExtraFee,
+                            extraFee
+                          )
+                        }
+                        disabled={!selectedStore}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: "20%" }}>
+                      <IconButton
+                        color="error"
+                        onClick={() =>
+                          handleDeleteRow(index, setExtraFee, extraFee)
+                        }
+                        disabled={!selectedStore}
+                      >
+                        <Delete />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
