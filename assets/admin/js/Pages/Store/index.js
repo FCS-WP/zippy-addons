@@ -42,7 +42,7 @@ const Store = () => {
         toast.error("Failed to fetch stores");
       }
     } catch (error) {
-      toast.error("Error fetching stores");
+      // toast.error("Error fetching stores");
     } finally {
       setLoading(false);
     }
@@ -94,7 +94,6 @@ const Store = () => {
         >
           Add Store
         </Button>
-
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
