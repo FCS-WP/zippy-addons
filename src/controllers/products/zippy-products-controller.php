@@ -21,6 +21,7 @@ class Zippy_Products_Controller
   {
     return [
       'key_word' => sanitize_text_field($request['key_word']),
+      'limit' => isset($request['limit']) ? max(1, min(100, intval($request['limit']))) : 10
     ];
   }
 
@@ -74,7 +75,8 @@ class Zippy_Products_Controller
           WHERE p.post_title LIKE %s
           AND p.post_type = 'product'
           AND tt.taxonomy = 'product_cat'
-        ", '%' . $wpdb->esc_like($data['key_word']) . '%')
+          LIMIT %d
+      ", '%' . $wpdb->esc_like($data['key_word']) . '%', $data['limit'])
       );
     });
 
