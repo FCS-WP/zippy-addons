@@ -8,8 +8,10 @@ import { linkMenuAdmin } from "../../utils/bookingHelper";
 import MenuActions from "./MenuActions";
 import DateTimeInput from "./inputs/DateTimeInput";
 import { format } from 'date-fns';
+import { alertConfirmDelete } from "../../utils/alertHelper";
+import { callToDeleteItems } from "../../utils/bookingHelper";
 const MenuList = () => {
-  const { menus } = useContext(MenuContext);
+  const { menus, refetchMenus } = useContext(MenuContext);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState([]);
@@ -27,26 +29,6 @@ const MenuList = () => {
         "Start Date": menu.start_date !== '0000-00-00' ? format(new Date(menu.start_date), 'yyyy-MM-dd') : "Invalid date",
         "End Date": menu.end_date !== '0000-00-00' ? format(new Date(menu.end_date), 'yyyy-MM-dd') : "Invalid date",
       };
-
-      // const dayMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-      // const daysOfWeek = menu?.days_of_week || [];
-
-      // // Loop through all 7 days of the week
-      // dayMap.forEach((dayName, index) => {
-      //   // Find the matching day object from menu.days_of_week
-      //   const day = daysOfWeek.find((d) => d.weekday === index) || {
-      //     weekday: index,
-      //   };
-
-      //   result[dayName] = (
-      //     <CustomSwitch
-      //       menu={menu}
-      //       day={day}
-      //       onChange={handleChangeAvailableDate}
-      //     />
-      //   );
-      // });
-      
       return result;
     });
 
@@ -72,6 +54,21 @@ const MenuList = () => {
     setPage(0);
   };
 
+  const handleDeleteMenus = async (rows) => {
+    const confirm = await alertConfirmDelete();
+    if (!confirm) {
+      return false;
+    }
+    const deletedIds = [];
+    paginatedData.map((item, index) => {
+      rows[index]
+        ? deletedIds.push(item.ID)
+        : null;
+    });
+    const del = await callToDeleteItems(deletedIds);
+    refetchMenus();
+  }
+
   useEffect(() => {
     convertData();
   }, [menus]);
@@ -87,7 +84,7 @@ const MenuList = () => {
               ...row,
             }))}
             canBeDeleted={true}
-            onDeleteRows={() => console.log("deleted")}
+            onDeleteRows={handleDeleteMenus}
             onChangeList={() => console.log("change list")}
           />
           <TablePaginationCustom

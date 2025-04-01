@@ -71,12 +71,15 @@ export const Api = {
     return await makeRequest("/menus", params, "GET");
   },
   async createMenu(params) {
-    return await makeRequest("/create-menu", params, "POST");
+    return await makeRequest("/menus", params, "POST");
   },
   async updateMenu(params) {
-    return await makeRequest("/update-menu", params, "PUT");
+    return await makeRequest("/menus", params, "PUT");
   },
-  async deleteMenu(params) {
-    return await makeRequest("/delete-menu", params, "DELETE");
+  async deleteMenuItems(params) {
+    return await makeRequest("/menus", params, "DELETE");
+  },
+  async searchProducts(params) {
+    return await makeRequest("/search-products", params);
   },
 };

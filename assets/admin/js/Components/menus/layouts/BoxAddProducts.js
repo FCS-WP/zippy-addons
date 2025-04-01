@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   Box,
@@ -16,9 +16,12 @@ import {
 import { BsFillQuestionCircleFill, BsSearch } from "react-icons/bs";
 import { FiPlus } from "react-icons/fi";
 import { ChipContainer, SearchContainer, SuggestionsContainer } from "../../mui-custom-styles";
+import { debounce } from "../../../utils/searchHelper";
+import { Api } from "../../../api";
+import { toast } from "react-toastify";
 
 const BoxAddProducts = ({ selectedMenu }) => {
-  const [productSearch, setProductSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -30,7 +33,7 @@ const BoxAddProducts = ({ selectedMenu }) => {
     if (!isInSelectedArr) {
       setSelectedProducts([...selectedProducts, product]);
     }
-    setProductSearch("");
+    setSearchQuery("");
   };
 
   const handleProductKeyDown = (event) => {
@@ -44,6 +47,38 @@ const BoxAddProducts = ({ selectedMenu }) => {
     console.log("Handle Add product");
   };
 
+
+  const handleSearchProducts = async (keyword) => {
+    try {
+      const params = { 
+        query: keyword
+      };
+      const { data } = await Api.searchProducts(params);
+      return data.data;
+    } catch (error) {
+      console.error("Error when search");
+    }
+  }
+
+  const debounceSearchProducts = useCallback(
+    debounce(async (keyword) => {
+      if (keyword.trim()) {
+        const dataProducts = await handleSearchProducts(keyword);
+        if (dataProducts) {
+          setFilteredProducts(dataProducts.products);
+        } else {
+          toast.error("Search error");
+          setFilteredProducts([]);
+        }
+      } else {
+        setFilteredProducts([]);
+      }
+  }, 500), []);
+
+  useEffect(() => {
+    debounceSearchProducts(searchQuery);
+  }, [searchQuery]);
+
   return (
     <Box>
       <SearchContainer>
@@ -52,8 +87,8 @@ const BoxAddProducts = ({ selectedMenu }) => {
           label="Search Products"
           variant="outlined"
           placeholder="Type to search..."
-          value={productSearch}
-          onChange={(e) => setProductSearch(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleProductKeyDown}
           slotProps={{
             input: {
@@ -65,7 +100,7 @@ const BoxAddProducts = ({ selectedMenu }) => {
             },
           }}
         />
-        {productSearch && (
+        {searchQuery && (
           <SuggestionsContainer>
             <List>
               {filteredProducts.length > 0 ? (

@@ -65,7 +65,7 @@ class Zippy_Menu_Router
 
     register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/menus', array(
       'methods' => 'DELETE',
-      'callback' => [Zippy_Menu_Controller::class, 'delete_menu'],
+      'callback' => [Zippy_Menu_Controller::class, 'delete_items'],
       'args' => Zippy_Api_Menu_Model::delete_menu_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));

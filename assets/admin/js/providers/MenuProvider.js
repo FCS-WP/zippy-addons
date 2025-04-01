@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MenuContext from "../contexts/MenuContext";
 import { Api } from "../api";
+import { handleDateData } from "../utils/dateHelper";
 
 const defaultMenus = [
   {
@@ -36,6 +37,7 @@ const defaultMenus = [
 const MenuProvider = ({ children }) => {
   const [menus, setMenus] = useState([]);
   const [selectedMenu, setSelectedMenu] = useState();
+  const [disabledRanges, setDisabledRanges] = useState([]);
 
   const refetchMenus = async (newMenu) => {
     const response = await Api.getMenus();
@@ -46,21 +48,35 @@ const MenuProvider = ({ children }) => {
     setMenus(response.data.data);
   };
 
+  
+  const getDisabledTimeRanges = () => {
+    // let results = [];
+    // menus.map((item) => {
+    //   if (handleDateData(item.start_date) && handleDateData(item.end_date)) {
+    //     results.push({ start_date: item.start_date, end_date: item.end_date });
+    //   }
+    // });
+    // setDisabledRanges([results]);
+  };
+
   const value = {
     selectedMenu,
     setSelectedMenu,
     menus,
     setMenus,
     refetchMenus,
+    disabledRanges,
   };
 
   useEffect(()=>{
     refetchMenus();
     
-    return () => {
-      
-    }
+    return () => {}
   }, [])
+
+  useEffect(()=>{
+    getDisabledTimeRanges();
+  }, [menus])
 
   return <MenuContext.Provider value={value}>{children}</MenuContext.Provider>;
 };

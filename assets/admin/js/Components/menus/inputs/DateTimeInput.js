@@ -1,8 +1,9 @@
 import { TextField } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
+import { isInDisabledRange } from "../../../utils/dateHelper";
 
-const DateTimeInput = ({ onChange, minDate = "", value, type }) => {
+const DateTimeInput = ({ onChange, disabledRanges = [], minDate = "", value, type }) => {
   const [selectedDate, setSelectedDate] = useState();
 
   const handleChangeDate = (date) => {
@@ -15,6 +16,9 @@ const DateTimeInput = ({ onChange, minDate = "", value, type }) => {
       val === "0000-00-00" || val == "" ? new Date() : new Date(val);
     return result;
   };
+
+  let maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 3);
 
   useEffect(() => {
     if (type == "end") {
@@ -29,7 +33,10 @@ const DateTimeInput = ({ onChange, minDate = "", value, type }) => {
       setSelectedDate(value);
     }
   }, [])
+  useEffect(()=>{
+    console.log("disabledRanges", disabledRanges)
 
+  }, [disabledRanges])
   return (
     <>
       <DatePicker
@@ -37,6 +44,8 @@ const DateTimeInput = ({ onChange, minDate = "", value, type }) => {
         selected={selectedDate}
         onChange={(date) => handleChangeDate(date)}
         minDate={new Date(handleDate(minDate))}
+        maxDate={maxDate}
+        filterDate={(date)=>!isInDisabledRange(date, disabledRanges)}
         customInput={
           <TextField
             size="small"

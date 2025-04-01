@@ -3,6 +3,7 @@ import React from 'react'
 import AddNewMenu from '../../Components/menus/AddNewMenu'
 import MenuList from '../../Components/menus/MenuList'
 import Header from '../../Components/Layouts/Header'
+import { ToastContainer } from 'react-toastify'
 
 const Menus = () => {
   return (
@@ -10,6 +11,7 @@ const Menus = () => {
         <Header title="Menus" />
         <AddNewMenu />
         <MenuList />
+        <ToastContainer />
     </Box>
   )
 }

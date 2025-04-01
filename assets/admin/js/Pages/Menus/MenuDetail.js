@@ -4,6 +4,7 @@ import { Box } from "@mui/material";
 import DetailHeader from "../../Components/menus/layouts/DetailHeader";
 import { Api } from "../../api";
 import BoxEditMenu from "../../Components/menus/layouts/BoxEditMenu";
+import { ToastContainer } from "react-toastify";
 
 const MenuDetail = ({ menuId }) => {
   const [menu, setMenu] = useState();
@@ -32,6 +33,7 @@ const MenuDetail = ({ menuId }) => {
           <MenuProducts menu={menu} />
         </>
       )}
+      <ToastContainer />
     </Box>
   );
 };

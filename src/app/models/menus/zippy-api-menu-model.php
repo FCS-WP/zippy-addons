@@ -87,10 +87,10 @@ class Zippy_Api_Menu_Model
   public static function delete_menu_args()
   {
     return array(
-      'menu_id' => array(
+      'ids' => array(
         'required' => true,
         'validate_callback' => function ($param) {
-          return is_numeric($param);
+          return is_array($param);
         }
       ),
     );
