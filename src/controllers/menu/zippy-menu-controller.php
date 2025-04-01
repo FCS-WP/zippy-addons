@@ -51,13 +51,34 @@ class Zippy_Menu_Controller
     }
   }
 
+  private static function check_overlap_menu_time_ranges($data)
+  {
+    global $wpdb;
+
+    // Check for overlapping time ranges
+    $overlap_query = $wpdb->prepare(
+      "SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus 
+          WHERE (%s BETWEEN start_date AND end_date OR %s BETWEEN start_date AND end_date OR 
+                 start_date BETWEEN %s AND %s OR end_date BETWEEN %s AND %s)",
+      $data['start_date'],
+      $data['end_date'],
+      $data['start_date'],
+      $data['end_date'],
+      $data['start_date'],
+      $data['end_date']
+    );
+
+    return $wpdb->get_var($overlap_query);
+  }
+
   public static function set_menu(WP_REST_Request $request)
   {
     global $wpdb;
+
     if ($error = self::validate_request([
-      "name" => ["data_type" => "string", "required" => true],
+      "name"       => ["data_type" => "string", "required" => true],
       "start_date" => ["data_type" => "date", "required" => false],
-      "end_date" => ["data_type" => "date", "required" => false],
+      "end_date"   => ["data_type" => "date", "required" => false],
       "days_of_week" => ["data_type" => "array", "required" => false],
     ], $request)) {
       return $error;
@@ -65,10 +86,12 @@ class Zippy_Menu_Controller
 
     $data = self::sanitize_menu_data($request);
 
+    // Check if the menu name already exists
     if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus WHERE name = %s", $data['name']))) {
       return Zippy_Response_Handler::error("The menu name '{$data['name']}' already exists.", 400);
     }
 
+    // Proceed with inserting the menu
     $result = self::execute_db_transaction(function () use ($wpdb, $data) {
       return $wpdb->insert(
         "{$wpdb->prefix}zippy_menus",
@@ -131,6 +154,12 @@ class Zippy_Menu_Controller
       return Zippy_Response_Handler::error("The menu name '{$data['name']}' already exists.", 400);
     }
 
+    $overlapping_menus = self::check_overlap_menu_time_ranges($data);
+
+    if ($overlapping_menus > 0) {
+      return Zippy_Response_Handler::error("The menu dates overlap with an existing menu.", 400);
+    }
+
     $result = self::execute_db_transaction(function () use ($wpdb, $data, $id) {
       return $wpdb->update(
         "{$wpdb->prefix}zippy_menus",
@@ -140,7 +169,6 @@ class Zippy_Menu_Controller
         ['%d']
       );
     });
-    
 
     return is_string($result)
       ? Zippy_Response_Handler::error($result, 500)
