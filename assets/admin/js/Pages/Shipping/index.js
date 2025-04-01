@@ -246,9 +246,9 @@ const ShippingFeeCalculator = () => {
 
       {!selectedStore && (
         <Paper
-          style={{ padding: 5 ,paddingLeft: 20, marginBottom: 10, backgroundColor: "#ccc" }}
+          style={{ padding: 5,paddingLeft:20, marginBottom: 20, backgroundColor: "#eccdcda1" }}
         >
-          <p style={{ color: "black", fontWeight: "bold" }}>
+          <p style={{ color: "red", fontWeight: "bold" }}>
             Please select a store to configure shipping fees.
           </p>
         </Paper>
@@ -274,8 +274,8 @@ const ShippingFeeCalculator = () => {
                 the corresponding fee.
               </p>
               <p>
-                <strong>Configuration Example:</strong> Greater Than: 1 , Lower
-                Than : 5 , Fee: 15
+                <strong>Configuration Example:</strong> From: 1 , To : 5 , Fee:
+                15
               </p>
               <Button
                 variant="contained"
@@ -296,9 +296,9 @@ const ShippingFeeCalculator = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Greater Than</TableCell>
-                      <TableCell>Lower Than</TableCell>
-                      <TableCell>Fee</TableCell>
+                      <TableCell>From (KM)</TableCell>
+                      <TableCell>To (KM)</TableCell>
+                      <TableCell>Fee (SGD)</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -429,7 +429,7 @@ const ShippingFeeCalculator = () => {
                   <TableCell>Type</TableCell>
                   <TableCell>From</TableCell>
                   <TableCell>To</TableCell>
-                  <TableCell>Fee</TableCell>
+                  <TableCell>Fee (SGD)</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
