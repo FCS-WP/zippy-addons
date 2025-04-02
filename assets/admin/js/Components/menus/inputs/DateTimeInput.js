@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import { isInDisabledRange } from "../../../utils/dateHelper";
 
-const DateTimeInput = ({ onChange, disabledRanges = [], minDate = "", value, type }) => {
+const DateTimeInput = (props) => {
+  const { onChange, disabledRanges = [], minDate = "", value, type } = props;
   const [selectedDate, setSelectedDate] = useState();
 
   const handleChangeDate = (date) => {
@@ -28,12 +29,12 @@ const DateTimeInput = ({ onChange, disabledRanges = [], minDate = "", value, typ
     }
   }, [minDate]);
 
-  useEffect(()=>{
-    if (value && value != '0000-00-00') {
+  useEffect(() => {
+    if (value && value != "0000-00-00") {
       setSelectedDate(value);
     }
-  }, [])
-  
+  }, []);
+
   return (
     <>
       <DatePicker
@@ -42,7 +43,7 @@ const DateTimeInput = ({ onChange, disabledRanges = [], minDate = "", value, typ
         onChange={(date) => handleChangeDate(date)}
         minDate={new Date(handleDate(minDate))}
         maxDate={maxDate}
-        filterDate={(date)=>!isInDisabledRange(date, disabledRanges)}
+        filterDate={(date) => !isInDisabledRange(date, disabledRanges)}
         customInput={
           <TextField
             size="small"

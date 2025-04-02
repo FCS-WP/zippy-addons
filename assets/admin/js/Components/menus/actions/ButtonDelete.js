@@ -1,20 +1,17 @@
 import { Box, IconButton } from "@mui/material";
-import React, { useContext } from "react";
+import React from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {
-  alertConfirmDelete,
-  AlertStatus,
-  showAlert,
-} from "../../../utils/alertHelper";
+import { alertConfirmDelete } from "../../../utils/alertHelper";
 import { Api } from "../../../api";
-import MenuContext from "../../../contexts/MenuContext";
 import { callToDeleteItems } from "../../../utils/bookingHelper";
 import { toast } from "react-toastify";
 
 const ButtonDelete = ({ data, type, menuId = null, onDeleted }) => {
   const handleDeleteItem = async () => {
     const confirmDelete = await alertConfirmDelete();
-
+    if (!confirmDelete) {
+      return;
+    }
     const ids = [data.id];
     if (type == "menu") {
       const delMenu = await callToDeleteItems(ids);

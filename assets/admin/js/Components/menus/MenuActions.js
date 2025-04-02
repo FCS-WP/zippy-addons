@@ -9,7 +9,6 @@ const MenuActions = ({ menu }) => {
   return (
     <Stack spacing={1} direction={"row"}>
       <ButtonEditMenu menu={menu} />
-      {/* <ButtonUpdateMenu data={menu} /> */}
       <ButtonDelete data={menu} type="menu" onDeleted={refetchMenus} />
     </Stack>
   );

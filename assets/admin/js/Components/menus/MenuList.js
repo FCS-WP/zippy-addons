@@ -6,8 +6,7 @@ import { menuListColumns } from "../../utils/tableHelper";
 import { NavLink } from "react-router";
 import { linkMenuAdmin } from "../../utils/bookingHelper";
 import MenuActions from "./MenuActions";
-import DateTimeInput from "./inputs/DateTimeInput";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import { alertConfirmDelete } from "../../utils/alertHelper";
 import { callToDeleteItems } from "../../utils/bookingHelper";
 const MenuList = () => {
@@ -26,8 +25,14 @@ const MenuList = () => {
           <NavLink to={linkMenuAdmin + "&id=" + menu.id}>{menu.name}</NavLink>
         ),
         ACTIONS: <MenuActions menu={menu} />,
-        "Start Date": menu.start_date !== '0000-00-00' ? format(new Date(menu.start_date), 'yyyy-MM-dd') : "Invalid date",
-        "End Date": menu.end_date !== '0000-00-00' ? format(new Date(menu.end_date), 'yyyy-MM-dd') : "Invalid date",
+        "Start Date":
+          menu.start_date !== "0000-00-00"
+            ? format(new Date(menu.start_date), "yyyy-MM-dd")
+            : "Invalid date",
+        "End Date":
+          menu.end_date !== "0000-00-00"
+            ? format(new Date(menu.end_date), "yyyy-MM-dd")
+            : "Invalid date",
       };
       return result;
     });
@@ -61,13 +66,11 @@ const MenuList = () => {
     }
     const deletedIds = [];
     paginatedData.map((item, index) => {
-      rows[index]
-        ? deletedIds.push(item.ID)
-        : null;
+      rows[index] ? deletedIds.push(item.ID) : null;
     });
     const del = await callToDeleteItems(deletedIds);
     refetchMenus();
-  }
+  };
 
   useEffect(() => {
     convertData();
@@ -85,7 +88,6 @@ const MenuList = () => {
             }))}
             canBeDeleted={true}
             onDeleteRows={handleDeleteMenus}
-            onChangeList={() => console.log("change list")}
           />
           <TablePaginationCustom
             count={data.length}

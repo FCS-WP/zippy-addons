@@ -20,7 +20,14 @@ const ProductList = ({ refetchProducts, products, menuId }) => {
       let result = {
         ID: product.id,
         NAME: product.name,
-        ACTIONS: <ButtonDelete data={product} type="product" menuId={menuId} onDeleted={refetchProducts} />
+        ACTIONS: (
+          <ButtonDelete
+            data={product}
+            type="product"
+            menuId={menuId}
+            onDeleted={refetchProducts}
+          />
+        ),
       };
 
       return result;
@@ -32,7 +39,7 @@ const ProductList = ({ refetchProducts, products, menuId }) => {
   const columnWidths = {
     ID: "10%",
     Name: "auto",
-    ACTIONS: "10%"
+    ACTIONS: "10%",
   };
 
   const paginatedData = data.slice(
@@ -56,14 +63,12 @@ const ProductList = ({ refetchProducts, products, menuId }) => {
     }
     const deletedIds = [];
     paginatedData.map((item, index) => {
-      rows[index]
-        ? deletedIds.push(item.ID)
-        : null;
+      rows[index] ? deletedIds.push(item.ID) : null;
     });
     const params = {
       menu_id: menuId,
       product_ids: deletedIds,
-    }
+    };
     const { data: del } = await Api.removeProductsFromMenu(params);
     if (!del || del.status !== "success") {
       toast.error(del.message ?? "Delete Failed!");
@@ -71,7 +76,7 @@ const ProductList = ({ refetchProducts, products, menuId }) => {
     }
     toast.success(del.message);
     refetchProducts();
-  }
+  };
 
   useEffect(() => {
     convertData();
@@ -79,26 +84,33 @@ const ProductList = ({ refetchProducts, products, menuId }) => {
 
   return (
     <Box>
-      <Typography variant="h6" mb={2} fontWeight={600}>Products In Menu</Typography>
-        <>
-          <TableView
-            headerElement={<BoxAddProducts selectedMenu={menuId} refetchProducts={refetchProducts} />}
-            cols={columns}
-            columnWidths={columnWidths}
-            rows={paginatedData.map((row) => ({
-              ...row,
-            }))}
-            canBeDeleted={true}
-            onDeleteRows={handleDeletedRows}
-          />
-          <TablePaginationCustom
-            count={data.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </>
+      <Typography variant="h6" mb={2} fontWeight={600}>
+        Products In Menu
+      </Typography>
+      <>
+        <TableView
+          headerElement={
+            <BoxAddProducts
+              selectedMenu={menuId}
+              refetchProducts={refetchProducts}
+            />
+          }
+          cols={columns}
+          columnWidths={columnWidths}
+          rows={paginatedData.map((row) => ({
+            ...row,
+          }))}
+          canBeDeleted={true}
+          onDeleteRows={handleDeletedRows}
+        />
+        <TablePaginationCustom
+          count={data.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </>
     </Box>
   );
 };

@@ -6,7 +6,6 @@ import {
   InputAdornment,
   TextField,
   Tooltip,
-  Typography,
 } from "@mui/material";
 import React, { useContext, useState } from "react";
 import { SearchContainer, StyledPaper } from "../mui-custom-styles";
@@ -25,18 +24,25 @@ const AddNewMenu = () => {
     if (!menuName || menuName === "hello") {
       showAlert(AlertStatus.error, "Failed!", "Menu name invalid ");
     } else {
-
       const newItem = {
-        name: menuName
-      }
-      const { data : res } = await Api.createMenu(newItem);
-      if (!res || res.status !== 'success') {
-        showAlert(AlertStatus.error, "Failed!", "Can not add menu. Please try again!");
+        name: menuName,
+      };
+      const { data: res } = await Api.createMenu(newItem);
+      if (!res || res.status !== "success") {
+        showAlert(
+          AlertStatus.error,
+          "Failed!",
+          "Can not add menu. Please try again!"
+        );
         return;
-      } 
+      }
       refetchMenus();
       setMenuName("");
-      showAlert(AlertStatus.success, "Successfully!", `Menu "${menuName}" had been added`);
+      showAlert(
+        AlertStatus.success,
+        "Successfully!",
+        `Menu "${menuName}" had been added`
+      );
     }
   };
 
