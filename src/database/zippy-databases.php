@@ -102,6 +102,7 @@ class Zippy_Databases
           end_date DATE NULL,
           days_of_week VARCHAR(255) NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (id)
       ) $charset_collate;";
 
@@ -118,11 +119,11 @@ class Zippy_Databases
 
     $sql = "CREATE TABLE $table_name (
           id INT NOT NULL AUTO_INCREMENT,
-          menu_id INT NOT NULL,
-          product_id INT NOT NULL,
+          id_menu INT NOT NULL,
+          id_product INT NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (id),
-          CONSTRAINT fk_menu FOREIGN KEY (menu_id) REFERENCES $menus_table(id) ON DELETE CASCADE ON UPDATE CASCADE
+          CONSTRAINT fk_menu FOREIGN KEY (id_menu) REFERENCES $menus_table(id) ON DELETE CASCADE ON UPDATE CASCADE
       ) $charset_collate;";
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';

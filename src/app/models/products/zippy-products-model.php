@@ -42,7 +42,7 @@ class Zippy_Products_Model
           return is_numeric($param);
         },
       ),
-      'date' => array(
+      'current_date' => array(
         'required' => true,
         'validate_callback' => function ($param, $request, $key) {
           return is_string($param);

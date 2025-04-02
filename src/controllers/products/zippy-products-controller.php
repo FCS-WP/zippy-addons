@@ -106,14 +106,19 @@ class Zippy_Products_Controller
     return json_encode($result);
   }
 
-  private static function get_menus_product_belong_to($date)
+  private static function get_menus_product_belong_to($product_id, $current_date)
   {
     global $wpdb;
 
     // Check for overlapping time ranges
     $query = $wpdb->prepare(
-      "SELECT * FROM {$wpdb->prefix}zippy_menus WHERE DATE(%s) BETWEEN start_date AND end_date ORDER BY start_date ASC LIMIT 1",
-      $date
+      "SELECT m.name, m.start_date, m.end_date, m.days_of_week 
+      FROM `{$wpdb->prefix}zippy_menu_products` as pm 
+      LEFT JOIN {$wpdb->prefix}zippy_menus as m ON pm.id_menu = m.id 
+      WHERE pm.id_product = %s AND (m.end_date >= '2025-04-16' OR m.end_date IS NULL)
+      ORDER BY pm.id_menu",
+      $product_id,
+      $current_date
     );
     $menu = $wpdb->get_results($query);
 
@@ -123,7 +128,7 @@ class Zippy_Products_Controller
       $menu_row->days_of_week = !empty($menu_row->days_of_week) ? json_decode($menu_row->days_of_week, true) : [];
     }
 
-    return $menu[0];
+    return $menu;
   }
 
   /**
@@ -182,6 +187,7 @@ class Zippy_Products_Controller
     if ($error = self::validate_request([
       "product_id" => ["data_type" => "number", "required" => true],
       "outlet_id" => ["data_type" => "string", "required" => true],
+      "current_date" => ["data_type" => "date", "required" => true],
     ], $request)) {
       return $error;
     }
@@ -195,7 +201,7 @@ class Zippy_Products_Controller
       return Zippy_Response_Handler::error("Outlet not found.", 404);
     }
 
-    //Step 1 : Check Date Include in Store Available Time or not 
+    //Step 1 : Check Date Include in Store Available Time or not
 
     $operation_time = self::get_outlet_operating_date($data['outlet_id']);
 
@@ -203,26 +209,15 @@ class Zippy_Products_Controller
 
     //Step 2 : Product ID include Which Menu -> Active Time ?
 
-    $menus = self::get_menu_product_belong_to($data['product_id']);
-
-
-    // Not include menu
-    // if (empty($current_menu)) {
+    $menus = self::get_menus_product_belong_to($data['product_id'], $data['current_date']);
 
     $response = array(
-      'store_operation' => $operation_time,
-      'menus_config' => $menus
+      'store_operation' => $store_available,
+      'menu_operation ' => $menus
     );
-    // }
-
-
 
     //Step 3: Return the time Available
-
-    // var_dump($operation_time);
-
-    // Return Response
-    return !empty($response)
+    return empty($response)
       ? Zippy_Response_Handler::error($response, 500)
       : Zippy_Response_Handler::success($response, "Products retrieved successfully.");
   }
