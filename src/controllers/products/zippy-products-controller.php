@@ -213,7 +213,7 @@ class Zippy_Products_Controller
 
     $response = array(
       'store_operation' => $store_available,
-      'menu_operation ' => $menus
+      'menus_operation ' => $menus
     );
 
     //Step 3: Return the time Available
