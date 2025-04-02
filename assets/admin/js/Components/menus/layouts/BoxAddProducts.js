@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   Box,
@@ -15,10 +15,17 @@ import {
 } from "@mui/material";
 import { BsFillQuestionCircleFill, BsSearch } from "react-icons/bs";
 import { FiPlus } from "react-icons/fi";
-import { ChipContainer, SearchContainer, SuggestionsContainer } from "../../mui-custom-styles";
+import {
+  ChipContainer,
+  SearchContainer,
+  SuggestionsContainer,
+} from "../../mui-custom-styles";
+import { debounce } from "../../../utils/searchHelper";
+import { Api } from "../../../api";
+import { toast } from "react-toastify";
 
-const BoxAddProducts = ({ selectedMenu }) => {
-  const [productSearch, setProductSearch] = useState("");
+const BoxAddProducts = ({ selectedMenu, refetchProducts }) => {
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -30,7 +37,7 @@ const BoxAddProducts = ({ selectedMenu }) => {
     if (!isInSelectedArr) {
       setSelectedProducts([...selectedProducts, product]);
     }
-    setProductSearch("");
+    setSearchQuery("");
   };
 
   const handleProductKeyDown = (event) => {
@@ -41,8 +48,63 @@ const BoxAddProducts = ({ selectedMenu }) => {
   };
 
   const handleAddProducts = async () => {
-    console.log("Handle Add product");
+    if (selectedProducts.length == 0) {
+      return false;
+    }
+
+    const ids = selectedProducts.map((item) => {
+      return item.id;
+    });
+
+    const params = {
+      menu_id: selectedMenu,
+      product_ids: ids,
+    };
+
+    const { data: response } = await Api.addProductsToMenu(params);
+
+    if (!response || response.status !== "success") {
+      toast.error(response.message ?? "failed to add products");
+      return;
+    }
+
+    toast.success(response.message);
+    setSelectedProducts([]);
+    refetchProducts();
   };
+
+  const handleSearchProducts = async (keyword) => {
+    try {
+      const params = {
+        keyword: keyword,
+      };
+      const { data } = await Api.searchProducts(params);
+      return data.data;
+    } catch (error) {
+      console.error("Error when search");
+    }
+  };
+
+  const debounceSearchProducts = useCallback(
+    debounce(async (keyword) => {
+      if (keyword.trim()) {
+        const dataProducts = await handleSearchProducts(keyword);
+        if (dataProducts) {
+          setFilteredProducts(dataProducts);
+        } else {
+          toast.error("Search error");
+          setFilteredProducts([]);
+        }
+      } else {
+        setFilteredProducts([]);
+      }
+    }, 500),
+    []
+  );
+
+  useEffect(() => {
+    debounceSearchProducts(searchQuery);
+  }, [searchQuery]);
 
   return (
     <Box>
@@ -52,8 +114,8 @@ const BoxAddProducts = ({ selectedMenu }) => {
           label="Search Products"
           variant="outlined"
           placeholder="Type to search..."
-          value={productSearch}
-          onChange={(e) => setProductSearch(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleProductKeyDown}
           slotProps={{
             input: {
@@ -65,7 +127,7 @@ const BoxAddProducts = ({ selectedMenu }) => {
             },
           }}
         />
-        {productSearch && (
+        {searchQuery && (
           <SuggestionsContainer>
             <List>
               {filteredProducts.length > 0 ? (

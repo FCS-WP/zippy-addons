@@ -3,7 +3,7 @@ import { Api } from "../api";
 import Swal from "sweetalert2";
 import theme from "../../theme/theme";
 
-export const linkMenuAdmin = '/wp-admin/admin.php?page=menus';
+export const linkMenuAdmin = "/wp-admin/admin.php?page=menus";
 
 export const callDeleteMappingItems = async (ids) => {
   try {
@@ -53,21 +53,21 @@ export const isValidEmail = (email) => {
     return false;
   }
   return true;
-}
+};
 
 export const getEventColors = (status) => {
-  let result =  ``;
+  let result = ``;
   switch (status) {
-    case 'pending':
+    case "pending":
       result = theme.palette.primary.pending;
       break;
-    case 'approved':
+    case "approved":
       result = theme.palette.primary.approved;
       break;
-    case 'completed':
+    case "completed":
       result = theme.palette.primary.complete;
       break;
-    case 'cancelled':
+    case "cancelled":
       result = theme.palette.primary.cancelled;
       break;
     default:
@@ -76,4 +76,17 @@ export const getEventColors = (status) => {
   }
 
   return result;
-}
+};
+
+export const callToDeleteItems = async (ids) => {
+  try {
+    const { data } = await Api.deleteMenuItems({ ids });
+    if (!data || data.status != "success") {
+      toast.error("Delete failed!");
+    } else {
+      toast.success("Delete Successfully!");
+    }
+  } catch (error) {
+    toast.error("Delete failed!");
+  }
+};

@@ -87,10 +87,10 @@ class Zippy_Api_Menu_Model
   public static function delete_menu_args()
   {
     return array(
-      'menu_id' => array(
+      'ids' => array(
         'required' => true,
         'validate_callback' => function ($param) {
-          return is_numeric($param);
+          return is_array($param);
         }
       ),
     );
@@ -129,7 +129,7 @@ class Zippy_Api_Menu_Model
   public static function get_products_menu_args()
   {
     return array(
-      'id_menu' => array(
+      'menu_id' => array(
         'required' => true,
         'validate_callback' => function ($param) {
           return is_numeric($param);
@@ -140,13 +140,13 @@ class Zippy_Api_Menu_Model
   public static function add_product_to_menu_args()
   {
     return array(
-      'id_menu' => array(
+      'menu_id' => array(
         'required' => true,
         'validate_callback' => function ($param) {
           return is_numeric($param);
         }
       ),
-      'product_items' => array(
+      'product_ids' => array(
         'required' => true,
         'validate_callback' => function ($param) {
           return is_array($param);
@@ -157,13 +157,13 @@ class Zippy_Api_Menu_Model
   public static function delete_product_in_menu_args()
   {
     return array(
-      'id_menu' => array(
+      'menu_id' => array(
         'required' => true,
         'validate_callback' => function ($param) {
           return is_numeric($param);
         }
       ),
-      'id_products' => array(
+      'product_ids' => array(
         'required' => true,
         'validate_callback' => function ($param) {
           return is_array($param);
