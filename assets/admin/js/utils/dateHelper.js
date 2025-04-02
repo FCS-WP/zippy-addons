@@ -22,3 +22,27 @@ export const convertTime24to12 = (time24) => {
   return new Date('1970-01-01T' + time24)
     .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
+
+export const formatYMD = (date) => {
+  const getDate = new Date(date);
+  return format(getDate, 'yyyy-MM-dd');
+}
+export const isInDisabledRange = (date, disabledRanges) => {
+  if (disabledRanges.length == 0) {
+    return false;
+  } 
+
+  const check = disabledRanges.find((item)=>{
+    return ( formatYMD(item.start_date) <= formatYMD(date) && formatYMD(date) <= formatYMD(item.end_date));
+  });
+
+  if (check) {
+    return true;
+  }
+}
+
+export const handleDateData = (val) => {
+  const result =
+    val === "0000-00-00" ? "" : format(new Date(val), "yyyy-MM-dd");
+  return result;
+};

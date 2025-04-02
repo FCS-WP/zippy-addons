@@ -20,7 +20,7 @@ class Zippy_Products_Controller
   private static function sanitize_key_word($request)
   {
     return [
-      'key_word' => sanitize_text_field($request['key_word']),
+      'keyword' => sanitize_text_field($request['keyword']),
       'limit' => isset($request['limit']) ? max(1, min(100, intval($request['limit']))) : 10
     ];
   }
@@ -129,13 +129,13 @@ class Zippy_Products_Controller
   /**
    * SEARCH PRODUCTS
    */
-  public static function search_product(WP_REST_Request $request)
+  public static function search_products(WP_REST_Request $request)
   {
     global $wpdb;
 
     // Validate Request
     if ($error = self::validate_request([
-      "key_word" => ["data_type" => "string", "required" => true],
+      "keyword" => ["data_type" => "string", "required" => true],
     ], $request)) {
       return $error;
     }
@@ -148,7 +148,7 @@ class Zippy_Products_Controller
       return $wpdb->get_results(
         $wpdb->prepare("
           SELECT
-              p.ID,
+              p.id,
               p.post_title AS name,
               t.term_id AS category_id,
               t.name AS category_name
@@ -160,7 +160,7 @@ class Zippy_Products_Controller
           AND p.post_type = 'product'
           AND tt.taxonomy = 'product_cat'
           LIMIT %d
-      ", '%' . $wpdb->esc_like($data['key_word']) . '%', $data['limit'])
+      ", '%' . $wpdb->esc_like($data['keyword']) . '%', $data['limit'])
       );
     });
 

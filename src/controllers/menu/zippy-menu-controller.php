@@ -27,6 +27,7 @@ class Zippy_Menu_Controller
   private static function sanitize_menu_data($request)
   {
     return [
+      'id' => intval($request['id']),
       'name' => sanitize_text_field($request['name']),
       'start_date' => sanitize_text_field($request['start_date']),
       'end_date' => sanitize_text_field($request['end_date']),
@@ -58,8 +59,9 @@ class Zippy_Menu_Controller
     // Check for overlapping time ranges
     $overlap_query = $wpdb->prepare(
       "SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus 
-          WHERE (%s BETWEEN start_date AND end_date OR %s BETWEEN start_date AND end_date OR 
+          WHERE (id <> %d) AND (%s BETWEEN start_date AND end_date OR %s BETWEEN start_date AND end_date OR 
                  start_date BETWEEN %s AND %s OR end_date BETWEEN %s AND %s)",
+      $data['id'],
       $data['start_date'],
       $data['end_date'],
       $data['start_date'],
@@ -175,30 +177,36 @@ class Zippy_Menu_Controller
       : Zippy_Response_Handler::success($id, "Menu updated successfully.");
   }
 
-  public static function delete_menu(WP_REST_Request $request)
+  public static function delete_items(WP_REST_Request $request)
   {
     global $wpdb;
     $table_name = $wpdb->prefix . 'zippy_menus';
 
-    $required_fields = ["menu_id" => ["required" => "true", "data_type" => "number"]];
+    $required_fields = [
+      "ids" => ["required" => true, "data_type" => "array"],
+    ];
 
     $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
     if (!empty($validate)) {
       return Zippy_Response_Handler::error($validate, 400);
     }
 
-    $menu_id = $request->get_param('menu_id');
+    try {
+      $ids = array_map('intval', $request->get_param('ids'));
+      $ids_placeholder = implode(',', array_fill(0, count($ids), '%d'));
 
-    $result = self::execute_db_transaction(function () use ($wpdb, $table_name, $menu_id) {
-      return $wpdb->delete(
-        $table_name,
-        array('id' => $menu_id),
-        array('%d')
-      );
-    });
+      $query = $wpdb->prepare("DELETE FROM $table_name WHERE id IN ($ids_placeholder)", ...$ids);
 
-    return is_string($result)
-      ? Zippy_Response_Handler::error($result, 500)
-      : Zippy_Response_Handler::success($menu_id, "Menu has been deleted.");
+      $result = self::execute_db_transaction(fn() => $wpdb->query($query));
+
+      return is_string($result)
+        ? Zippy_Response_Handler::error($result, 500)
+        : Zippy_Response_Handler::success($ids, "Menus has been deleted.");
+    } catch (\Exception $e) {
+      $error_message = $e->getMessage();
+      Zippy_Log_Action::log('create_menu', json_encode($request->get_params()), 'Failure', $error_message);
+
+      return Zippy_Response_Handler::error("An error occurred while delete the menu. Please try again.", 500);
+    }
   }
 }

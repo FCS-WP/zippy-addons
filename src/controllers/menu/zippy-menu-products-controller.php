@@ -57,14 +57,14 @@ class Zippy_Menu_Products_Controller
     $product_menu_table = $wpdb->prefix . 'zippy_menu_products';
 
     if ($error = self::validate_request([
-      "id_menu" => ["data_type" => "number", "required" => true],
+      "menu_id" => ["data_type" => "number", "required" => true],
     ], $request)) {
       return $error;
     }
 
     try {
       // Sanitize and format input values
-      $menu_id = sanitize_text_field($request['id_menu']);
+      $menu_id = sanitize_text_field($request['menu_id']);
 
       if (!self::check_menu_exists($menu_id)) {
         return Zippy_Response_Handler::error("Menu not found.", 404);
@@ -76,7 +76,7 @@ class Zippy_Menu_Products_Controller
 
       // Fetch products in the menu
       $query = $wpdb->prepare(
-        "SELECT pm.id_product as ID, p.post_title as name FROM {$wpdb->prefix}zippy_menu_products as pm LEFT JOIN {$wpdb->prefix}posts as p
+        "SELECT pm.id_product as id, p.post_title as name FROM {$wpdb->prefix}zippy_menu_products as pm LEFT JOIN {$wpdb->prefix}posts as p
         ON pm.id_product = p.ID
         WHERE pm.id_menu = %d
         AND p.post_type = 'product'
@@ -97,7 +97,7 @@ class Zippy_Menu_Products_Controller
   }
 
   /**
-   * ADD PRODUCT TO MENU
+   * ADD PRODUCTS TO MENU
    */
   public static function add_products_to_menu(WP_REST_Request $request)
   {
@@ -105,29 +105,29 @@ class Zippy_Menu_Products_Controller
     $product_menu_table = $wpdb->prefix . 'zippy_menu_products';
 
     $required_fields = [
-      "id_menu" => ["data_type" => "number", "required" => true],
-      "product_items" => ["data_type" => "array", "required" => true],
+      "menu_id" => ["data_type" => "number", "required" => true],
+      "product_ids" => ["data_type" => "array", "required" => true],
     ];
 
     if ($error = self::validate_request($required_fields, $request)) {
       return $error;
     }
 
-    $menu_id = (int) $request['id_menu'];
-    $product_items = array_map('intval', $request['product_items']);
+    $menu_id = (int) $request['menu_id'];
+    $product_ids = array_map('intval', $request['product_ids']);
 
     if (!self::check_menu_exists($menu_id)) {
       return Zippy_Response_Handler::error("Menu not found.", 404);
     }
 
-    $result = self::execute_db_transaction(function () use ($wpdb, $product_menu_table, $menu_id, $product_items) {
-      if (empty($product_items)) {
+    $result = self::execute_db_transaction(function () use ($wpdb, $product_menu_table, $menu_id, $product_ids) {
+      if (empty($product_ids)) {
         return false;
       }
 
       $values = [];
       $placeholders = [];
-      foreach ($product_items as $product_id) {
+      foreach ($product_ids as $product_id) {
         $placeholders[] = "(%d, %d, %s)";
         $values[] = $menu_id;
         $values[] = $product_id;
@@ -145,17 +145,17 @@ class Zippy_Menu_Products_Controller
 
 
   /**
-   * REMOVE PRODUCT FROM MENU
+   * REMOVE PRODUCTS FROM MENU
    */
-  public static function remove_product_from_menu(WP_REST_Request $request)
+  public static function remove_products_from_menu(WP_REST_Request $request)
   {
     global $wpdb;
     $product_menu_table = $wpdb->prefix . 'zippy_menu_products';
 
     // Define validation rules
     $required_fields = [
-      "id_menu"      => ["data_type" => "number", "required" => true],
-      "id_products"  => ["data_type" => "array", "required" => true],
+      "menu_id"      => ["data_type" => "number", "required" => true],
+      "product_ids"  => ["data_type" => "array", "required" => true],
     ];
 
     // Validate request fields
@@ -164,14 +164,13 @@ class Zippy_Menu_Products_Controller
       return Zippy_Response_Handler::error($validate, 400);
     }
 
-    $menu_id = sanitize_text_field($request['id_menu']);
-    $product_ids = array_map('sanitize_text_field', $request['id_products']);
-
+    $menu_id = sanitize_text_field($request['menu_id']);
+    $product_ids = array_map('intval', $request->get_param('product_ids'));
+    $product_ids_placeholder = implode(',', array_fill(0, count($product_ids), '%d'));
+    
     if (empty($product_ids)) {
       return Zippy_Response_Handler::error("No products provided for removal.", 400);
     }
-
-    $product_ids_placeholder = implode(',', array_fill(0, count($product_ids), '%d'));
 
     // Check if the products exist in the menu
     $existing_products = $wpdb->get_col($wpdb->prepare(
@@ -182,12 +181,9 @@ class Zippy_Menu_Products_Controller
     if (empty($existing_products)) {
       return Zippy_Response_Handler::error("None of the provided products exist in menu '$menu_id'.", 404);
     }
-    $result = self::execute_db_transaction(function () use ($wpdb, $product_menu_table, $menu_id, $product_ids_placeholder) {
-      return $wpdb->query($wpdb->prepare(
-        "DELETE FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)",
-        array_merge([$menu_id], $product_ids_placeholder)
-      ));
-    });
+
+    $query = $wpdb->prepare("DELETE FROM $product_menu_table WHERE id_menu = %d AND id_product IN ($product_ids_placeholder)", $menu_id, ...$product_ids);
+    $result = self::execute_db_transaction(fn() => $wpdb->query($query));
 
     return is_string($result)
       ? Zippy_Response_Handler::error("Failed to remove products from menu.", 500)

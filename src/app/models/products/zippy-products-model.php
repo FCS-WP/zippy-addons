@@ -19,7 +19,7 @@ class Zippy_Products_Model
   public static function search_products_args()
   {
     return array(
-      'key_word' => array(
+      'keyword' => array(
         'required' => true,
         'validate_callback' => function ($param, $request, $key) {
           return is_string($param);

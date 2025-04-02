@@ -14,7 +14,7 @@ const OutletProvider = ({ children }) => {
         setOutlets(response.data);
       }
     } catch (error) {
-      showAlert("error", "Error","Failed to get outlet. Please try again later.");
+      console.warn("Missing outlets");
     }
   };
 
