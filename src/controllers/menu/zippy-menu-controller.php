@@ -27,6 +27,7 @@ class Zippy_Menu_Controller
   private static function sanitize_menu_data($request)
   {
     return [
+      'id' => intval($request['id']),
       'name' => sanitize_text_field($request['name']),
       'start_date' => sanitize_text_field($request['start_date']),
       'end_date' => sanitize_text_field($request['end_date']),
@@ -58,8 +59,9 @@ class Zippy_Menu_Controller
     // Check for overlapping time ranges
     $overlap_query = $wpdb->prepare(
       "SELECT COUNT(*) FROM {$wpdb->prefix}zippy_menus 
-          WHERE (%s BETWEEN start_date AND end_date OR %s BETWEEN start_date AND end_date OR 
+          WHERE (id <> %d) AND (%s BETWEEN start_date AND end_date OR %s BETWEEN start_date AND end_date OR 
                  start_date BETWEEN %s AND %s OR end_date BETWEEN %s AND %s)",
+      $data['id'],
       $data['start_date'],
       $data['end_date'],
       $data['start_date'],

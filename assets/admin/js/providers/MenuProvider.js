@@ -3,37 +3,6 @@ import MenuContext from "../contexts/MenuContext";
 import { Api } from "../api";
 import { handleDateData } from "../utils/dateHelper";
 
-const defaultMenus = [
-  {
-    id: 1,
-    name: "Primary menu",
-    slug: "primary-menu",
-    availables: [
-      { weekday: 0, is_available: 0 },
-      { weekday: 1, is_available: 1 },
-      { weekday: 2, is_available: 1 },
-      { weekday: 3, is_available: 1 },
-      { weekday: 4, is_available: 1 },
-      { weekday: 5, is_available: 1 },
-      { weekday: 6, is_available: 0 },
-    ],
-  },
-  {
-    id: 2,
-    name: "Secondary menu",
-    slug: "secondary-menu",
-    availables: [
-      { weekday: 0, is_available: 1 },
-      { weekday: 1, is_available: 0 },
-      { weekday: 2, is_available: 0 },
-      { weekday: 3, is_available: 0 },
-      { weekday: 4, is_available: 0 },
-      { weekday: 5, is_available: 0 },
-      { weekday: 6, is_available: 1 },
-    ],
-  },
-];
-
 const MenuProvider = ({ children }) => {
   const [menus, setMenus] = useState([]);
   const [selectedMenu, setSelectedMenu] = useState();
@@ -48,15 +17,18 @@ const MenuProvider = ({ children }) => {
     setMenus(response.data.data);
   };
 
-  
   const getDisabledTimeRanges = () => {
-    // let results = [];
-    // menus.map((item) => {
-    //   if (handleDateData(item.start_date) && handleDateData(item.end_date)) {
-    //     results.push({ start_date: item.start_date, end_date: item.end_date });
-    //   }
-    // });
-    // setDisabledRanges([results]);
+    let results = [];
+    if (selectedMenu) {
+      menus.map((item) => {
+        const condition1 = item.id !== selectedMenu.id;
+        const condition2 = handleDateData(item.start_date) && handleDateData(item.end_date);
+        if (condition1 && condition2) {
+          results.push({ start_date: item.start_date, end_date: item.end_date });
+        }
+      });
+    }
+    setDisabledRanges(results);
   };
 
   const value = {
@@ -76,7 +48,7 @@ const MenuProvider = ({ children }) => {
 
   useEffect(()=>{
     getDisabledTimeRanges();
-  }, [menus])
+  }, [menus, selectedMenu])
 
   return <MenuContext.Provider value={value}>{children}</MenuContext.Provider>;
 };

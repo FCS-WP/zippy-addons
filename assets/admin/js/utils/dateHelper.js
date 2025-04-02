@@ -23,19 +23,20 @@ export const convertTime24to12 = (time24) => {
     .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
+export const formatYMD = (date) => {
+  const getDate = new Date(date);
+  return format(getDate, 'yyyy-MM-dd');
+}
 export const isInDisabledRange = (date, disabledRanges) => {
-  const checkDate = new Date(date);
   if (disabledRanges.length == 0) {
     return false;
   } 
-  const check = disabledRanges.filter((item)=>{
-    const startDate = new Date(item.start_date);
-    const endDate = new Date(item.end_date);
 
-    return ( checkDate >= startDate && checkDate <= endDate)
+  const check = disabledRanges.find((item)=>{
+    return ( formatYMD(item.start_date) <= formatYMD(date) && formatYMD(date) <= formatYMD(item.end_date));
   });
 
-  if (check.length != 0) {
+  if (check) {
     return true;
   }
 }

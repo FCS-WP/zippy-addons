@@ -1,15 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyledPaper } from "../../mui-custom-styles";
 import TableView from "../../TableView";
 import { detailMenuColumn } from "../../../utils/tableHelper";
 import CustomSwitch from "./CustomSwitch";
 import { Button, TextField, Typography } from "@mui/material";
-import { NavLink } from "react-router";
-import { linkMenuAdmin } from "../../../utils/bookingHelper";
 import DateTimeInput from "../inputs/DateTimeInput";
 import { format } from "date-fns";
 import { Api } from "../../../api";
-import { AlertStatus, showAlert } from "../../../utils/alertHelper";
 import { toast } from "react-toastify";
 import MenuContext from "../../../contexts/MenuContext";
 import { handleDateData } from "../../../utils/dateHelper";
@@ -23,7 +19,7 @@ const BoxEditMenu = ({ menu }) => {
   const [endDate, setEndDate] = useState(menu.end_date);
   const [menuName, setMenuName] = useState(menu.name);
 
-  const { disabledRanges } = useContext(MenuContext);
+  const { disabledRanges, refetchMenus } = useContext(MenuContext);
 
   const handleChangeMenuDate = (date, type) => {
     switch (type) {
@@ -79,12 +75,13 @@ const BoxEditMenu = ({ menu }) => {
       end_date: handleDateData(endDate),
     };
 
-    const { data: response } = await Api.updateMenu(data);
-    if (!response || response.status !== "success") {
-      toast.error(response.message ?? "Update failed");
+    const response = await Api.updateMenu(data);
+    if (!response || response.error) {
+      toast.error(response?.error?.message ?? "Update failed");
       return;
     }
     toast.success("Menu Updated!");
+    refetchMenus();
   };
 
   const InputChangeName = ({ val, handleChangeName }) => {
