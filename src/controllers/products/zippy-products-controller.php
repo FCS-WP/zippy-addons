@@ -115,7 +115,7 @@ class Zippy_Products_Controller
       "SELECT m.name, m.start_date, m.end_date, m.days_of_week 
       FROM `{$wpdb->prefix}zippy_menu_products` as pm 
       LEFT JOIN {$wpdb->prefix}zippy_menus as m ON pm.id_menu = m.id 
-      WHERE pm.id_product = %s AND (m.end_date >= '2025-04-16' OR m.end_date IS NULL)
+      WHERE pm.id_product = %s AND (m.end_date >= %s OR m.end_date IS NULL)
       ORDER BY pm.id_menu",
       $product_id,
       $current_date
