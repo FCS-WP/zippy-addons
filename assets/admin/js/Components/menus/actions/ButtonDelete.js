@@ -5,6 +5,7 @@ import { alertConfirmDelete } from "../../../utils/alertHelper";
 import { Api } from "../../../api";
 import { callToDeleteItems } from "../../../utils/bookingHelper";
 import { toast } from "react-toastify";
+import theme from "../../../../theme/theme";
 
 const ButtonDelete = ({ data, type, menuId = null, onDeleted }) => {
   const handleDeleteItem = async () => {
@@ -37,7 +38,7 @@ const ButtonDelete = ({ data, type, menuId = null, onDeleted }) => {
         size="small"
         onClick={() => handleDeleteItem()}
       >
-        <DeleteIcon sx={{ fontSize: "20px" }} />
+        <DeleteIcon sx={{ fontSize: "20px", color: theme.palette.danger.main }} />
       </IconButton>
     </Box>
   );
