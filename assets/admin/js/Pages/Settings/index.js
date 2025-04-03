@@ -209,12 +209,19 @@ const Settings = () => {
     setHolidays((prevHolidays) => [...prevHolidays, { label: "", date: "" }]);
   };
   const handleHolidayChange = (index, key, value) => {
+    let formattedValue = value;
+
+    if (key === "date" && value) {
+      formattedValue = new Date(value).toISOString().split("T")[0];
+    }
+
     setHolidays((prevHolidays) =>
       prevHolidays.map((holiday, i) =>
-        i === index ? { ...holiday, [key]: value } : holiday
+        i === index ? { ...holiday, [key]: formattedValue } : holiday
       )
     );
   };
+
   const handleRemoveDeliveryTimeSlot = (day, slotIndex) => {
     setdeliveryTimeSlots((prev) => {
       const updatedSlots = prev.map((item) =>
@@ -287,7 +294,7 @@ const Settings = () => {
         })),
         closed_dates: holidays.map((holiday) => ({
           label: holiday.label,
-          value: holiday.date,
+          value: new Date(holiday.date).toISOString().split("T")[0], // Đảm bảo định dạng YYYY-MM-DD
         })),
         takeaway: {
           enabled: "F",
@@ -303,12 +310,7 @@ const Settings = () => {
       }
     } catch (error) {
       console.error("Error saving settings:", error);
-
-      if (error.response?.data?.status === "error") {
-        toast.error(error.response.data.message || "Failed to save settings.");
-      } else {
-        toast.error("An unexpected error occurred.");
-      }
+      toast.error("An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
