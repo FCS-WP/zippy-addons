@@ -192,7 +192,7 @@ class Zippy_Products_Controller
       return $error;
     }
 
-    $result = array();
+    $response = array();
 
     // Sanitize Input
     $data = self::sanitize_product_checking($request);
