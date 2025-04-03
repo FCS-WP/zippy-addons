@@ -95,7 +95,7 @@ class One_Map_Api
 
             // re-authen
             $authen = self::authentication($credentials);
-            if($authen["error"]){
+            if(isset($authen["error"])){
                 return $authen;
             }
             

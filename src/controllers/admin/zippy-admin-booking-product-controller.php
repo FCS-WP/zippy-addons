@@ -132,7 +132,7 @@ class Zippy_Admin_Booking_Product_Controller
                 $config = $wpdb->get_results($query);
 
                 if(count($config) < 1){
-                    return Zippy_Response_Handler::error("Outlet not exist");
+                    return Zippy_Response_Handler::error("Shipping config for outlet: $outlet_id is not exist!");
                 }
                 
                 $shipping_fee_config = $config[0];
@@ -162,7 +162,7 @@ class Zippy_Admin_Booking_Product_Controller
                 // Calculate shipping fee
                 foreach ($minimum_order_to_freeship_config as $key => $value) {
                     $value["lower_than"] = $value["lower_than"] == null ? 99999999999999 : $value["lower_than"];
-
+                    
                     if($total_distance >= $value["greater_than"] && $total_distance <= $value["lower_than"])  {
                         $minimum_order_to_freeship = $value["fee"];
                     }
@@ -172,7 +172,7 @@ class Zippy_Admin_Booking_Product_Controller
                 // calculate extra fee
                 foreach ($extra_fee_config as $key => $value) {
                     if($value["type"] == "postal_code"){
-                        if($delivery_address["postal_code"] >= $value["greater_than"] && $delivery_address["postal_code"] <= $value["lower_than"])  {
+                        if($delivery_address["postal_code"] >= $value["from"] && $delivery_address["postal_code"] <= $value["to"])  {
                             $extra_fee = 10;
                         }
                     }

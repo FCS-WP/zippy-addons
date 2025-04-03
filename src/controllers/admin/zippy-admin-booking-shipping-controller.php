@@ -71,7 +71,7 @@ class Zippy_Admin_Booking_Shipping_Controller
 
                 $is_insert = $wpdb->insert($table_name, $insert_data);
                 if($is_insert){
-                    return Zippy_Response_Handler::success($insert_data, "Oulet Inserted");
+                    return Zippy_Response_Handler::success($insert_data, "Shipping Config Inserted");
                 }
             } else {
                 $update_data = [
@@ -85,7 +85,7 @@ class Zippy_Admin_Booking_Shipping_Controller
                 $is_updated = $wpdb->update($outlet_shipping_config_table_name, $update_data, ["outlet_id" => $outlet_id]);
                
                 if($is_updated){
-                    return Zippy_Response_Handler::success($update_data, "Oulet Updated");
+                    return Zippy_Response_Handler::success($update_data, "Shipping Config Updated");
                 }
             }
 
