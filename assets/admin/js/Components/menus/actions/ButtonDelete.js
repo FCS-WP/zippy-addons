@@ -1,35 +1,35 @@
 import { Box, IconButton } from "@mui/material";
-import React, { useContext } from "react";
+import React from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { alertConfirmDelete, AlertStatus, showAlert } from "../../../utils/alertHelper";
+import { alertConfirmDelete } from "../../../utils/alertHelper";
 import { Api } from "../../../api";
-import MenuContext from "../../../contexts/MenuContext";
+import { callToDeleteItems } from "../../../utils/bookingHelper";
+import { toast } from "react-toastify";
 
-const ButtonDelete = ({ data, type }) => {
-  const { refetchMenus } = useContext(MenuContext);
+const ButtonDelete = ({ data, type, menuId = null, onDeleted }) => {
   const handleDeleteItem = async () => {
-    switch (type) {
-      case "menu":
-        const confirmDelete = await alertConfirmDelete();
-        if (confirmDelete) {
-          console.log("delete", data);
-        }
-        const params = {
-          menu_id: data.id,
-        };
-        const { data: response } = await Api.deleteMenu(params);
-        if (!response || response.status !== 'success') {
-          showAlert(AlertStatus.error, "Error!", "Delete menu failed. Please try again!");
-          return;
-        }
-        showAlert(AlertStatus.success, "Success!", "Menu has been deleted!");
-        refetchMenus();
-        break;
-    
-      default:
-        break;
+    const confirmDelete = await alertConfirmDelete();
+    if (!confirmDelete) {
+      return;
     }
+    const ids = [data.id];
+    if (type == "menu") {
+      const delMenu = await callToDeleteItems(ids);
+    } else {
+      const params = {
+        menu_id: menuId,
+        product_ids: ids,
+      };
+      const { data: delProduct } = await Api.removeProductsFromMenu(params);
+      if (!delProduct || delProduct.status !== "success") {
+        toast.error(delProduct.message ?? "Failed to delete product");
+        return;
+      }
+    }
+    onDeleted();
+    return;
   };
+
   return (
     <Box>
       <IconButton

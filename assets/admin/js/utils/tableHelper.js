@@ -24,6 +24,5 @@ export const detailMenuColumn = [
 export const productListColumns = [
   "ID",
   "NAME",
-  "CATEGORY",
   "ACTIONS"
 ]

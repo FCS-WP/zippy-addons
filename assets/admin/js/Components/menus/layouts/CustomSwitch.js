@@ -5,7 +5,7 @@ const CustomSwitch = ({ day, onChange }) => {
   const [checked, setChecked] = useState(day.is_available === 1 ? true : false);
   const handleChange = (e) => {
     setChecked(e.target.checked);
-    onChange(e.target.checked, day)
+    onChange(e.target.checked, day);
   };
   return (
     <Box className="custom-switch">

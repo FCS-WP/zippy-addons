@@ -19,7 +19,30 @@ class Zippy_Products_Model
   public static function search_products_args()
   {
     return array(
-      'key_word' => array(
+      'keyword' => array(
+        'required' => true,
+        'validate_callback' => function ($param, $request, $key) {
+          return is_string($param);
+        },
+      ),
+    );
+  }
+  public static function product_checking_args()
+  {
+    return array(
+      'outlet_id' => array(
+        'required' => true,
+        'validate_callback' => function ($param, $request, $key) {
+          return is_string($param);
+        },
+      ),
+      'product_id' => array(
+        'required' => true,
+        'validate_callback' => function ($param, $request, $key) {
+          return is_numeric($param);
+        },
+      ),
+      'current_date' => array(
         'required' => true,
         'validate_callback' => function ($param, $request, $key) {
           return is_string($param);

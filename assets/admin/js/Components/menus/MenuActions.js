@@ -1,15 +1,15 @@
 import { Stack } from "@mui/material";
-import React from "react";
+import React, { useContext } from "react";
 import ButtonEditMenu from "./actions/ButtonEditMenu";
 import ButtonDelete from "./actions/ButtonDelete";
-import ButtonUpdateMenu from "./actions/ButtonUpdateMenu";
+import MenuContext from "../../contexts/MenuContext";
 
 const MenuActions = ({ menu }) => {
+  const { refetchMenus } = useContext(MenuContext);
   return (
     <Stack spacing={1} direction={"row"}>
       <ButtonEditMenu menu={menu} />
-      {/* <ButtonUpdateMenu data={menu} /> */}
-      <ButtonDelete data={menu} type="menu" />
+      <ButtonDelete data={menu} type="menu" onDeleted={refetchMenus} />
     </Stack>
   );
 };

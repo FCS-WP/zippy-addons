@@ -39,10 +39,17 @@ class Zippy_Products_Router
 
   public function zippy_products_init_api()
   {
-    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/search-product', array(
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/search-products', array(
       'methods' => 'GET',
-      'callback' => [Zippy_Products_Controller::class, 'search_product'],
+      'callback' => [Zippy_Products_Controller::class, 'search_products'],
       'args' => Zippy_Products_Model::search_products_args(),
+      'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+    ));
+
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/product-checking', array(
+      'methods' => 'GET',
+      'callback' => [Zippy_Products_Controller::class, 'product_checking'],
+      'args' => Zippy_Products_Model::product_checking_args(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
 
