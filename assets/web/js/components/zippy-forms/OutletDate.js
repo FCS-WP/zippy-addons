@@ -5,7 +5,7 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useContext, useEffect, useState } from "react";
-import { getDisabledDays, isCloseDate } from "../../helper/datetime";
+import { getDisabledDays, isCloseDate, isDisabledDate } from "../../helper/datetime";
 import { format } from "date-fns";
 import DateBoxed from "./dates/DateBoxed";
 import DateCalendar from "./dates/DateCalendar";
@@ -23,9 +23,7 @@ const OutletDate = ({ onChangeDate, type }) => {
    */
   const [mode, setMode] = useState("boxed");
   const [selectedDate, setSelectedDate] = useState(null);
-  const { selectedOutlet } = useContext(OutletContext);
-
-  const closedDays = getDisabledDays(selectedOutlet, type);
+  const { selectedOutlet, menusConfig } = useContext(OutletContext);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -40,6 +38,10 @@ const OutletDate = ({ onChangeDate, type }) => {
   useEffect(()=>{
     handleSelectDate(null)
   }, [selectedOutlet])
+  
+  useEffect(()=>{
+    console.log("menusConfig", menusConfig);
+  }, [menusConfig])
 
   return (
     <Box>
@@ -93,7 +95,7 @@ const OutletDate = ({ onChangeDate, type }) => {
                 date={date}
                 selected={selectedDate?.toDateString() === date.toDateString()}
                 onClick={handleSelectDate}
-                disabled={isCloseDate(date, closedDays, selectedOutlet.closed_dates)}
+                disabled={isDisabledDate(date, selectedOutlet, menusConfig, type)}
               />
             </Grid>
           ))}
@@ -104,6 +106,7 @@ const OutletDate = ({ onChangeDate, type }) => {
             defaultDate={selectedDate}
             onSelectDate={handleSelectDate}
             selectedOutlet={selectedOutlet}
+            menusConfig={menusConfig}
             type={type}
           />
         </div>
