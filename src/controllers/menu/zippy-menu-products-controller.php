@@ -76,11 +76,18 @@ class Zippy_Menu_Products_Controller
 
       // Fetch products in the menu
       $query = $wpdb->prepare(
-        "SELECT pm.id_product as id, p.post_title as name FROM {$wpdb->prefix}zippy_menu_products as pm LEFT JOIN {$wpdb->prefix}posts as p
-        ON pm.id_product = p.ID
-        WHERE pm.id_menu = %d
-        AND p.post_type = 'product'
-        GROUP BY id_product;",
+        "SELECT pm.id_product as id, 
+                p.post_title as name, 
+                GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') as categories
+         FROM {$wpdb->prefix}zippy_menu_products as pm
+         LEFT JOIN {$wpdb->prefix}posts as p ON pm.id_product = p.ID
+         LEFT JOIN {$wpdb->prefix}term_relationships as tr ON p.ID = tr.object_id
+         LEFT JOIN {$wpdb->prefix}term_taxonomy as tt ON tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = 'product_cat'
+         LEFT JOIN {$wpdb->prefix}terms as t ON tt.term_id = t.term_id
+         WHERE pm.id_menu = %d
+         AND p.post_type = 'product'
+         GROUP BY pm.id_product
+         ORDER BY MIN(t.name) ASC;",
         $menu_id
       );
 
@@ -167,7 +174,7 @@ class Zippy_Menu_Products_Controller
     $menu_id = sanitize_text_field($request['menu_id']);
     $product_ids = array_map('intval', $request->get_param('product_ids'));
     $product_ids_placeholder = implode(',', array_fill(0, count($product_ids), '%d'));
-    
+
     if (empty($product_ids)) {
       return Zippy_Response_Handler::error("No products provided for removal.", 400);
     }
