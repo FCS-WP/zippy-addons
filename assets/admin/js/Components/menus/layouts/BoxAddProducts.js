@@ -23,6 +23,7 @@ import {
 import { debounce } from "../../../utils/searchHelper";
 import { Api } from "../../../api";
 import { toast } from "react-toastify";
+import theme from "../../../../theme/theme";
 
 const BoxAddProducts = ({ selectedMenu, refetchProducts }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -184,7 +185,7 @@ const BoxAddProducts = ({ selectedMenu, refetchProducts }) => {
           </Button>
           <Tooltip title="Add product to menu">
             <IconButton size="small" sx={{ p: 0, mb: 0.5 }}>
-              <BsFillQuestionCircleFill role="button" />
+              <BsFillQuestionCircleFill color={theme.palette.primary.main} role="button" />
             </IconButton>
           </Tooltip>
         </Grid2>

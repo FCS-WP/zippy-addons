@@ -1,5 +1,6 @@
 import { Checkbox, FormControlLabel, TableCell, TableRow } from "@mui/material";
 import React from "react";
+import theme from "../../../theme/theme";
 
 const CustomTableRow = (props) => {
   const {
@@ -18,9 +19,7 @@ const CustomTableRow = (props) => {
       <TableRow
         hover={hover}
         key={rowIndex}
-        sx={{
-          backgroundColor: rowIndex % 2 === 0 && !hover ? "#fafafa" : "#fff",
-        }}
+        sx={{ borderColor: theme.palette.primary.main }}
       >
         {!isSubtableRow && !hideCheckbox && (
           <TableCell padding="checkbox" style={{ textAlign: "center" }}>

@@ -46,3 +46,38 @@ export const handleDateData = (val) => {
     val === "0000-00-00" ? "" : format(new Date(val), "yyyy-MM-dd");
   return result;
 };
+
+export const calcExpiredDate = (today, endDate) => {
+  const todayDate = new Date(today).setHours(0, 0, 0, 0);
+  const endDateOnly = new Date(endDate).setHours(0, 0, 0, 0);
+
+  if (endDateOnly < todayDate) return 0;
+  
+  const diffTime = endDateOnly - todayDate;
+  return diffTime / (1000 * 60 * 60 * 24); 
+};
+
+export const getDateExpired = (start, end) => {
+  const startDate = handleDateData(start);
+  const endDate = handleDateData(end);
+  if (!startDate || !endDate) {
+    return {
+      status: "danger",
+      message: "Missing config"
+    };
+  }
+  const today = handleDateData(new Date());
+
+  if (startDate <= today && today <= endDate) {
+    const validityPeriod = calcExpiredDate(today, endDate);
+    return validityPeriod == 0 ? { status: "warning", message: "Expires today" } :  { status: "warning", message: `${validityPeriod} day(s) left until expiration.`};
+  }
+
+  if (today > endDate) {
+    return { status: "danger", message: "Expired" };
+  }
+
+  if (today < startDate) {
+    return { status: "info", message: "incoming" };
+  }
+}
