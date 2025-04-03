@@ -30,7 +30,7 @@ class Zippy_Products_Controller
     return [
       'product_id' => sanitize_text_field($request['product_id']),
       'outlet_id' => sanitize_text_field($request['outlet_id']),
-      'date' => sanitize_text_field($request['date']),
+      'current_date' => sanitize_text_field($request['current_date']),
     ];
   }
 
@@ -120,6 +120,7 @@ class Zippy_Products_Controller
       $product_id,
       $current_date
     );
+
     $menu = $wpdb->get_results($query);
 
     if (empty($menu)) return;
@@ -213,7 +214,7 @@ class Zippy_Products_Controller
 
     $response = array(
       'store_operation' => $store_available,
-      'menus_operation ' => $menus
+      'menus_operation' => $menus
     );
 
     //Step 3: Return the time Available

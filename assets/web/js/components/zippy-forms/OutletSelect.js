@@ -95,7 +95,7 @@ const OutletSelect = ({
     onChangeData(null);
   };
 
-  const handleChangeOutlet = (e) => {
+  const handleChangeOutlet = async (e) => {
     setSelectedOutlet(e.target.value);
   };
 

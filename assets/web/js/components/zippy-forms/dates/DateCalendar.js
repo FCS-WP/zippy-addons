@@ -1,9 +1,9 @@
 import { Box } from "@mui/material";
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
-import { getDisabledDays, isCloseDate } from "../../../helper/datetime";
+import { getDisabledDays, isCloseDate, isDisabledDate } from "../../../helper/datetime";
 
-const DateCalendar = ({ onSelectDate, defaultDate, selectedOutlet, type }) => {
+const DateCalendar = ({ onSelectDate, defaultDate, menusConfig, selectedOutlet, type }) => {
   const closedDays = getDisabledDays(selectedOutlet, type);
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const handleClick = (date) => {
@@ -23,7 +23,7 @@ const DateCalendar = ({ onSelectDate, defaultDate, selectedOutlet, type }) => {
         selected={selectedDate}
         onChange={(date) => handleClick(date)}
         filterDate={(date) =>
-          !isCloseDate(date, closedDays, selectedOutlet.closed_dates)
+          !isDisabledDate(date, selectedOutlet, menusConfig, type)
         }
         inline
       />
