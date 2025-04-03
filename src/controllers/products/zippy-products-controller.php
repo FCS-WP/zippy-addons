@@ -25,6 +25,22 @@ class Zippy_Products_Controller
     ];
   }
 
+  private static function sanitize_product_checking($request)
+  {
+    return [
+      'product_id' => sanitize_text_field($request['product_id']),
+      'outlet_id' => sanitize_text_field($request['outlet_id']),
+      'date' => sanitize_text_field($request['date']),
+    ];
+  }
+
+  private static function check_outlet_exists($outlet_id)
+  {
+    global $wpdb;
+    return (bool) $wpdb->get_var($wpdb->prepare("SELECT COUNT(ID) FROM {$wpdb->prefix}zippy_addons_outlet WHERE id = %d", $outlet_id));
+  }
+
+
   private static function execute_db_transaction($query_fn)
   {
     global $wpdb;
@@ -40,6 +56,79 @@ class Zippy_Products_Controller
       $wpdb->query('ROLLBACK');
       return $e->getMessage();
     }
+  }
+
+
+  private static function get_active_week_days($jsonString)
+  {
+    // Decode the JSON string into an array
+    $data = json_decode($jsonString);
+
+    if (!$data || !is_array($data) || !isset($data[0]->operating_hours)) {
+      return [];
+    }
+
+    $operating_hours = $data[0]->operating_hours;
+    $active_days = [];
+
+    foreach ($operating_hours as $day) {
+      if (!empty($day->open_at)) {
+        $active_days[] = array(
+          'weekday' => $day->week_day,
+          'is_available' => 1
+        );
+      }
+    }
+    $response = array(
+      'days_of_week' => $active_days,
+      'closed_dates' => $data[0]->closed_dates
+    );
+
+    return $response;
+  }
+
+  private static function get_outlet_operating_date($outlet_id)
+  {
+    global $wpdb;
+
+    $result = $wpdb->get_results($wpdb->prepare("SELECT operating_hours, closed_dates FROM {$wpdb->prefix}zippy_addons_outlet WHERE id = %s", $outlet_id));
+
+    foreach ($result as $key => $value) {
+      $unserialze_fields = [
+        "operating_hours",
+        "closed_dates",
+      ];
+      foreach ($unserialze_fields as $field) {
+        $result[$key]->{$field} = maybe_unserialize($result[$key]->{$field});
+      }
+    }
+
+    return json_encode($result);
+  }
+
+  private static function get_menus_product_belong_to($product_id, $current_date)
+  {
+    global $wpdb;
+
+    // Check for overlapping time ranges
+    $query = $wpdb->prepare(
+      "SELECT m.name, m.start_date, m.end_date, m.days_of_week 
+      FROM `{$wpdb->prefix}zippy_menu_products` as pm 
+      LEFT JOIN {$wpdb->prefix}zippy_menus as m ON pm.id_menu = m.id 
+      WHERE pm.id_product = %s AND (m.end_date >= '2025-04-16' OR m.end_date IS NULL)
+      ORDER BY pm.id_menu",
+      $product_id,
+      $current_date
+    );
+    $menu = $wpdb->get_results($query);
+
+    if (empty($menu)) return;
+    // // Decode JSON field
+    foreach ($menu as $menu_row) {
+      $menu_row->days_of_week = !empty($menu_row->days_of_week) ? json_decode($menu_row->days_of_week, true) : [];
+    }
+
+    return $menu;
   }
 
   /**
@@ -84,5 +173,52 @@ class Zippy_Products_Controller
     return is_string($result)
       ? Zippy_Response_Handler::error($result, 500)
       : Zippy_Response_Handler::success($result, "Products retrieved successfully.");
+  }
+
+  /**
+   *  PRODUCTS PLANNING
+   */
+
+  public static function product_checking(WP_REST_Request $request)
+  {
+    global $wpdb;
+
+    // Validate Request
+    if ($error = self::validate_request([
+      "product_id" => ["data_type" => "number", "required" => true],
+      "outlet_id" => ["data_type" => "string", "required" => true],
+      "current_date" => ["data_type" => "date", "required" => true],
+    ], $request)) {
+      return $error;
+    }
+
+    $response = array();
+
+    // Sanitize Input
+    $data = self::sanitize_product_checking($request);
+
+    if (!self::check_outlet_exists($data['outlet_id'])) {
+      return Zippy_Response_Handler::error("Outlet not found.", 404);
+    }
+
+    //Step 1 : Check Date Include in Store Available Time or not
+
+    $operation_time = self::get_outlet_operating_date($data['outlet_id']);
+
+    $store_available = self::get_active_week_days($operation_time);
+
+    //Step 2 : Product ID include Which Menu -> Active Time ?
+
+    $menus = self::get_menus_product_belong_to($data['product_id'], $data['current_date']);
+
+    $response = array(
+      'store_operation' => $store_available,
+      'menus_operation ' => $menus
+    );
+
+    //Step 3: Return the time Available
+    return empty($response)
+      ? Zippy_Response_Handler::error($response, 500)
+      : Zippy_Response_Handler::success($response, "Products retrieved successfully.");
   }
 }
