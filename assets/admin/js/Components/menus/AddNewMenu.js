@@ -14,6 +14,7 @@ import { FiPlus } from "react-icons/fi";
 import { AlertStatus, showAlert } from "../../utils/alertHelper";
 import MenuContext from "../../contexts/MenuContext";
 import { Api } from "../../api";
+import theme from "../../../theme/theme";
 
 const AddNewMenu = () => {
   const { refetchMenus } = useContext(MenuContext);
@@ -92,9 +93,12 @@ const AddNewMenu = () => {
               >
                 Create Menu
               </Button>
-              <Tooltip title={tooltipAddCategories}>
+              <Tooltip sx={{}} title={tooltipAddCategories}>
                 <IconButton size="small" sx={{ p: 0, mb: 0.5 }}>
-                  <BsFillQuestionCircleFill role="button" />
+                  <BsFillQuestionCircleFill
+                    color={theme.palette.primary.main}
+                    role="button"
+                  />
                 </IconButton>
               </Tooltip>
             </Grid2>

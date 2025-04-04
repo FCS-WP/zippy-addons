@@ -37,11 +37,7 @@ const OutletDate = ({ onChangeDate, type }) => {
 
   useEffect(()=>{
     handleSelectDate(null)
-  }, [selectedOutlet])
-  
-  useEffect(()=>{
-    console.log("menusConfig", menusConfig);
-  }, [menusConfig])
+  }, [selectedOutlet]);
 
   return (
     <Box>

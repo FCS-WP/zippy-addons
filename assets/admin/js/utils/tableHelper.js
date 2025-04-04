@@ -3,7 +3,7 @@ export const menuListColumns = [
   "NAME",
   "Start Date",
   "End Date",
-  "Validity period",
+  "STATUS",
   "ACTIONS",
 ];
 

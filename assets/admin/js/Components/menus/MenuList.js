@@ -9,12 +9,15 @@ import MenuActions from "./MenuActions";
 import { format } from "date-fns";
 import { alertConfirmDelete } from "../../utils/alertHelper";
 import { callToDeleteItems } from "../../utils/bookingHelper";
+import { getDateExpired } from "../../utils/dateHelper";
+import { Typography } from "@mui/material";
+import theme from "../../../theme/theme";
+
 const MenuList = () => {
   const { menus, refetchMenus } = useContext(MenuContext);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState([]);
-
   const columns = menuListColumns;
 
   const convertData = () => {
@@ -22,8 +25,14 @@ const MenuList = () => {
       let result = {
         ID: menu.id,
         NAME: (
-          <NavLink to={linkMenuAdmin + "&id=" + menu.id}>{menu.name}</NavLink>
+          <NavLink
+            to={linkMenuAdmin + "&id=" + menu.id}
+            style={{ fontWeight: 700 }}
+          >
+            {menu.name}
+          </NavLink>
         ),
+        STATUS: <StatusInfo menuInfo={getDateExpired(menu.start_date, menu.end_date)} />,
         ACTIONS: <MenuActions menu={menu} />,
         "Start Date":
           menu.start_date !== "0000-00-00"
@@ -38,6 +47,20 @@ const MenuList = () => {
     });
 
     setData(formattedData);
+  };
+
+  const StatusInfo = ({ menuInfo }) => {
+    const textColor =
+      menuInfo.status === "danger"
+        ? theme.palette.danger.main
+        : menuInfo.status === "info"
+        ? theme.palette.info.main
+        : theme.palette.warning.main;
+    return (
+      <Typography fontSize={14} color={textColor} fontWeight={600}>
+        {menuInfo.message}
+      </Typography>
+    );
   };
 
   const columnWidths = {

@@ -20,6 +20,7 @@ import { FiPlus } from "react-icons/fi";
 import { Api } from "../../api";
 import { toast } from "react-toastify";
 import { debounce } from "../../utils/searchHelper";
+import theme from "../../../theme/theme";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -336,7 +337,7 @@ const SearchBox = ({ updateListMapping }) => {
                   </Button>
                   <Tooltip title={tooltipAddCategories}>
                     <IconButton size="small" sx={{ p: 0, mb: 0.5 }}>
-                      <BsFillQuestionCircleFill role="button" />
+                      <BsFillQuestionCircleFill color={theme.palette.primary.main} role="button" />
                     </IconButton>
                   </Tooltip>
                 </Grid>
@@ -422,7 +423,7 @@ const SearchBox = ({ updateListMapping }) => {
                   </Button>
                   <Tooltip title={tooltipAddProducts}>
                     <IconButton size="small" sx={{ p: 0, mb: 0.5 }}>
-                      <BsFillQuestionCircleFill role="button" />
+                      <BsFillQuestionCircleFill color={theme.palette.primary.main} role="button" />
                     </IconButton>
                   </Tooltip>
                 </Grid>
