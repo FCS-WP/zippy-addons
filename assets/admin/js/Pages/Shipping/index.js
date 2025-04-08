@@ -297,7 +297,7 @@ const ShippingFeeCalculator = () => {
                 the corresponding fee.
               </p>
               <p>
-                <strong>Configuration Example:</strong> From(m): 100 , To(m) : 500 , Fee:
+                <strong>Configuration Example:</strong> From(M): 100 , To(M) : 500 , Fee:
                 15
               </p>
               <div
@@ -329,8 +329,8 @@ const ShippingFeeCalculator = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>From (m)</TableCell>
-                      <TableCell>To (m)</TableCell>
+                      <TableCell>From (M)</TableCell>
+                      <TableCell>To (M)</TableCell>
                       <TableCell>Fee (SGD)</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
