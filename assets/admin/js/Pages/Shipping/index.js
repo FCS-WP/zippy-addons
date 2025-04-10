@@ -297,7 +297,7 @@ const ShippingFeeCalculator = () => {
                 the corresponding fee.
               </p>
               <p>
-                <strong>Configuration Example:</strong> From: 1 , To : 5 , Fee:
+                <strong>Configuration Example:</strong> From(M): 100 , To(M) : 500 , Fee:
                 15
               </p>
               <div
@@ -329,8 +329,8 @@ const ShippingFeeCalculator = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>From (KM)</TableCell>
-                      <TableCell>To (KM)</TableCell>
+                      <TableCell>From (M)</TableCell>
+                      <TableCell>To (M)</TableCell>
                       <TableCell>Fee (SGD)</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
@@ -453,28 +453,28 @@ const ShippingFeeCalculator = () => {
             12345 , To: 67890 , Fee: 15
           </p>
           <div
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  marginBottom: 10,
-                }}
-              >
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() =>
-              handleAddNewRow(setExtraFee, {
-                type: "",
-                from: "",
-                to: "",
-                fee: "",
-              })
-            }
-            disabled={!selectedStore}
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: 10,
+            }}
           >
-            Add New
-          </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() =>
+                handleAddNewRow(setExtraFee, {
+                  type: "",
+                  from: "",
+                  to: "",
+                  fee: "",
+                })
+              }
+              disabled={!selectedStore}
+            >
+              Add New
+            </Button>
           </div>
           <TableContainer>
             <Table>
