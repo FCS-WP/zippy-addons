@@ -18,5 +18,11 @@ export const webApi = {
   },
   async checkProduct(params) {
     return await makeRequest('/product-checking', params);
-  }
+  },
+  async registerAccount(params) {
+    return await makeRequest('/zippy-register', params, 'POST');
+  },
+  async login(params) {
+    return await makeRequest('/zippy-signin', params, 'POST');
+  },
 };
