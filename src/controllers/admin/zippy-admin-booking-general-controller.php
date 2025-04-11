@@ -107,7 +107,7 @@ class Zippy_Admin_Booking_General_Controller
       $password = $request->get_param('password');
 
       if (empty($username) || empty($password)) {
-          return new Zippy_Response_Handler('Thiếu tên người dùng hoặc mật khẩu.', 400);
+          return new Zippy_Response_Handler('Missing username or password.', 400);
       }
 
       $creds = array(
@@ -146,9 +146,16 @@ class Zippy_Admin_Booking_General_Controller
   {
       $user_email = $request->get_param('email');
       $user_password = $request->get_param('password');
+      $confirm_password = $request->get_param('confirm_password');
+      $first_name = sanitize_text_field($request['first_name']);
+      $last_name  = sanitize_text_field($request['last_name']);
 
       if (empty($user_email) || empty($user_password)) {
           return Zippy_Response_Handler::error('Email or password cannot be blank.', 400);
+      }
+
+      if ($confirm_password !== $user_password) {
+        return Zippy_Response_Handler::error('Confirm password does not match!', 400);
       }
 
       if (!is_email($user_email)) {
@@ -167,7 +174,11 @@ class Zippy_Admin_Booking_General_Controller
           if (is_wp_error($user_id)) {
               return Zippy_Response_Handler::error($user_id->get_error_message(), 400);
           }
-
+          $update = wp_update_user([
+              'ID'         => $user_id,
+              'first_name' => $first_name,
+              'last_name'  => $last_name,
+          ]);
           $user = get_userdata($user_id);
 
           $response = [

@@ -35,19 +35,18 @@ class Zippy_Booking_Web
     date_default_timezone_set('Asia/Singapore');
 
     /* Init Function */
-    // add_action('init', array($this, 'function_init'));
     add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
+    add_action('woocommerce_before_checkout_form', array($this, 'zippy_add_shortcode_to_checkout'));
 
-    /* Short Code Take Away Function */
+    /**
+     * Shortcode
+     */
+
     add_shortcode('form_take_away', array($this, 'form_take_away'));
-
-    /* Short Code Delivery Function */
     add_shortcode('form_delivery', array($this, 'form_delivery'));
-
     add_shortcode('zippy_form', array($this, 'zippy_form'));
-
-    
     add_shortcode('pickup_date_calander', array($this, 'pickup_date_calander_callback'));
+    add_shortcode('login_form', array($this, 'login_form'));
 
     /* Booking Assets  */
     add_action('wp_enqueue_scripts', array($this, 'booking_assets'));
@@ -75,14 +74,30 @@ class Zippy_Booking_Web
     // Form Assets
     wp_enqueue_script('booking-js', ZIPPY_ADDONS_URL . '/assets/dist/js/web.min.js', [], $version, true);
     wp_enqueue_style('booking-css', ZIPPY_ADDONS_URL . '/assets/dist/css/web.min.css', [], $version);
-    wp_localize_script('booking-js', 'admin_data', array(
-      'userID' => $current_user_id,
-      'user_email' => $user_info->user_email
-    ));
+    if ($user_info) {
+      wp_localize_script('booking-js', 'admin_data', array(
+        'userID' => $current_user_id,
+        'user_email' => $user_info->user_email
+      ));
+    }
   }
 
   public function zippy_form($atts) 
   {
     return '<div id="zippy-form"></div>'; 
+  }
+
+  public function login_form() 
+  {
+    return '<div id="custom-login-form"></div>';
+  }
+  
+  function zippy_add_shortcode_to_checkout() {
+    $current_user_id = get_current_user_id();
+    if ($current_user_id) {
+      return;
+    }
+    echo do_shortcode('[login_form]');
+    return;
   }
 }
