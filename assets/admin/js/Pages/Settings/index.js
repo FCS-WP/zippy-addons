@@ -4,7 +4,7 @@ import { Api } from "../../api";
 import { toast, ToastContainer } from "react-toastify";
 import HolidayTable from "../../Components/Configs/HolidayTable";
 import BookingSettings from "../../Components/Configs/BookingSettings";
-import WeekdayTable from "../../Components/Configs/WeekdayTable";
+import WeekdayTable from "../../Components/Configs/WeekdayTable/WeekdayTable";
 
 const daysOfWeek = [
   "Sunday",
@@ -33,6 +33,7 @@ const Settings = () => {
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
+
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -294,7 +295,7 @@ const Settings = () => {
         })),
         closed_dates: holidays.map((holiday) => ({
           label: holiday.label,
-          value: new Date(holiday.date).toISOString().split("T")[0], // Đảm bảo định dạng YYYY-MM-DD
+          value: new Date(holiday.date).toISOString().split("T")[0],
         })),
         takeaway: {
           enabled: "F",
