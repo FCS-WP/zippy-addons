@@ -65,7 +65,10 @@ const WeekdayTable = ({
                     handleRemoveTimeSlot={handleRemoveTimeSlot}
                     deliveryTimeEnabled={deliveryTimeEnabled}
                     handleDeliveryToggle={handleDeliveryToggle}
-                    deliverySlots={deliveryTimeSlots.find((d) => d.day === item.day)?.slots || []}
+                    deliverySlots={
+                      deliveryTimeSlots.find((d) => d.day === item.day)
+                        ?.slots || []
+                    }
                     handleDeliveryTimeChange={handleDeliveryTimeChange}
                     handleRemoveDeliveryTimeSlot={handleRemoveDeliveryTimeSlot}
                     tempDeliveryText={tempDeliveryText}
@@ -73,7 +76,6 @@ const WeekdayTable = ({
                     handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
                   />
                 ))
-                
               )}
             </React.Fragment>
           ))}

@@ -22,6 +22,7 @@ const DeliverySlotRow = ({
   tempDeliveryText,
   setTempDeliveryText,
   handleAddDeliveryTimeSlot,
+  className = "", // Thêm className mặc định rỗng
 }) => {
   const handleChange = (e) => {
     setTempDeliveryText((prev) => ({
@@ -39,7 +40,10 @@ const DeliverySlotRow = ({
   };
 
   return (
-    <TableRow style={{ border: "none", backgroundColor: "#f9f9f9" }}>
+    <TableRow
+      className={className}
+      sx={{ backgroundColor: "#f9f9f9", border: "none" }}
+    >
       <TableCell />
 
       {/* From - To TimePickers in one TableCell */}
@@ -91,9 +95,7 @@ const DeliverySlotRow = ({
 
       {/* Remove button */}
       <TableCell>
-        <IconButton
-          onClick={() => handleRemoveDeliveryTimeSlot(day, slotIndex)}
-        >
+        <IconButton onClick={() => handleRemoveDeliveryTimeSlot(day, slotIndex)}>
           <RemoveCircleOutlineIcon color="error" />
         </IconButton>
       </TableCell>
