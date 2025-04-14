@@ -62,6 +62,7 @@ class Zippy_Admin_Booking_Shipping_Controller
                 $insert_data = [
                     "id" => wp_generate_uuid4(),
                     "outlet_id" => $outlet_id,
+                    "delivery_slot" => $request["delivery_slot"] ?? "",
                     "minimum_order_to_delivery" => maybe_serialize($request["minimum_order_to_delivery"]),
                     "minimum_order_to_freeship" => maybe_serialize($request["minimum_order_to_freeship"]),
                     "extra_fee" => maybe_serialize($request["extra_fee"]),
@@ -76,6 +77,7 @@ class Zippy_Admin_Booking_Shipping_Controller
             } else {
                 $update_data = [
                     "outlet_id" => $outlet_id,
+                    "delivery_slot" => $request["delivery_slot"] ?? "",
                     "minimum_order_to_delivery" => maybe_serialize($request["minimum_order_to_delivery"]),
                     "minimum_order_to_freeship" => maybe_serialize($request["minimum_order_to_freeship"]),
                     "extra_fee" => maybe_serialize($request["extra_fee"]),
