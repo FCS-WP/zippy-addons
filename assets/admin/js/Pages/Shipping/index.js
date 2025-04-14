@@ -177,9 +177,22 @@ const ShippingFeeCalculator = () => {
   const handleDeleteRow = (index, setState, state) => {
     setState(state.filter((_, i) => i !== index));
   };
+  const hasEmptyFields = (data, fields) => {
+    return data.some((entry) =>
+      fields.some((field) => entry[field] === "" || entry[field] === undefined || entry[field] === null)
+    );
+  };
   const handleSaveConfig = async () => {
     if (!selectedStore) {
       toast.error("Please select a store.");
+      return;
+    }
+    if (
+      hasEmptyFields(minimumOrderToDelivery, ["greater_than", "lower_than"]) ||
+      hasEmptyFields(minimumOrderToFreeship, ["greater_than", "lower_than"]) ||
+      hasEmptyFields(extraFee, ["from", "to", "type", "fee"])
+    ) {
+      toast.error("Please fill in all required fields before saving.");
       return;
     }
 
