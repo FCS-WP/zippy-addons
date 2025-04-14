@@ -141,6 +141,7 @@ class Zippy_Databases
     $sql = "CREATE TABLE $table_name (
         id VARCHAR(255) NOT NULL,
         outlet_id VARCHAR(255) NOT NULL,
+        delivery_slot VARCHAR(255) NULL,
         minimum_order_to_delivery LONGTEXT NULL,
         minimum_order_to_freeship LONGTEXT NULL,
         extra_fee LONGTEXT NULL,
