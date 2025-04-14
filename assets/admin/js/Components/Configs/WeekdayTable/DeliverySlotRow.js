@@ -77,8 +77,19 @@ const DeliverySlotRow = ({
               type="number"
               size="small"
               placeholder="Slot"
-              value={tempDeliveryText[day] || ""}
-              onChange={handleChange}
+              value={
+                typeof slot.delivery_slot !== "undefined"
+                  ? slot.delivery_slot
+                  : tempDeliveryText[day] || ""
+              }
+              onChange={(e) =>
+                handleDeliveryTimeChange(
+                  day,
+                  slotIndex,
+                  "delivery_slot",
+                  e.target.value
+                )
+              }
               sx={{ flexGrow: 1 }}
               className="delivery-slot-input"
             />
