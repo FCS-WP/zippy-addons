@@ -26,7 +26,7 @@ const WeekdayTable = ({
   handleDeliveryTimeChange,
   handleAddDeliveryTimeSlot,
   duration,
-  disabled = false, // 👈 Add this prop
+  disabled = false,
 }) => {
   const [tempDeliveryText, setTempDeliveryText] = useState({});
 
