@@ -6,15 +6,14 @@ import {
   Switch,
   Select,
   MenuItem,
-  TextField,
+  Paper,
   Button,
 } from "@mui/material";
+import theme from "../../../theme/theme";
 
 const BookingSettings = ({
   duration,
   setDuration,
-  storeEmail,
-  setStoreEmail,
   holidayEnabled,
   setHolidayEnabled,
   setHolidays,
@@ -23,10 +22,10 @@ const BookingSettings = ({
   stores,
   selectedStore,
   setSelectedStore,
+  disabled,
 }) => {
   return (
-    <Box>
-      {/* Select Store */}
+    <Box component={Paper}>
       <Box mb={2}>
         <Typography variant="body1">Select Store</Typography>
         <Select
@@ -35,6 +34,14 @@ const BookingSettings = ({
           fullWidth
           size="small"
           displayEmpty
+          sx={{
+            border: `1px solid ${theme.palette.info.main}`,
+            borderRadius: 1,
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: theme.palette.primary.main,
+            },
+          }}
+          disabled={disabled}
         >
           <MenuItem value="" disabled>
             Please select a store
@@ -55,6 +62,14 @@ const BookingSettings = ({
           onChange={(e) => setDuration(e.target.value)}
           fullWidth
           size="small"
+          sx={{
+            border: `1px solid ${theme.palette.info.main}`,
+            borderRadius: 1,
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: theme.palette.primary.main,
+            },
+          }}
+          disabled={disabled}
         >
           {Array.from({ length: 4 }, (_, i) => (i + 1) * 15).map((option) => (
             <MenuItem key={option} value={option}>
@@ -80,6 +95,7 @@ const BookingSettings = ({
                   setHolidays([]);
                 }
               }}
+              disabled={disabled}
             />
           }
           label="Enable Holidays"
@@ -95,7 +111,7 @@ const BookingSettings = ({
           variant="contained"
           color="primary"
           onClick={handleSaveChanges}
-          disabled={loading}
+          disabled={loading || disabled}
           style={{
             borderRadius: "8px",
             padding: "13px 20px",

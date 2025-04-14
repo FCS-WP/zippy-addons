@@ -4,21 +4,10 @@ import {
   Paper,
   Typography,
   Button,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tab,
-  Tabs,
-  MenuItem,
-  Select,
-  FormControl,
-  IconButton,
+  Box,
 } from "@mui/material";
-import { Delete } from "@mui/icons-material";
+import StoreSelector from "../../Components/ShippingFee/StoreSelector";
+import TabPanelWrapper from "../../Components/ShippingFee/TabPanelWrapper";
 import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
 
@@ -34,7 +23,14 @@ const ShippingFeeCalculator = () => {
     const fetchStores = async () => {
       try {
         const response = await Api.getStore();
-        setStores(response.data.data);
+        const storeList = response.data.data;
+        setStores(storeList);
+
+        if (storeList.length > 0) {
+          const firstStoreId = storeList[0].id;
+          setSelectedStore(firstStoreId);
+          fetchConfig(firstStoreId);
+        }
       } catch (error) {
         console.error("Error fetching stores:", error);
       }
@@ -62,7 +58,6 @@ const ShippingFeeCalculator = () => {
       setExtraFee(data?.extra_fee || []);
     } catch (error) {
       console.error("Error fetching shipping config:", error);
-      // toast.error("An error occurred while fetching shipping configuration.");
       setMinimumOrderToDelivery([]);
       setMinimumOrderToFreeship([]);
       setExtraFee([]);
@@ -244,363 +239,29 @@ const ShippingFeeCalculator = () => {
       <Typography variant="h5" style={{ marginBottom: 20 }}>
         Shipping Fee Configuration
       </Typography>
-      <FormControl fullWidth style={{ marginBottom: 20 }}>
-        <Typography>Select Store</Typography>
-        <Select
-          value={selectedStore || ""}
+
+      <Box component={Paper} sx={{ p: 2, mb: 2 }}>
+        <StoreSelector
+          stores={stores}
+          selectedStore={selectedStore}
           onChange={handleStoreChange}
-          displayEmpty
-        >
-          <MenuItem value="" disabled>
-            Please choose
-          </MenuItem>
-          {stores.map((store) => (
-            <MenuItem key={store.id} value={store.id}>
-              {store.outlet_name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      {!selectedStore && (
-        <Paper
-          style={{
-            padding: 5,
-            paddingLeft: 20,
-            marginBottom: 20,
-            backgroundColor: "#eccdcda1",
-          }}
-        >
-          <p style={{ color: "red", fontWeight: "bold" }}>
-            Please select a store to configure shipping fees.
-          </p>
-        </Paper>
-      )}
-
-      <Tabs
-        value={tabIndex}
-        onChange={handleTabChange}
-        disabled={!selectedStore}
-      >
-        <Tab label="Minimum Order to Delivery" />
-        <Tab label="Minimum Order to Freeship" />
-        <Tab label="Extra Fee" />
-      </Tabs>
-
-      {[minimumOrderToDelivery, minimumOrderToFreeship].map(
-        (state, idx) =>
-          tabIndex === idx && (
-            <Paper style={{ padding: 20, marginTop: 10 }} key={idx}>
-              <p>
-                <strong>Notes:</strong>Define the minimum order amount required
-                for delivery. Each row represents a range of order values and
-                the corresponding fee.
-              </p>
-              <p>
-                <strong>Configuration Example:</strong> From(M): 100 , To(M) : 500 , Fee:
-                15
-              </p>
-              <div
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  marginBottom: 10,
-                }}
-              >
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() =>
-                    handleAddNewRow(
-                      idx === 0
-                        ? setMinimumOrderToDelivery
-                        : setMinimumOrderToFreeship,
-                      { greater_than: "", lower_than: "", fee: "" }
-                    )
-                  }
-                  disabled={!selectedStore}
-                >
-                  Add New
-                </Button>
-              </div>
-
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>From (M)</TableCell>
-                      <TableCell>To (M)</TableCell>
-                      <TableCell>Fee (SGD)</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {state.map((row, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <TextField
-                            type="number"
-                            value={row.greater_than || ""}
-                            onChange={(e) =>
-                              handleInputChange(
-                                index,
-                                "greater_than",
-                                e.target.value,
-                                idx === 0
-                                  ? setMinimumOrderToDelivery
-                                  : setMinimumOrderToFreeship,
-                                idx === 0
-                                  ? minimumOrderToDelivery
-                                  : minimumOrderToFreeship
-                              )
-                            }
-                            onBlur={() =>
-                              handleBlur(
-                                index,
-                                "greater_than",
-                                idx === 0
-                                  ? minimumOrderToDelivery
-                                  : minimumOrderToFreeship,
-                                "order_range"
-                              )
-                            }
-                            disabled={!selectedStore}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="number"
-                            value={row.lower_than || ""}
-                            onChange={(e) =>
-                              handleInputChange(
-                                index,
-                                "lower_than",
-                                e.target.value,
-                                idx === 0
-                                  ? setMinimumOrderToDelivery
-                                  : setMinimumOrderToFreeship,
-                                idx === 0
-                                  ? minimumOrderToDelivery
-                                  : minimumOrderToFreeship
-                              )
-                            }
-                            onBlur={() =>
-                              handleBlur(
-                                index,
-                                "lower_than",
-                                idx === 0
-                                  ? minimumOrderToDelivery
-                                  : minimumOrderToFreeship,
-                                "order_range"
-                              )
-                            }
-                            disabled={!selectedStore}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="number"
-                            value={row.fee || ""}
-                            onChange={(e) =>
-                              handleInputChange(
-                                index,
-                                "fee",
-                                e.target.value,
-                                idx === 0
-                                  ? setMinimumOrderToDelivery
-                                  : setMinimumOrderToFreeship,
-                                state
-                              )
-                            }
-                            disabled={!selectedStore}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <IconButton
-                            color="error"
-                            onClick={() =>
-                              handleDeleteRow(
-                                index,
-                                idx === 0
-                                  ? setMinimumOrderToDelivery
-                                  : setMinimumOrderToFreeship,
-                                state
-                              )
-                            }
-                            disabled={!selectedStore}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          )
-      )}
-
-      {tabIndex === 2 && (
-        <Paper style={{ padding: 20, marginTop: 20 }}>
-          <p>
-            <strong>Notes:</strong> Set additional fees based on specific
-            criteria, such as postal codes or distance ranges.
-          </p>
-          <p>
-            <strong>Configuration Example:</strong> Type: postal_code , From:
-            12345 , To: 67890 , Fee: 15
-          </p>
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "flex-end",
-              marginBottom: 10,
-            }}
-          >
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() =>
-                handleAddNewRow(setExtraFee, {
-                  type: "",
-                  from: "",
-                  to: "",
-                  fee: "",
-                })
-              }
-              disabled={!selectedStore}
-            >
-              Add New
-            </Button>
-          </div>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Type</TableCell>
-                  <TableCell>From</TableCell>
-                  <TableCell>To</TableCell>
-                  <TableCell>Fee (SGD)</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {extraFee.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell sx={{ width: "20%" }}>
-                      <Select
-                        fullWidth
-                        value={row.type || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            index,
-                            "type",
-                            e.target.value,
-                            setExtraFee,
-                            extraFee
-                          )
-                        }
-                        displayEmpty
-                        disabled={!selectedStore}
-                      >
-                        {!extraFee.some(
-                          (fee) => fee.type === "postal_code"
-                        ) && (
-                          <MenuItem value="postal_code">postal_code</MenuItem>
-                        )}
-
-                        {extraFee
-                          .map((fee) => fee.type)
-                          .filter(
-                            (type, idx, self) =>
-                              type && self.indexOf(type) === idx
-                          )
-                          .map((type, idx) => (
-                            <MenuItem key={idx} value={type}>
-                              {type}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                    </TableCell>
-                    <TableCell sx={{ width: "20%" }}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        value={row.from || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            index,
-                            "from",
-                            e.target.value,
-                            setExtraFee,
-                            extraFee
-                          )
-                        }
-                        onBlur={() =>
-                          handleBlur(index, "from", extraFee, "extra_fee")
-                        }
-                        disabled={!selectedStore}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ width: "20%" }}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        value={row.to || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            index,
-                            "to",
-                            e.target.value,
-                            setExtraFee,
-                            extraFee
-                          )
-                        }
-                        onBlur={() =>
-                          handleBlur(index, "to", extraFee, "extra_fee")
-                        }
-                        disabled={!selectedStore}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ width: "20%" }}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        value={row.fee || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            index,
-                            "fee",
-                            e.target.value,
-                            setExtraFee,
-                            extraFee
-                          )
-                        }
-                        disabled={!selectedStore}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ width: "20%" }}>
-                      <IconButton
-                        color="error"
-                        onClick={() =>
-                          handleDeleteRow(index, setExtraFee, extraFee)
-                        }
-                        disabled={!selectedStore}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
-
+        />
+      </Box>
+      <TabPanelWrapper
+        tabIndex={tabIndex}
+        setTabIndex={setTabIndex}
+        selectedStore={selectedStore}
+        minimumOrderToDelivery={minimumOrderToDelivery}
+        setMinimumOrderToDelivery={setMinimumOrderToDelivery}
+        minimumOrderToFreeship={minimumOrderToFreeship}
+        setMinimumOrderToFreeship={setMinimumOrderToFreeship}
+        extraFee={extraFee}
+        setExtraFee={setExtraFee}
+        handleInputChange={handleInputChange}
+        handleBlur={handleBlur}
+        handleDeleteRow={handleDeleteRow}
+        handleAddNewRow={handleAddNewRow}
+      />
       <Button
         variant="contained"
         color="primary"
@@ -610,7 +271,6 @@ const ShippingFeeCalculator = () => {
       >
         Save
       </Button>
-
       <ToastContainer />
     </Container>
   );

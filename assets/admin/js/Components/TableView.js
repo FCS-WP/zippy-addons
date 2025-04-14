@@ -88,7 +88,7 @@ const TableView = (props) => {
           {canBeDeleted ? renderDeleteButton() : ""}
         </Grid2>
       </Grid2>
-      <Box sx={{ border: '1px solid', borderColor: theme.palette.info.main, boxSizing: 'border-box'}}>
+      <Box sx={{ border: '1px solid', borderBottom: 'none' ,borderColor: theme.palette.info.main, boxSizing: 'border-box'}}>
         <Table>
           <TableHead sx={{ backgroundColor: theme.palette.info.main }}>
             <TableRow sx={{ borderColor: theme.palette.primary.main }}>

@@ -10,15 +10,13 @@ import {
   Paper,
   Button,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Typography,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
 import StoreForm from "../../Components/Stores/StoreForm";
 import StoreFormEdit from "../../Components/Stores/StoreFormEdit";
+import theme from "../../../theme/theme";
 
 const Store = () => {
   const [stores, setStores] = useState([]);
@@ -82,8 +80,8 @@ const Store = () => {
       display="flex"
       justifyContent="center"
       minHeight="100vh"
-      bgcolor="#f5f5f5"
       p={3}
+      component={Paper}
     >
       <Box width="100%">
         <Button
@@ -94,24 +92,41 @@ const Store = () => {
         >
           Add Store
         </Button>
-        <TableContainer component={Paper}>
+        <TableContainer
+          sx={{
+            border: "1px  solid",
+            borderBottom: "none",
+            borderColor: theme.palette.info.main,
+            boxSizing: "border-box",
+          }}
+        >
           <Table>
-            <TableHead>
+            <TableHead sx={{ backgroundColor: theme.palette.info.main }}>
               <TableRow>
                 <TableCell>
-                  <strong>Name</strong>
+                  <Typography variant="body2" fontWeight="600">
+                    Name
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  <strong>Phone</strong>
+                  <Typography variant="body2" fontWeight="600">
+                    Phone
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  <strong>Postal Code</strong>
+                  <Typography variant="body2" fontWeight="600">
+                    Postal Code
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  <strong>Address</strong>
+                  <Typography variant="body2" fontWeight="600">
+                    Address
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  <strong>Actions</strong>
+                  <Typography variant="body2" fontWeight="600">
+                    Actions
+                  </Typography>
                 </TableCell>
               </TableRow>
             </TableHead>

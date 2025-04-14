@@ -2,7 +2,7 @@ table {
   tbody {
     tr {
       td {
-        border-bottom: 1px solid rgba(74, 108, 187, 0.582) !important;
+        border-bottom: 1px solid #BFD3FE !important;
       }
 
       &.has-subrow {
@@ -16,10 +16,13 @@ table {
         }
         &.delivery-sub-row--last {
           td {
-            border-bottom: 1px solid rgba(74, 108, 187, 0.582) !important;
+            border-bottom: 1px solid #BFD3FE !important;
           }
         }
       }
     }
   }
+}
+.delivery-slot-input {
+  max-width: 80px !important;
 }
