@@ -14,6 +14,7 @@ import {
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CustomeDatePicker from "../DatePicker/CustomeDatePicker";
+import theme from "../../../theme/theme";
 
 const HolidayTable = ({
   holidays,
@@ -32,35 +33,35 @@ const HolidayTable = ({
         gutterBottom
         style={{
           padding: "16px",
-          backgroundColor: "#f9f9f9",
+          backgroundColor: theme.palette.info.main,
           marginBottom: "0px",
         }}
+        fontWeight={600}
       >
         Holiday Settings
       </Typography>
       <Table>
         <TableHead>
-          <TableRow sx={{ backgroundColor: "#f9f9f9" }}>
-            <TableCell>Label</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell></TableCell>
+          <TableRow sx={{ backgroundColor: theme.palette.info.main }}>
+            <TableCell width="45%"><Typography>Label</Typography></TableCell>
+            <TableCell width="45%"><Typography>Date</Typography></TableCell>
+            <TableCell width="10%"></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {holidays && holidays.length > 0 ? (
             holidays.map((holiday, index) => (
               <TableRow key={index}>
-                <TableCell>
+                <TableCell className="holiday-label" width="45%">
                   <TextField
                     value={holiday.label}
                     onChange={(e) =>
                       handleHolidayChange(index, "label", e.target.value)
                     }
                     size="small"
-                    fullWidth
                   />
                 </TableCell>
-                <TableCell className="holiday-date">
+                <TableCell className="holiday-date" width="45%">
                   <CustomeDatePicker
                     startDate={holiday?.date ?? new Date()}
                     handleDateChange={(date) =>
@@ -71,7 +72,7 @@ const HolidayTable = ({
                     selectsRange={false}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell width="10%">
                   <IconButton
                     color="error"
                     onClick={() => handleRemoveHoliday(index)}
@@ -90,7 +91,7 @@ const HolidayTable = ({
           )}
           <TableRow>
             <TableCell colSpan={3} align="center">
-              <IconButton color="success" onClick={() => handleAddHoliday()}>
+              <IconButton color="primary" onClick={() => handleAddHoliday()}>
                 <AddCircleOutlineIcon />
               </IconButton>
             </TableCell>

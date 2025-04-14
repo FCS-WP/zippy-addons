@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Grid, CircularProgress } from "@mui/material";
+import { Box, Typography, Grid, CircularProgress, Paper } from "@mui/material";
 import { Api } from "../../api";
 import { toast, ToastContainer } from "react-toastify";
 import HolidayTable from "../../Components/Configs/HolidayTable";
@@ -34,7 +34,6 @@ const Settings = () => {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
 
-
   useEffect(() => {
     const fetchStores = async () => {
       setLoading(true);
@@ -42,6 +41,9 @@ const Settings = () => {
         const storesResponse = await Api.getStore();
         const storesData = storesResponse.data.data || [];
         setStores(storesData);
+        if (storesData.length > 0) {
+          setSelectedStore(storesData[0].id);
+        }
       } catch (error) {
         console.error("Error fetching stores:", error);
       } finally {
@@ -84,13 +86,18 @@ const Settings = () => {
             day,
             enabled: isDeliveryEnabled,
             slots: isDeliveryEnabled
-              ? dayData?.delivery?.delivery_hours || []
+              ? dayData.delivery.delivery_hours.map((slot) => ({
+                  from: slot.from,
+                  to: slot.to,
+                  delivery_slot: slot.delivery_slot || "",
+                }))
               : [],
           };
         });
 
         setDeliveryTimeEnabled(deliveryEnabledByDay);
         setdeliveryTimeSlots(deliverySlotsByDay);
+        console.log("Delivery Time Slots:", deliverySlotsByDay);
 
         const fetchedSchedule = daysOfWeek.map((day, index) => {
           const daySchedule = storeWorkingTime.find(
@@ -244,12 +251,15 @@ const Settings = () => {
   };
 
   const handleDeliveryTimeChange = (day, slotIndex, field, value) => {
-    const formattedValue = value
-      ? `${value.getHours().toString().padStart(2, "0")}:${value
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}:00`
-      : "";
+    const formattedValue =
+      field === "delivery_slot"
+        ? value
+        : value
+        ? `${value.getHours().toString().padStart(2, "0")}:${value
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}:00`
+        : "";
 
     setdeliveryTimeSlots((prev) =>
       prev.map((item) =>
@@ -266,6 +276,7 @@ const Settings = () => {
       )
     );
   };
+
   const handleAddDeliveryTimeSlot = (day) => {
     setdeliveryTimeSlots((prev) =>
       prev.map((item) =>
@@ -287,9 +298,14 @@ const Settings = () => {
           close_at: item.slots[0]?.to || "",
           delivery: {
             enabled: deliveryTimeEnabled[item.day] ? "T" : "F",
-            delivery_hours: deliveryTimeEnabled
-              ? deliveryTimeSlots.find((slot) => slot.day === item.day)
-                  ?.slots || []
+            delivery_hours: deliveryTimeEnabled[item.day]
+              ? (
+                  deliveryTimeSlots.find((slot) => slot.day === item.day)
+                    ?.slots || []
+                ).map((slot) => ({
+                  ...slot,
+                  delivery_slot: slot.delivery_slot || "",
+                }))
               : [],
           },
         })),
@@ -330,7 +346,7 @@ const Settings = () => {
         </Box>
       ) : (
         <Box>
-          <Typography variant="h5" gutterBottom>
+          <Typography variant="h5" gutterBottom fontWeight={600}>
             Settings
           </Typography>
           <Grid container spacing={4}>
@@ -348,7 +364,23 @@ const Settings = () => {
                 stores={stores}
                 selectedStore={selectedStore}
                 setSelectedStore={setSelectedStore}
+                disabled={stores.length === 0}
               />
+              {stores.length === 0 && (
+                <Paper
+                  style={{
+                    padding: 5,
+                    paddingLeft: 20,
+                    marginBottom: 20,
+                    marginTop: 20,
+                    backgroundColor: "#eccdcda1",
+                  }}
+                >
+                  <p style={{ color: "red", fontWeight: "bold" }}>
+                    ⚠️ Please add a store first to configure settings.
+                  </p>
+                </Paper>
+              )}
             </Grid>
             <Grid item xs={12} md={8}>
               {loading ? (
@@ -374,6 +406,7 @@ const Settings = () => {
                     handleDeliveryTimeChange={handleDeliveryTimeChange}
                     handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
                     duration={duration}
+                    disabled={stores.length === 0}
                   />
                   {holidayEnabled && (
                     <HolidayTable
@@ -381,6 +414,7 @@ const Settings = () => {
                       handleAddHoliday={handleAddHoliday}
                       handleRemoveHoliday={handleRemoveHoliday}
                       handleHolidayChange={handleHolidayChange}
+                      disabled={stores.length === 0}
                     />
                   )}
                 </>
