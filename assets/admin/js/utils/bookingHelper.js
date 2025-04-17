@@ -90,3 +90,8 @@ export const callToDeleteItems = async (ids) => {
     toast.error("Delete failed!");
   }
 };
+
+export const getForgotPasswordUrl = () =>{ 
+  const loginForm = document.getElementById("custom-login-form");
+  return loginForm.dataset.forgot_url;
+}

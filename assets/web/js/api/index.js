@@ -25,4 +25,7 @@ export const webApi = {
   async login(params) {
     return await makeRequest('/zippy-signin', params, 'POST');
   },
+  async checkSlotDelivery(params) {
+    return await makeRequest('/slot', params);
+  },
 };

@@ -89,7 +89,7 @@ class Zippy_Booking_Web
 
   public function login_form() 
   {
-    return '<div id="custom-login-form"></div>';
+    return '<div id="custom-login-form" data-forgot_url="'. esc_url(wp_login_url()).'?action=lostpassword' .'"></div>';
   }
   
   function zippy_add_shortcode_to_checkout() {
