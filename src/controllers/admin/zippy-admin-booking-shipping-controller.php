@@ -179,9 +179,7 @@ class Zippy_Admin_Booking_Shipping_Controller
     public static function check_for_remaining_slots(WP_REST_Request $request){
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"],
-            "product_id" => ["required" => true, "data_type" => "number"],
             "billing_date" => ["required" => true, "data_type" => "date"],
-            "billing_time" => ["required" => true, "data_type" => "string"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -193,7 +191,6 @@ class Zippy_Admin_Booking_Shipping_Controller
         $outlet_id = $request["outlet_id"];
         $product_id   = $request->get_param( 'product_id' );
         $billing_date = $request->get_param( 'billing_date' );
-        $billing_time = $request->get_param( 'billing_time' );
         $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
         $week_day = $date_obj->format('w'); // 0 (Sun) -> 6 (Sat)
         try {
@@ -213,36 +210,19 @@ class Zippy_Admin_Booking_Shipping_Controller
                 return Zippy_Response_Handler::error("Operating hour config not Exist!");
             }
 
-            $order_ids = $wpdb->get_col(
-                "SELECT DISTINCT order_id
-                FROM {$wpdb->prefix}woocommerce_order_items AS oi
-                INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS oim ON oi.order_item_id = oim.order_item_id
-                WHERE oi.order_item_type = 'line_item'
-                AND oim.meta_key = '_product_id'
-                AND oim.meta_value = $product_id"
-            );
-
             $orders = []; 
 
-            if (!empty($order_ids)) {
-                $orders = wc_get_orders([
-                    'status' => "wc-processing",
-                    'limit' => -1,
-                    'post__in' => $order_ids,
-                    'meta_query' => [
-                        [
-                            'key' => '_billing_date',
-                            'value' => $billing_date,
-                            'compare' => '='
-                        ],
-                        [
-                            'key' => '_billing_time',
-                            'value' => $billing_time,
-                            'compare' => '='
-                        ]
+            $orders = wc_get_orders([
+                'status' => "any",
+                'limit' => -1,
+                'meta_query' => [
+                    [
+                        'key' => '_billing_date',
+                        'value' => $billing_date,
+                        'compare' => '='
                     ]
-                ]);          
-            }
+                ]
+            ]);   
 
             if(empty($orders)){
                 return Zippy_Response_Handler::error('No order found!');
@@ -296,7 +276,7 @@ class Zippy_Admin_Booking_Shipping_Controller
                 return Zippy_Response_Handler::error('No operating hours found for the specified date');
             }
 
-            return Zippy_Response_Handler::success($filtered_hours);
+            return Zippy_Response_Handler::success($filtered_hours["delivery"]["delivery_hours"]);
         } catch (\Throwable $th) {
             
         }
