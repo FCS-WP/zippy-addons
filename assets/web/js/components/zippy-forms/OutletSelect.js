@@ -20,6 +20,7 @@ import {
 } from "../../helper/datetime";
 import { convertTime24to12 } from "../../../../admin/js/utils/dateHelper";
 import OutletContext from "../../contexts/OutletContext";
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -48,7 +49,8 @@ const OutletSelect = ({
   const [mapRoute, setMapRoute] = useState(null);
   const [times, setTimes] = useState();
 
-  const handleTimes = () => {
+  const handleTimes = async () => {
+   
     let configTime = [];
     if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) {
       setSelectedTime("");
@@ -67,9 +69,9 @@ const OutletSelect = ({
           setTimes(configTime);
           return false;
         }
-        configTime = getAvailableDeliveryTimes(
-          openingHours.delivery.delivery_hours
-        );
+        // call Api Here
+        const deliverySlots = await handleCheckSlot();
+        configTime = getAvailableDeliveryTimes(deliverySlots);
         break;
       case "takeaway":
         if (!selectedOutlet.takeaway) {
@@ -151,9 +153,23 @@ const OutletSelect = ({
     }
   }, [selectedLocation, selectedOutlet]);
 
+  const handleCheckSlot = async () => {
+    const params = {
+      billing_date: format(selectedDate, "yyyy-MM-dd"),
+      outlet_id: selectedOutlet.id,
+    };
+    
+    const { data: response } = await webApi.checkSlotDelivery(params);
+    if (!response || response.status !== 'success') {
+      return [];
+    }
+    return response.data.delivery_hours;
+  };
+
   useEffect(() => {
     handleTimes();
     onChangeData(null);
+    return () => {};
   }, [selectedDate]);
 
   useEffect(() => {
@@ -168,6 +184,37 @@ const OutletSelect = ({
       clearOldData();
     };
   }, []);
+
+  const RenderTimeSlot = ({ time, type }) => {
+    return (
+      <>
+        {type == "delivery" ? (
+          <>
+            <Box
+              display={"flex"}
+              width={"100%"}
+              justifyContent={"space-between"}
+            >
+              <Typography fontSize={14}>
+                {convertTime24to12(time.from) +
+                  " - " +
+                  convertTime24to12(time.to)}
+              </Typography>
+              {time.delivery_slot && (
+                <Typography fontSize={14} color="warning">
+                  {time.delivery_slot} slots remaining
+                </Typography>
+              )}
+            </Box>
+          </>
+        ) : (
+          <Typography fontSize={14}>
+            {convertTime24to12(time.from) + " - " + convertTime24to12(time.to)}
+          </Typography>
+        )}
+      </>
+    );
+  };
 
   return (
     <Box className="outlet-selects" mt={2}>
@@ -228,7 +275,7 @@ const OutletSelect = ({
                   convertTime24to12(selectedTime.to)
                 : ""}
             </h5>
-            <CustomSelect
+            {times.length > 0 ? (  <CustomSelect
               id="delivery-time"
               size="small"
               value={selectedTime}
@@ -248,14 +295,19 @@ const OutletSelect = ({
               {times &&
                 times.map((time, index) => (
                   <MenuItem key={index} value={time}>
-                    <Typography fontSize={14}>
-                      {convertTime24to12(time.from) +
-                        " - " +
-                        convertTime24to12(time.to)}
-                    </Typography>
+                    <RenderTimeSlot time={time} type={type} />
                   </MenuItem>
                 ))}
             </CustomSelect>
+          ) : (
+            <Box display={'flex'} alignItems={'center'} justifyContent={'center'}>
+              <WarningAmberIcon color="warning" /> 
+              <Typography fontWeight={600} fontSize={14}>
+                Today is fully booked. Please select another date.
+              </Typography>
+            </Box>
+          )}
+          
           </FormControl>
         </Box>
       )}

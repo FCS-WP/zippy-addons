@@ -20,6 +20,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { toast } from "react-toastify";
 import { webApi } from "../../api";
+import { getForgotPasswordUrl } from "../../../../admin/js/utils/bookingHelper";
 
 const AuthDialog = ({ open, onClose }) => {
   const [tab, setTab] = useState(0);
@@ -72,10 +73,14 @@ const AuthDialog = ({ open, onClose }) => {
       confirm_password: confirmPassword,
     };
     const response = await webApi.registerAccount(registerData);
-    if (!response || response?.data.status !== 'success') {
-      toast.error(response?.data.message ?? "Can not rigister account now. Please try again later!");
+    if (!response || response?.data.status !== "success") {
+      toast.error(
+        response?.data.message ??
+          "Can not rigister account now. Please try again later!"
+      );
       return;
     }
+    setTab(0);
     toast.success("Account created successfully.");
     return;
   };
@@ -92,7 +97,7 @@ const AuthDialog = ({ open, onClose }) => {
     };
 
     const response = await webApi.login(loginData);
-    if (!response || response?.data?.status !== 'success') {
+    if (!response || response?.data?.status !== "success") {
       toast.error(response?.data.message ?? "Failed to login");
       return;
     }
@@ -103,7 +108,11 @@ const AuthDialog = ({ open, onClose }) => {
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={(event, reason) => {
+        if (reason !== "backdropClick") {
+          onClose(event);
+        }
+      }}
       maxWidth="xs"
       fullWidth
       className="custom-input"
@@ -302,7 +311,7 @@ const AuthDialog = ({ open, onClose }) => {
                 </Grid2>
               </Grid2>
               <Typography my={3} fullWidth textAlign={"end"}>
-                <a href="#">Forgotten Passowrd?</a>
+                <a href={getForgotPasswordUrl()}>Forgotten Passowrd?</a>
               </Typography>
               <Box
                 display={"flex"}
