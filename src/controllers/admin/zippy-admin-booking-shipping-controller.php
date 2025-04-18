@@ -224,9 +224,9 @@ class Zippy_Admin_Booking_Shipping_Controller
                 ]
             ]);   
 
-            if(empty($orders)){
-                return Zippy_Response_Handler::error('No order found!');
-            }
+            // if(empty($orders)){
+            //     return Zippy_Response_Handler::error('No order found!');
+            // }
 
             foreach ($orders as $order) {
                 $order_billing_date = $order->get_meta('_billing_date');
@@ -251,17 +251,17 @@ class Zippy_Admin_Booking_Shipping_Controller
                     if ($day['week_day'] == $order_week_day) {
                         // compare with delivery_hours
                         foreach ($day['delivery']['delivery_hours'] as &$slot) {
+                            $slot['remaining_slot'] = $slot['delivery_slot'];
                             if ($slot['from'] === $order_time_slot['from'] && $slot['to'] === $order_time_slot['to']) {
                                 // -1 delivery_slot
-                                $current_slot = (int)$slot['delivery_slot'];
+                                $current_slot = (int)$slot['remaining_slot'];
                                 if ($current_slot > 0) {
-                                    $slot['delivery_slot'] = (string)($current_slot - 1);
+                                    $slot['remaining_slot'] = (string)($current_slot - 1);
                                 }
                             }
                         }
                     }
                 }
-                unset($day, $slot);
             }
 
             $filtered_hours = null;
@@ -276,9 +276,10 @@ class Zippy_Admin_Booking_Shipping_Controller
                 return Zippy_Response_Handler::error('No operating hours found for the specified date');
             }
 
-            return Zippy_Response_Handler::success($filtered_hours["delivery"]["delivery_hours"]);
+            return Zippy_Response_Handler::success(["delivery_hours" => $filtered_hours["delivery"]["delivery_hours"]]);
         } catch (\Throwable $th) {
-            
+            error_log('Error in check_for_remaining_slots: ' . $th->getMessage());
+            return Zippy_Response_Handler::error('An error occurred: ' . $th->getMessage());
         }
     }
 }
