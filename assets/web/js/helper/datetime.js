@@ -272,7 +272,7 @@ export const isCloseDate = (date, closedDays, closedDates) => {
 
 export const getAvailableDeliveryTimes = (deliveryHours) => {
   const availableTimes = deliveryHours.filter((item) => {
-    if (item.slots_remaining > 0) {
+    if (parseInt(item.delivery_slot) > 0) {
       return item.from && item.to;
     }
   });

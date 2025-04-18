@@ -71,8 +71,7 @@ const OutletSelect = ({
         }
         // call Api Here
         const deliverySlots = await handleCheckSlot();
-
-        configTime = getAvailableDeliveryTimes(test_delivery_hours);
+        configTime = getAvailableDeliveryTimes(deliverySlots);
         break;
       case "takeaway":
         if (!selectedOutlet.takeaway) {
@@ -159,9 +158,9 @@ const OutletSelect = ({
       billing_date: format(selectedDate, "yyyy-MM-dd"),
       outlet_id: selectedOutlet.id,
     };
-
-    const response = await webApi.checkSlotDelivery(params);
-    if (!response?.data || response.data.status !== 'success') {
+    
+    const { data: response } = await webApi.checkSlotDelivery(params);
+    if (!response || response.status !== 'success') {
       return [];
     }
     return response.data.delivery_hours;
@@ -201,9 +200,11 @@ const OutletSelect = ({
                   " - " +
                   convertTime24to12(time.to)}
               </Typography>
-              <Typography fontSize={14} color="warning">
-                {time.slots_remaining} slots remaining
-              </Typography>
+              {time.delivery_slot && (
+                <Typography fontSize={14} color="warning">
+                  {time.delivery_slot} slots remaining
+                </Typography>
+              )}
             </Box>
           </>
         ) : (
