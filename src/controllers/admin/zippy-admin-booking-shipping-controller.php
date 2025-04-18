@@ -285,7 +285,6 @@ class Zippy_Admin_Booking_Shipping_Controller
             unset($slot);
             return Zippy_Response_Handler::success(["delivery_hours" => $response_data["delivery"]["delivery_hours"]]);
         } catch (\Throwable $th) {
-            error_log('Error in check_for_remaining_slots: ' . $th->getMessage());
             return Zippy_Response_Handler::error('An error occurred: ' . $th->getMessage());
         }
     }
