@@ -8,6 +8,7 @@ use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_Booking\Src\App\Models\Zippy_Log_Action;
 use Zippy_Booking\Src\Services\One_Map_Api;
 use DateTime;
+use WP_Query;
 
 defined('ABSPATH') or die();
 
@@ -189,7 +190,6 @@ class Zippy_Admin_Booking_Shipping_Controller
 
 
         $outlet_id = $request["outlet_id"];
-        $product_id   = $request->get_param( 'product_id' );
         $billing_date = $request->get_param( 'billing_date' );
         $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
         $week_day = $date_obj->format('w'); // 0 (Sun) -> 6 (Sat)
@@ -206,40 +206,40 @@ class Zippy_Admin_Booking_Shipping_Controller
             }
 
             $operating_hours = maybe_unserialize($outlets[0]->operating_hours);
+
             if(empty($operating_hours)){
                 return Zippy_Response_Handler::error("Operating hour config not Exist!");
             }
 
-            $orders = []; 
-
-            $orders = wc_get_orders([
-                'status' => "any",
-                'limit' => -1,
-                'meta_query' => [
+            $args = [
+                'post_type'   => 'shop_order_placehold',
+                'post_status' => 'any',
+                'meta_query'  => [
                     [
-                        'key' => '_billing_date',
-                        'value' => $billing_date,
+                        'key'     => '_billing_date',
+                        'value'   => $billing_date,
                         'compare' => '='
                     ]
-                ]
-            ]);   
-
-            // if(empty($orders)){
-            //     return Zippy_Response_Handler::error('No order found!');
-            // }
+                ],
+                'posts_per_page' => -1,
+            ];
+    
+            $query = new WP_Query($args);
+            $orders = $query->posts;
 
             foreach ($orders as $order) {
-                $order_billing_date = $order->get_meta('_billing_date');
-                $order_billing_time = $order->get_meta('_billing_time');
-    
+                $order_id = $order->ID;
+                $order_billing_date = get_post_meta($order_id, '_billing_date', true);
+                $order_billing_time = get_post_meta($order_id, '_billing_time', true);
+
                 // _billing_date to week_day
                 $order_date_obj = DateTime::createFromFormat('Y-m-d', $order_billing_date);
                 if ($order_date_obj) {
                     $order_week_day = $order_date_obj->format('w');
                 }
-    
+
                 // _billing_time to {from, to}
-                if (preg_match('/From (\d{2}:\d{2}):\d{2} To (\d{2}:\d{2}):\d{2}/', $order_billing_time, $matches)) {
+                if (preg_match('/From (\d{2}:\d{2}(?::\d{2})?) To (\d{2}:\d{2}(?::\d{2})?)/', $order_billing_time, $matches)) {
                     $order_time_slot = [
                         'from' => $matches[1], // HH:MM
                         'to' => $matches[2]    // HH:MM
@@ -251,17 +251,18 @@ class Zippy_Admin_Booking_Shipping_Controller
                     if ($day['week_day'] == $order_week_day) {
                         // compare with delivery_hours
                         foreach ($day['delivery']['delivery_hours'] as &$slot) {
-                            $slot['remaining_slot'] = $slot['delivery_slot'];
-                            if ($slot['from'] === $order_time_slot['from'] && $slot['to'] === $order_time_slot['to']) {
+                            if ($slot['from'] == $order_time_slot['from'] && $slot['to'] == $order_time_slot['to']) {
                                 // -1 delivery_slot
-                                $current_slot = (int)$slot['remaining_slot'];
+                                $current_slot = (int)$slot['delivery_slot'];
+
                                 if ($current_slot > 0) {
-                                    $slot['remaining_slot'] = (string)($current_slot - 1);
+                                    $slot['delivery_slot'] = (string)($current_slot - 1);
                                 }
                             }
                         }
                     }
                 }
+                unset($day, $slot); // Xóa tham chiếu
             }
 
             $filtered_hours = null;
@@ -271,11 +272,17 @@ class Zippy_Admin_Booking_Shipping_Controller
                     break;
                 }
             }
-
+            
             if ($filtered_hours === null) {
                 return Zippy_Response_Handler::error('No operating hours found for the specified date');
             }
 
+            $response_data = $filtered_hours;
+            foreach ($response_data['delivery']['delivery_hours'] as &$slot) {
+                $slot['remaining_slot'] = $slot['delivery_slot'];
+                unset($slot['delivery_slot']);
+            }
+            unset($slot);
             return Zippy_Response_Handler::success(["delivery_hours" => $filtered_hours["delivery"]["delivery_hours"]]);
         } catch (\Throwable $th) {
             error_log('Error in check_for_remaining_slots: ' . $th->getMessage());
