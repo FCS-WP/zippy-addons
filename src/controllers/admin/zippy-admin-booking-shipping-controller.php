@@ -262,7 +262,7 @@ class Zippy_Admin_Booking_Shipping_Controller
                         }
                     }
                 }
-                unset($day, $slot); // Xóa tham chiếu
+                unset($day, $slot);
             }
 
             $filtered_hours = null;
