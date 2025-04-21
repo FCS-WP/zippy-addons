@@ -193,6 +193,7 @@ class Zippy_Admin_Booking_Shipping_Controller
         $billing_date = $request->get_param( 'billing_date' );
         $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
         $week_day = $date_obj->format('w'); // 0 (Sun) -> 6 (Sat)
+
         try {
             global $wpdb;
             
@@ -211,81 +212,75 @@ class Zippy_Admin_Booking_Shipping_Controller
                 return Zippy_Response_Handler::error("Operating hour config not Exist!");
             }
 
+
+            $day_hours = null;
+            foreach ($operating_hours as $day) {
+                if ($day["week_day"] == $week_day) {
+                    $day_hours = $day;
+                    break;
+                }
+            }
+
+            if ($day_hours == null) {
+                return Zippy_Response_Handler::error("No operating hours found for the specified date");
+            }
+
+            // Parse config slot to "From ... To ..." format
+            $config_slot_arr = [];
+            $delivery_hours = $day_hours["delivery"]["delivery_hours"];
+            foreach ($delivery_hours as $slot) {
+                $config_slot = "From " . $slot["from"] . " To " . $slot["to"];
+                $config_slot_arr[] = $config_slot;
+            }
+
+            // Get orders by billing_date
             $args = [
-                'post_type'   => 'shop_order_placehold',
-                'post_status' => 'any',
-                'meta_query'  => [
+                "post_type" => "shop_order_placehold",
+                "post_status" => "any",
+                "meta_query" => [
                     [
-                        'key'     => '_billing_date',
-                        'value'   => $billing_date,
-                        'compare' => '='
+                        "key" => "_billing_date",
+                        "value" => $billing_date,
+                        "compare" => "="
                     ]
                 ],
-                'posts_per_page' => -1,
+                "posts_per_page" => -1,
             ];
     
             $query = new WP_Query($args);
             $orders = $query->posts;
 
+            // Calculate delivery_slot
             foreach ($orders as $order) {
                 $order_id = $order->ID;
-                $order_billing_date = get_post_meta($order_id, '_billing_date', true);
-                $order_billing_time = get_post_meta($order_id, '_billing_time', true);
+                $order_billing_time = get_post_meta($order_id, "_billing_time", true);
+                
+                if (array_keys($config_slot_arr, $order_billing_time)) {
+                    $key = array_keys($config_slot_arr, $order_billing_time)[0];
+                    $current_slot = $delivery_hours[$key]["delivery_slot"];
 
-                // _billing_date to week_day
-                $order_date_obj = DateTime::createFromFormat('Y-m-d', $order_billing_date);
-                if ($order_date_obj) {
-                    $order_week_day = $order_date_obj->format('w');
-                }
-
-                // _billing_time to {from, to}
-                if (preg_match('/From (\d{2}:\d{2}(?::\d{2})?) To (\d{2}:\d{2}(?::\d{2})?)/', $order_billing_time, $matches)) {
-                    $order_time_slot = [
-                        'from' => $matches[1], // HH:MM
-                        'to' => $matches[2]    // HH:MM
-                    ];
-                }
-
-                // compare with operating_hours
-                foreach ($operating_hours as &$day) {
-                    if ($day['week_day'] == $order_week_day) {
-                        // compare with delivery_hours
-                        foreach ($day['delivery']['delivery_hours'] as &$slot) {
-                            if ($slot['from'] == $order_time_slot['from'] && $slot['to'] == $order_time_slot['to']) {
-                                // -1 delivery_slot
-                                $current_slot = (int)$slot['delivery_slot'];
-
-                                if ($current_slot > 0) {
-                                    $slot['delivery_slot'] = (string)($current_slot - 1);
-                                }
-                            }
-                        }
+                    // -1 delivery_slot
+                    if ($current_slot > 0) {
+                        $delivery_hours[$key]["delivery_slot"] = (string)($current_slot - 1);
                     }
                 }
-                unset($day, $slot);
             }
 
-            $filtered_hours = null;
-            foreach ($operating_hours as $day) {
-                if ($day['week_day'] == $week_day) {
-                    $filtered_hours = $day;
-                    break;
-                }
-            }
-            
-            if ($filtered_hours === null) {
-                return Zippy_Response_Handler::error('No operating hours found for the specified date');
+
+            // Parse response_data
+            $response_data = [];
+
+            foreach ($delivery_hours as $slot) {
+                $response_data[] = [
+                    "from" => $slot["from"],
+                    "to"=> $slot["to"],
+                    "remaining_slot" => $slot["delivery_slot"],
+                ];
             }
 
-            $response_data = $filtered_hours;
-            foreach ($response_data['delivery']['delivery_hours'] as &$slot) {
-                $slot['remaining_slot'] = $slot['delivery_slot'];
-                unset($slot['delivery_slot']);
-            }
-            unset($slot);
-            return Zippy_Response_Handler::success(["delivery_hours" => $response_data["delivery"]["delivery_hours"]]);
+            return Zippy_Response_Handler::success(["delivery_hours" => $response_data]);
         } catch (\Throwable $th) {
-            return Zippy_Response_Handler::error('An error occurred: ' . $th->getMessage());
+            return Zippy_Response_Handler::error("An error occurred: " . $th->getMessage());
         }
     }
 }
