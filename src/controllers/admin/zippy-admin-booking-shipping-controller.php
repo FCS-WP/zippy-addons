@@ -7,6 +7,8 @@ use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_Booking\Src\App\Models\Zippy_Log_Action;
 use Zippy_Booking\Src\Services\One_Map_Api;
+use DateTime;
+use WP_Query;
 
 defined('ABSPATH') or die();
 
@@ -170,6 +172,120 @@ class Zippy_Admin_Booking_Shipping_Controller
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
+        }
+    }
+
+
+
+    public static function check_for_remaining_slots(WP_REST_Request $request){
+        $required_fields = [
+            "outlet_id" => ["required" => true, "data_type" => "string"],
+            "billing_date" => ["required" => true, "data_type" => "date"],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+
+        $outlet_id = $request["outlet_id"];
+        $billing_date = $request->get_param( 'billing_date' );
+        $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
+        $week_day = $date_obj->format('w'); // 0 (Sun) -> 6 (Sat)
+        try {
+            global $wpdb;
+            
+            // check if outlet exist
+            $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
+            $query = "SELECT * FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
+            $outlets = $wpdb->get_results($query);
+
+            if(count($outlets) < 1){
+                return Zippy_Response_Handler::error("Outlet not exist");
+            }
+
+            $operating_hours = maybe_unserialize($outlets[0]->operating_hours);
+
+            if(empty($operating_hours)){
+                return Zippy_Response_Handler::error("Operating hour config not Exist!");
+            }
+
+            $args = [
+                'post_type'   => 'shop_order_placehold',
+                'post_status' => 'any',
+                'meta_query'  => [
+                    [
+                        'key'     => '_billing_date',
+                        'value'   => $billing_date,
+                        'compare' => '='
+                    ]
+                ],
+                'posts_per_page' => -1,
+            ];
+    
+            $query = new WP_Query($args);
+            $orders = $query->posts;
+
+            foreach ($orders as $order) {
+                $order_id = $order->ID;
+                $order_billing_date = get_post_meta($order_id, '_billing_date', true);
+                $order_billing_time = get_post_meta($order_id, '_billing_time', true);
+
+                // _billing_date to week_day
+                $order_date_obj = DateTime::createFromFormat('Y-m-d', $order_billing_date);
+                if ($order_date_obj) {
+                    $order_week_day = $order_date_obj->format('w');
+                }
+
+                // _billing_time to {from, to}
+                if (preg_match('/From (\d{2}:\d{2}(?::\d{2})?) To (\d{2}:\d{2}(?::\d{2})?)/', $order_billing_time, $matches)) {
+                    $order_time_slot = [
+                        'from' => $matches[1], // HH:MM
+                        'to' => $matches[2]    // HH:MM
+                    ];
+                }
+
+                // compare with operating_hours
+                foreach ($operating_hours as &$day) {
+                    if ($day['week_day'] == $order_week_day) {
+                        // compare with delivery_hours
+                        foreach ($day['delivery']['delivery_hours'] as &$slot) {
+                            if ($slot['from'] == $order_time_slot['from'] && $slot['to'] == $order_time_slot['to']) {
+                                // -1 delivery_slot
+                                $current_slot = (int)$slot['delivery_slot'];
+
+                                if ($current_slot > 0) {
+                                    $slot['delivery_slot'] = (string)($current_slot - 1);
+                                }
+                            }
+                        }
+                    }
+                }
+                unset($day, $slot);
+            }
+
+            $filtered_hours = null;
+            foreach ($operating_hours as $day) {
+                if ($day['week_day'] == $week_day) {
+                    $filtered_hours = $day;
+                    break;
+                }
+            }
+            
+            if ($filtered_hours === null) {
+                return Zippy_Response_Handler::error('No operating hours found for the specified date');
+            }
+
+            $response_data = $filtered_hours;
+            foreach ($response_data['delivery']['delivery_hours'] as &$slot) {
+                $slot['remaining_slot'] = $slot['delivery_slot'];
+                unset($slot['delivery_slot']);
+            }
+            unset($slot);
+            return Zippy_Response_Handler::success(["delivery_hours" => $response_data["delivery"]["delivery_hours"]]);
+        } catch (\Throwable $th) {
+            return Zippy_Response_Handler::error('An error occurred: ' . $th->getMessage());
         }
     }
 }

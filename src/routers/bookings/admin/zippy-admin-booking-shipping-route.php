@@ -37,5 +37,13 @@ class Zippy_Admin_Booking_Shipping_Route extends Zippy_Booking_Router
             'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'delete_shipping_config'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         )); 
+
+
+        // GET Remain delivery slot
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/slot', array(
+            'methods' => 'GET',
+            'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'check_for_remaining_slots'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        )); 
     }
 }
