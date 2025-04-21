@@ -248,14 +248,22 @@ class Zippy_Admin_Booking_Shipping_Controller
             ];
     
             $query = new WP_Query($args);
+
             $orders = $query->posts;
 
+
+            $allowed_status = [
+                "pending",
+                "processing"
+            ];
+            
             // Calculate delivery_slot
             foreach ($orders as $order) {
                 $order_id = $order->ID;
+                $order = wc_get_order( $order_id );
                 $order_billing_time = get_post_meta($order_id, "_billing_time", true);
-                
-                if (array_keys($config_slot_arr, $order_billing_time)) {
+
+                if (array_keys($config_slot_arr, $order_billing_time) && in_array($order->get_status(), $allowed_status)) {
                     $key = array_keys($config_slot_arr, $order_billing_time)[0];
                     $current_slot = $delivery_hours[$key]["delivery_slot"];
 
