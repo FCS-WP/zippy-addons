@@ -95,7 +95,7 @@ class Zippy_Admin_Booking_Location_Controller
             $route_summary = $api["route_summary"];
 
             if (empty($route_summary)) {
-                return Zippy_Response_Handler::error("Get distance failed");
+                return Zippy_Response_Handler::error($api["message"]);
             }
 
             $total_distance = $route_summary["total_distance"];
