@@ -8,145 +8,150 @@
 
 namespace Zippy_Booking\Src\Services;
 
-
-
 use Zippy_Booking\Utils\Zippy_Utils_Core;
 
 class One_Map_Api
 {
-    public static function call($method, $endpoint, $param)
-    {   
-        static $interval = 0;
+	const AUTH_ENDPOINT = '/api/auth/post/getToken';
+	const TIMEOUT = 10;
 
-        $interval++;
+	public static function call(string $method, string $endpoint, array $params = [])
+	{
+		$url = ONEMAP_API_URL . $endpoint;
+		$access_token = Zippy_Utils_Core::decrypt_data_input(get_option(ONEMAP_ACCESS_TOKEN_KEY));
 
-        if ($interval > 5) {
-            return [
-                "status_message"=> "Request timeout!",
-            ];
-        }
+		if (!$access_token) {
+			return ['error' => 'Access token not found'];
+		}
 
-        $is_access_token_expired = false;
+		$response = self::sendRequest($method, $url, $params, $access_token);
 
-        $url = ONEMAP_API_URL . $endpoint;
+		// Check if token is expired
+		if (isset($response['status']) && $response['status'] == 401) {
+			$new_token = self::refreshAccessToken();
 
-        $access_token = get_option(ONEMAP_ACCESS_TOKEN_KEY);
+			if (isset($new_token['error'])) {
+				return $new_token; // Return the error
+			}
 
-        $access_token = Zippy_Utils_Core::decrypt_data_input($access_token);
+			$response = self::sendRequest($method, $url, $params, $new_token['access_token']);
+		}
 
-        if ($access_token == false){
-            return [
-                "error"=> "access_token not found",
-            ];
-        }
+		return $response;
+	}
 
-        $curl = curl_init();
-        $curl_opts = [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_HTTPHEADER => array(
-                "Authorization: Bearer " . $access_token,
-            ),
-        ];
+	/**
+	 * Send the actual cURL request
+	 */
+	private static function sendRequest(string $method, string $url, array $params, string $access_token)
+	{
+		$curl = curl_init();
 
-        // prepare data
-        if (count($param) > 0) {
-            switch ($method) {
-                case "POST":
-                case "PUT":
-                case "DELETE":
-                    $curl_opts[CURLOPT_POSTFIELDS] = json_encode($param);
-                    break;
-                    
-                case "GET":
-                    $curl_opts[CURLOPT_URL] = $url . "?" . http_build_query($param);
-                    break;
-            }
-        }
+		$curl_opts = [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => '',
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => self::TIMEOUT,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => $method,
+			CURLOPT_HTTPHEADER => [
+				"Authorization: Bearer $access_token",
+				"Content-Type: application/json"
+			],
+		];
 
+		// Add params based on method
+		switch (strtoupper($method)) {
+			case 'POST':
+			case 'PUT':
+			case 'DELETE':
+				$curl_opts[CURLOPT_POSTFIELDS] = json_encode($params);
+				break;
 
-        curl_setopt_array($curl, $curl_opts);
-        $response = curl_exec($curl);
-        curl_close($curl);
+			case 'GET':
+				if (!empty($params)) {
+					$url .= '?' . http_build_query($params);
+				}
+				break;
+		}
 
-        $curl_res = json_decode($response, true);
+		$curl_opts[CURLOPT_URL] = $url;
+		curl_setopt_array($curl, $curl_opts);
 
-        
-        // if access_token expired
-        if(isset($curl_res["status"]) && $curl_res["status"] == 401){
+		$response = curl_exec($curl);
+		$error = curl_error($curl);
+		curl_close($curl);
 
-            // onemap credentials
-            $one_map_credentials = get_option(ONEMAP_META_KEY);
+		if ($error) {
+			return ['error' => 'cURL Error: ' . $error];
+		}
 
-            $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
-            if($credentials_json == false){
-                return [
-                    "error"=> "No credentials found",
-                ];
-            }
-            $credentials = json_decode($credentials_json, true);
-            $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
+		return json_decode($response, true);
+	}
 
-            // re-authen
-            $authen = self::authentication($credentials);
-            if(isset($authen["error"])){
-                return $authen;
-            }
-            
-            // update access_token
-            update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
+	/**
+	 * Refresh access token when expired
+	 */
+	private static function refreshAccessToken()
+	{
+		$credentials_encrypted = get_option(ONEMAP_META_KEY);
+		$credentials_json = Zippy_Utils_Core::decrypt_data_input($credentials_encrypted);
 
-            $is_access_token_expired = true;
-        }
+		if (!$credentials_json) {
+			return ['error' => 'No credentials found'];
+		}
 
-        // re-call API
-        if($is_access_token_expired == true){
-            self::call($method, $endpoint, $param);
-        }
-        return $curl_res;
-    }
+		$credentials = json_decode($credentials_json, true);
+		$credentials['password'] = Zippy_Utils_Core::decrypt_data_input($credentials['password']);
 
-    public static function authentication($settings){
+		$auth_response = self::authenticate($credentials);
 
-        $url = ONEMAP_API_URL . "/api/auth/post/getToken";
-        $curl = curl_init();
+		if (!isset($auth_response['access_token'])) {
+			return ['error' => 'Authentication failed'];
+		}
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_POSTFIELDS => json_encode($settings),
-            CURLOPT_HTTPHEADER => array(
-                "Content-Type: application/json"
-            ),
-        ));
-    
-        $response = curl_exec($curl);
-        curl_close($curl);
-        return json_decode($response, true);
-    }
+		update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($auth_response['access_token']));
 
+		return $auth_response;
+	}
 
-    public static function get($endpoint, $param){
-        $get = self::call("GET", $endpoint, $param);
-        return $get;
-    }
+	/**
+	 * Authentication with OneMap
+	 */
+	private static function authenticate(array $credentials)
+	{
+		$url = ONEMAP_API_URL . self::AUTH_ENDPOINT;
 
+		$curl = curl_init();
+		curl_setopt_array($curl, [
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_CUSTOMREQUEST => 'POST',
+			CURLOPT_POSTFIELDS => json_encode($credentials),
+			CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+			CURLOPT_TIMEOUT => self::TIMEOUT,
+		]);
 
-    public static function post($endpoint, $param){
-        $get = self::call("POST", $endpoint, $param);
-        return $get;
-    }
+		$response = curl_exec($curl);
+		curl_close($curl);
 
+		return json_decode($response, true);
+	}
+
+	/**
+	 * GET
+	 */
+	public static function get(string $endpoint, array $params = [])
+	{
+		return self::call('GET', $endpoint, $params);
+	}
+
+	/**
+	 * POST
+	 */
+	public static function post(string $endpoint, array $params = [])
+	{
+		return self::call('POST', $endpoint, $params);
+	}
 }
