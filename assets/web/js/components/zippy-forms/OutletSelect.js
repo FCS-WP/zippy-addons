@@ -1,5 +1,6 @@
 import {
   Box,
+  CircularProgress,
   FormControl,
   InputAdornment,
   MenuItem,
@@ -48,12 +49,15 @@ const OutletSelect = ({
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
   const [times, setTimes] = useState();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleTimes = async () => {
+    setIsLoading(true);
     let configTime = [];
     if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) {
       setSelectedTime("");
       setTimes(configTime);
+      setIsLoading(false);
       return false;
     }
 
@@ -66,15 +70,18 @@ const OutletSelect = ({
         if (!openingHours.delivery || openingHours.delivery.enable === "F") {
           setSelectedTime("");
           setTimes(configTime);
+          setIsLoading(false);
           return false;
         }
         const deliverySlots = await handleCheckSlot();
         configTime = getAvailableDeliveryTimes(deliverySlots);
+
         break;
       case "takeaway":
         if (!selectedOutlet.takeaway) {
           setSelectedTime("");
           setTimes(configTime);
+          setIsLoading(false);
           return false;
         }
         configTime = generateTimeSlots(
@@ -86,6 +93,7 @@ const OutletSelect = ({
         break;
     }
     setSelectedTime("");
+    setIsLoading(false);
     setTimes(configTime);
   };
 
@@ -273,47 +281,59 @@ const OutletSelect = ({
                   convertTime24to12(selectedTime.to)
                 : ""}
             </h5>
-            {times.length > 0 ? (
-              <CustomSelect
-                id="delivery-time"
-                size="small"
-                value={selectedTime}
-                onChange={handleChangeTime}
-                displayEmpty
-                startAdornment={
-                  <InputAdornment position="start" sx={{ paddingLeft: "11px" }}>
-                    <WatchLaterIcon sx={{ color: "#ec7265" }} />
-                  </InputAdornment>
-                }
-              >
-                <MenuItem value="" disabled>
-                  <Typography fontSize={14} color="#ccc">
-                    SELECT TIME
-                  </Typography>
-                </MenuItem>
-                {times &&
-                  times.map((time, index) => (
-                    <MenuItem key={index} value={time}>
-                      <RenderTimeSlot time={time} type={type} />
-                    </MenuItem>
-                  ))}
-              </CustomSelect>
-            ) : (
+            {!isLoading ? (
               <>
-                {selectedDate && (
-                  <Box
-                    display={"flex"}
-                    my={2}
-                    alignItems={"center"}
-                    justifyContent={"center"}
+                {times.length > 0 ? (
+                  <CustomSelect
+                    id="delivery-time"
+                    size="small"
+                    value={selectedTime}
+                    onChange={handleChangeTime}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment
+                        position="start"
+                        sx={{ paddingLeft: "11px" }}
+                      >
+                        <WatchLaterIcon sx={{ color: "#ec7265" }} />
+                      </InputAdornment>
+                    }
                   >
-                    <WarningAmberIcon color="warning" />
-                    <Typography fontWeight={600} fontSize={14}>
-                      Selected date is fully booked. Please select another date.
-                    </Typography>
-                  </Box>
+                    <MenuItem value="" disabled>
+                      <Typography fontSize={14} color="#ccc">
+                        SELECT TIME
+                      </Typography>
+                    </MenuItem>
+                    {times &&
+                      times.map((time, index) => (
+                        <MenuItem key={index} value={time}>
+                          <RenderTimeSlot time={time} type={type} />
+                        </MenuItem>
+                      ))}
+                  </CustomSelect>
+                ) : (
+                  <>
+                    {selectedDate && (
+                      <Box
+                        display={"flex"}
+                        my={2}
+                        alignItems={"center"}
+                        justifyContent={"center"}
+                      >
+                        <WarningAmberIcon color="warning" />
+                        <Typography fontWeight={600} fontSize={14}>
+                          Selected date is fully booked. Please select another
+                          date.
+                        </Typography>
+                      </Box>
+                    )}
+                  </>
                 )}
               </>
+            ) : (
+              <Box mb={2} display={"flex"} justifyContent={"center"}>
+                <CircularProgress color="primary" />
+              </Box>
             )}
           </FormControl>
         </Box>
