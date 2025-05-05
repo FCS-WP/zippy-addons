@@ -31,7 +31,7 @@ class One_Map_Api
         $access_token = get_option(ONEMAP_ACCESS_TOKEN_KEY);
 
         $access_token = Zippy_Utils_Core::decrypt_data_input($access_token);
-        
+
         if ($access_token == false){
             return [
                 "error"=> "access_token not found",
@@ -75,7 +75,7 @@ class One_Map_Api
         $curl_res = json_decode($response, true);
 
         // if access_token expired
-        if((isset($curl_res["status"]) && $curl_res["status"] == 401) || $curl_res["route_geometry"] == null){
+        if(isset($curl_res["status"]) && $curl_res["status"] == 401){
 
             // onemap credentials
             $one_map_credentials = get_option(ONEMAP_META_KEY);
