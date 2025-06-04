@@ -73,7 +73,7 @@ if ( ! empty( $booking_id ) ) :
 else : 
     // Default content if no booking_id
     ?>
-<p><?php printf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_email() ) ); ?></p>
+<p><?php printf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_first_name() ) ); ?></p>
     <p><?php esc_html_e( 'Thanks for your order. It’s on hold until we confirm that payment has been received.', 'woocommerce' ); ?></p>
     <?php
     do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email );
