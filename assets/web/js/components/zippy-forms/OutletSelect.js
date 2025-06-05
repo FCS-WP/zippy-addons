@@ -206,11 +206,11 @@ const OutletSelect = ({
                   " - " +
                   convertTime24to12(time.to)}
               </Typography>
-              {time.remaining_slot && (
+              {/* {time.remaining_slot && (
                 <Typography fontSize={14} color="warning">
                   {time.remaining_slot} slots remaining
                 </Typography>
-              )}
+              )} */}
             </Box>
           </>
         ) : (
