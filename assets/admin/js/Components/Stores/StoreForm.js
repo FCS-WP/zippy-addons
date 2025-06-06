@@ -33,8 +33,6 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
   const validate = () => {
     let tempErrors = {};
     if (!store.store_name) tempErrors.store_name = "Name is required";
-    if (!store.postal_code) tempErrors.postal_code = "Postal code is required";
-    if (!store.address) tempErrors.address = "Address is required";
     if (!store.phone) tempErrors.phone = "Phone number is required";
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
@@ -45,48 +43,6 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
     setStore((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePostalCodeChange = async (e) => {
-    const { value } = e.target;
-    handleChange(e);
-
-    if (value.length === 6) {
-      try {
-        const response = await fetch(
-          `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${value}&returnGeom=Y&getAddrDetails=Y&pageNum=1`
-        );
-        const data = await response.json();
-        if (data.results && data.results.length > 0) {
-          setAddressOptions(
-            data.results.map((result) => ({
-              address: result.ADDRESS,
-              latitude: result.LATITUDE,
-              longitude: result.LONGITUDE,
-            }))
-          );
-        } else {
-          setAddressOptions([]);
-        }
-      } catch (error) {
-        toast.error("Failed to fetch address.");
-        setAddressOptions([]);
-      }
-    } else {
-      setAddressOptions([]);
-    }
-  };
-
-  const handleAddressChange = (e) => {
-    const selected = addressOptions.find(
-      (option) => option.address === e.target.value
-    );
-    setSelectedAddress(selected);
-    setStore((prev) => ({
-      ...prev,
-      address: selected.address,
-      latitude: selected.latitude,
-      longitude: selected.longitude,
-    }));
-  };
 
   const handleSubmit = async () => {
     if (validate()) {
@@ -95,11 +51,11 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
         outlet_name: store.store_name,
         outlet_phone: store.phone,
         outlet_address: {
-          postal_code: store.postal_code,
-          address: store.address,
+          postal_code: "NULL",
+          address: "NULL",
           coordinates: {
-            lat: store.latitude,
-            lng: store.longitude,
+            lat: "NULL",
+            lng: "NULL",
           },
         },
       };
@@ -155,34 +111,6 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
             fullWidth
             margin="dense"
           />
-          <TextField
-            label="Postal Code"
-            name="postal_code"
-            value={store.postal_code}
-            onChange={handlePostalCodeChange}
-            error={!!errors.postal_code}
-            helperText={errors.postal_code}
-            fullWidth
-            margin="dense"
-          />
-          <FormControl fullWidth margin="dense" error={!!errors.address}>
-            <InputLabel>Choose an address</InputLabel>
-            <Select
-              name="address"
-              value={store.address}
-              onChange={handleAddressChange}
-              disabled={!addressOptions.length}
-            >
-              {addressOptions.map((option, index) => (
-                <MenuItem key={index} value={option.address}>
-                  {option.address}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.address && (
-              <Typography color="error">{errors.address}</Typography>
-            )}
-          </FormControl>
         </Box>
       </DialogContent>
       <DialogActions>
@@ -193,7 +121,7 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
           onClick={handleSubmit}
           variant="contained"
           color="primary"
-          disabled={loading || !selectedAddress}
+          disabled={loading}
         >
           {loading ? "Loading..." : "Add Store"}
         </Button>

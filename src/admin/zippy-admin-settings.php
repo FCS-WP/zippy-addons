@@ -38,10 +38,6 @@ class Zippy_Admin_Settings
     add_action('admin_enqueue_scripts', array($this, 'remove_default_stylesheets'));
     /* Register Assets Admin Part */
     add_action('admin_enqueue_scripts', array($this, 'admin_booking_assets'));
-    /* Create Zippy API Token */
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_one_map_credentials'));
-
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'get_one_map_access_token'));
   }
 
   public function admin_booking_assets()
@@ -64,13 +60,7 @@ class Zippy_Admin_Settings
   public function zippy_booking_page()
   {
     add_menu_page('Zippy Add-ons', 'Zippy Add-ons', 'manage_options', 'zippy-bookings', array($this, 'store_render'), 'dashicons-list-view', 6);
-    // SubPage
-    // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
-    // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
-    // add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
     add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
-    // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
-    // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
     add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
   }
@@ -149,37 +139,6 @@ class Zippy_Admin_Settings
         // Enqueue the stylesheet
         echo '<link rel="stylesheet" href="' . esc_url($styles_url) . '" media="all">';
       });
-    }
-  }
-
-  function create_one_map_credentials()
-  {
-    if (get_option(ONEMAP_META_KEY) == false) {
-
-      $credentials = [
-        "email" => "dev@zippy.sg",
-        "password" => Zippy_Utils_Core::encrypt_data_input("Zippy12345678@"),
-      ];
-
-      add_option(ONEMAP_META_KEY, Zippy_Utils_Core::encrypt_data_input(json_encode($credentials), true));
-    }
-  }
-  function get_one_map_access_token(){
-
-    $one_map_credentials = get_option(ONEMAP_META_KEY);
-    $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
-    if ($credentials_json == false) {
-      return [
-        "error" => "No credentials found",
-      ];
-    }
-
-    $credentials = json_decode($credentials_json, true);
-    $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
-
-    $authen = One_Map_Api::authentication($credentials);
-    if (!empty($authen["access_token"])) {
-      update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
     }
   }
 }

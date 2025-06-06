@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import HolidayTable from "../../Components/Configs/HolidayTable";
 import BookingSettings from "../../Components/Configs/BookingSettings";
 import WeekdayTable from "../../Components/Configs/WeekdayTable/WeekdayTable";
+import { format } from "date-fns";
 
 const daysOfWeek = [
   "Sunday",
@@ -29,7 +30,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [deliveryTimeEnabled, setDeliveryTimeEnabled] = useState({});
 
-  const [holidayEnabled, setHolidayEnabled] = useState(false);
+  const [holidayEnabled, setHolidayEnabled] = useState(true);
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
@@ -220,7 +221,11 @@ const Settings = () => {
     let formattedValue = value;
 
     if (key === "date" && value) {
-      formattedValue = new Date(value).toISOString().split("T")[0];
+      const [start, end] = value;
+      if (start && end) {
+        formattedValue = [format(start, 'yyyy-MM-dd'), format(end, 'yyyy-MM-dd')];
+      }
+
     }
 
     setHolidays((prevHolidays) =>
@@ -229,6 +234,10 @@ const Settings = () => {
       )
     );
   };
+
+  useEffect(()=>{
+    console.log("Holidays:", holidays)
+  }, [holidays])
 
   const handleRemoveDeliveryTimeSlot = (day, slotIndex) => {
     setdeliveryTimeSlots((prev) => {
@@ -311,11 +320,11 @@ const Settings = () => {
         })),
         closed_dates: holidays.map((holiday) => ({
           label: holiday.label,
-          value: new Date(holiday.date).toISOString().split("T")[0],
+          value: holiday.date,
         })),
         takeaway: {
           enabled: "F",
-          timeslot_duration: duration,
+          timeslot_duration: 60,
         },
       };
 
@@ -394,20 +403,6 @@ const Settings = () => {
                 </Box>
               ) : (
                 <>
-                  <WeekdayTable
-                    schedule={schedule}
-                    deliveryTimeSlots={deliveryTimeSlots}
-                    deliveryTimeEnabled={deliveryTimeEnabled}
-                    handleDeliveryToggle={handleDeliveryToggle}
-                    handleRemoveTimeSlot={handleRemoveTimeSlot}
-                    handleAddTimeSlot={handleAddTimeSlot}
-                    handleTimeChange={handleTimeChange}
-                    handleRemoveDeliveryTimeSlot={handleRemoveDeliveryTimeSlot}
-                    handleDeliveryTimeChange={handleDeliveryTimeChange}
-                    handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
-                    duration={duration}
-                    disabled={stores.length === 0}
-                  />
                   {holidayEnabled && (
                     <HolidayTable
                       holidays={holidays}
