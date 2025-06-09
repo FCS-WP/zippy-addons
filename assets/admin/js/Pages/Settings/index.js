@@ -98,7 +98,6 @@ const Settings = () => {
 
         setDeliveryTimeEnabled(deliveryEnabledByDay);
         setdeliveryTimeSlots(deliverySlotsByDay);
-        console.log("Delivery Time Slots:", deliverySlotsByDay);
 
         const fetchedSchedule = daysOfWeek.map((day, index) => {
           const daySchedule = storeWorkingTime.find(
@@ -234,10 +233,6 @@ const Settings = () => {
       )
     );
   };
-
-  useEffect(()=>{
-    console.log("Holidays:", holidays)
-  }, [holidays])
 
   const handleRemoveDeliveryTimeSlot = (day, slotIndex) => {
     setdeliveryTimeSlots((prev) => {

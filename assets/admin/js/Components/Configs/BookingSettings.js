@@ -53,7 +53,28 @@ const BookingSettings = ({
           ))}
         </Select>
       </Box>
-
+      {/* Holiday Toggle */}
+      <Box mt={2} mb={2}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={holidayEnabled}
+              onChange={(e) => {
+                const isChecked = e.target.checked;
+                setHolidayEnabled(isChecked);
+                if (!isChecked) {
+                  setHolidays([]);
+                }
+              }}
+              disabled={disabled}
+            />
+          }
+          label="Enable Holidays"
+        />
+        <Typography variant="body2" color="textSecondary">
+          Toggle to enable or disable holiday settings.
+        </Typography>
+      </Box>
       {/* Save Button */}
       <Box mt={2}>
         <Button
