@@ -224,7 +224,6 @@ const Settings = () => {
       if (start && end) {
         formattedValue = [format(start, 'yyyy-MM-dd'), format(end, 'yyyy-MM-dd')];
       }
-
     }
 
     setHolidays((prevHolidays) =>
