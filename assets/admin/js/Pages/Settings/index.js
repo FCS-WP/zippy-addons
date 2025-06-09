@@ -5,7 +5,6 @@ import { toast, ToastContainer } from "react-toastify";
 import HolidayTable from "../../Components/Configs/HolidayTable";
 import BookingSettings from "../../Components/Configs/BookingSettings";
 import WeekdayTable from "../../Components/Configs/WeekdayTable/WeekdayTable";
-import { format } from "date-fns";
 
 const daysOfWeek = [
   "Sunday",
@@ -30,7 +29,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [deliveryTimeEnabled, setDeliveryTimeEnabled] = useState({});
 
-  const [holidayEnabled, setHolidayEnabled] = useState(true);
+  const [holidayEnabled, setHolidayEnabled] = useState(false);
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
@@ -98,6 +97,7 @@ const Settings = () => {
 
         setDeliveryTimeEnabled(deliveryEnabledByDay);
         setdeliveryTimeSlots(deliverySlotsByDay);
+        console.log("Delivery Time Slots:", deliverySlotsByDay);
 
         const fetchedSchedule = daysOfWeek.map((day, index) => {
           const daySchedule = storeWorkingTime.find(
@@ -220,11 +220,7 @@ const Settings = () => {
     let formattedValue = value;
 
     if (key === "date" && value) {
-      const [start, end] = value;
-      if (start && end) {
-        formattedValue = [format(start, 'yyyy-MM-dd'), format(end, 'yyyy-MM-dd')];
-      }
-
+      formattedValue = new Date(value).toISOString().split("T")[0];
     }
 
     setHolidays((prevHolidays) =>
@@ -315,11 +311,11 @@ const Settings = () => {
         })),
         closed_dates: holidays.map((holiday) => ({
           label: holiday.label,
-          value: holiday.date,
+          value: new Date(holiday.date).toISOString().split("T")[0],
         })),
         takeaway: {
           enabled: "F",
-          timeslot_duration: 60,
+          timeslot_duration: duration,
         },
       };
 
@@ -398,6 +394,20 @@ const Settings = () => {
                 </Box>
               ) : (
                 <>
+                  <WeekdayTable
+                    schedule={schedule}
+                    deliveryTimeSlots={deliveryTimeSlots}
+                    deliveryTimeEnabled={deliveryTimeEnabled}
+                    handleDeliveryToggle={handleDeliveryToggle}
+                    handleRemoveTimeSlot={handleRemoveTimeSlot}
+                    handleAddTimeSlot={handleAddTimeSlot}
+                    handleTimeChange={handleTimeChange}
+                    handleRemoveDeliveryTimeSlot={handleRemoveDeliveryTimeSlot}
+                    handleDeliveryTimeChange={handleDeliveryTimeChange}
+                    handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
+                    duration={duration}
+                    disabled={stores.length === 0}
+                  />
                   {holidayEnabled && (
                     <HolidayTable
                       holidays={holidays}
