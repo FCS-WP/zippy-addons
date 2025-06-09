@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -43,45 +43,54 @@ const HolidayTable = ({
       <Table>
         <TableHead>
           <TableRow sx={{ backgroundColor: theme.palette.info.main }}>
-            <TableCell width="45%"><Typography>Label</Typography></TableCell>
-            <TableCell width="45%"><Typography>Date</Typography></TableCell>
+            <TableCell width="45%">
+              <Typography>Label</Typography>
+            </TableCell>
+            <TableCell width="45%">
+              <Typography>Date</Typography>
+            </TableCell>
             <TableCell width="10%"></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {holidays && holidays.length > 0 ? (
-            holidays.map((holiday, index) => (
-              <TableRow key={index}>
-                <TableCell className="holiday-label" width="45%">
-                  <TextField
-                    value={holiday.label}
-                    onChange={(e) =>
-                      handleHolidayChange(index, "label", e.target.value)
-                    }
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell className="holiday-date" width="45%">
-                  <CustomeDatePicker
-                    startDate={holiday?.date ?? new Date()}
-                    handleDateChange={(date) =>
-                      handleHolidayChange(index, "date", date)
-                    }
-                    placeholderText="Select a date"
-                    isClearable={true}
-                    selectsRange={false}
-                  />
-                </TableCell>
-                <TableCell width="10%">
-                  <IconButton
-                    color="error"
-                    onClick={() => handleRemoveHoliday(index)}
-                  >
-                    <RemoveCircleOutlineIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))
+            holidays.map((holiday, index) => {
+              const [startDate, endDate] = typeof(holiday.date) === 'object' ? holiday.date : [null, null];
+              console.log("holiday", endDate)
+              return (
+                <TableRow key={index}>
+                  <TableCell className="holiday-label" width="45%">
+                    <TextField
+                      value={holiday.label}
+                      onChange={(e) =>
+                        handleHolidayChange(index, "label", e.target.value)
+                      }
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell className="holiday-date" width="45%">
+                    <CustomeDatePicker
+                      startDate={startDate}
+                      endDate={endDate}
+                      handleDateChange={(dates) =>
+                        handleHolidayChange(index, "date", dates)
+                      }
+                      placeholderText="Select a date"
+                      isClearable={true}
+                      selectsRange={true}
+                    />
+                  </TableCell>
+                  <TableCell width="10%">
+                    <IconButton
+                      color="error"
+                      onClick={() => handleRemoveHoliday(index)}
+                    >
+                      <RemoveCircleOutlineIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           ) : (
             <TableRow>
               <TableCell colSpan={3} align="center">

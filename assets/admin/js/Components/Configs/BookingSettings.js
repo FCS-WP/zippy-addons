@@ -53,35 +53,6 @@ const BookingSettings = ({
           ))}
         </Select>
       </Box>
-
-      {/* Duration Selection */}
-      <Box mb={1}>
-        <Typography variant="body1">Duration</Typography>
-        <Select
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-          fullWidth
-          size="small"
-          sx={{
-            border: `1px solid ${theme.palette.info.main}`,
-            borderRadius: 1,
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: theme.palette.primary.main,
-            },
-          }}
-          disabled={disabled}
-        >
-          {Array.from({ length: 4 }, (_, i) => (i + 1) * 15).map((option) => (
-            <MenuItem key={option} value={option}>
-              {option} minutes
-            </MenuItem>
-          ))}
-        </Select>
-        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-          Set the duration of each booking session.
-        </Typography>
-      </Box>
-
       {/* Holiday Toggle */}
       <Box mt={2} mb={2}>
         <FormControlLabel
@@ -104,7 +75,6 @@ const BookingSettings = ({
           Toggle to enable or disable holiday settings.
         </Typography>
       </Box>
-
       {/* Save Button */}
       <Box mt={2}>
         <Button
