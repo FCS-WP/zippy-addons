@@ -35,6 +35,7 @@ class Zippy_Booking_Web
     date_default_timezone_set('Asia/Singapore');
 
     /* Init Function */
+    add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
     add_action('woocommerce_before_checkout_form', array($this, 'zippy_add_shortcode_to_checkout'));
 
     /**
@@ -53,6 +54,14 @@ class Zippy_Booking_Web
 
   public function function_init(){
     return;
+  }
+
+  public function zippy_lightbox_flatsome()
+  {
+    if (!is_admin()) {
+      echo do_shortcode('[lightbox id="takeaway" width="550px"][form_take_away][/lightbox]');
+      echo do_shortcode('[lightbox id="delivery" title="222" width="550px"][form_delivery][/lightbox]');
+    }
   }
 
   public function booking_assets()
