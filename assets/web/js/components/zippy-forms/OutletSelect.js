@@ -22,6 +22,7 @@ import {
 import { convertTime24to12 } from "../../../../admin/js/utils/dateHelper";
 import OutletContext from "../../contexts/OutletContext";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { getSelectProductId } from "../../helper/booking";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -160,9 +161,11 @@ const OutletSelect = ({
   }, [selectedLocation, selectedOutlet]);
 
   const handleCheckSlot = async () => {
-    const params = {
+    
+  const params = {
       billing_date: format(selectedDate, "yyyy-MM-dd"),
       outlet_id: selectedOutlet.id,
+      product_id: getSelectProductId()
     };
 
     const { data: response } = await webApi.checkSlotDelivery(params);

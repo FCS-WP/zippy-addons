@@ -187,6 +187,7 @@ class Zippy_Admin_Booking_Shipping_Controller
             return Zippy_Response_Handler::error($validate);
         }
 
+        $product_id = $request["product_id"];
         $outlet_id = $request["outlet_id"];
         $billing_date = $request->get_param('billing_date');
         $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
@@ -284,10 +285,12 @@ class Zippy_Admin_Booking_Shipping_Controller
                     "remaining_slot" => $slot["delivery_slot"],
                 ];
             }
-            
+
             $menu = Zippy_Booking_Helper::get_menu_for_date($billing_date);
-           
+
             if ($menu) {
+                $included_product_ids = Zippy_Booking_Helper::get_disabled_ids($menu->id);
+                $is_product_disabled = in_array($product_id, $included_product_ids);
                 $happy_slots = [];
                 $isDisabledDay = Zippy_Booking_Helper::is_disabled_date_in_menu($billing_date, $menu);
                 $menu_slots = Zippy_Booking_Helper::get_happy_hour_slots($menu);
@@ -299,10 +302,9 @@ class Zippy_Admin_Booking_Shipping_Controller
                         "is_happy_hours" => true
                     ];
                 }
-                if ($isDisabledDay) {
+
+                if ($isDisabledDay && $is_product_disabled) {
                     return Zippy_Response_Handler::success(["delivery_hours" => $happy_slots]);
-                } else {
-                    $response_data = array_merge($response_data, $happy_slots);
                 }
             }
 
