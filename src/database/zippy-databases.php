@@ -101,6 +101,7 @@ class Zippy_Databases
           start_date DATE NULL,
           end_date DATE NULL,
           days_of_week VARCHAR(255) NULL,
+          happy_hours TEXT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (id)
