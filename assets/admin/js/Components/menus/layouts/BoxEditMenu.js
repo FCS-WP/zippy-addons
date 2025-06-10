@@ -70,6 +70,7 @@ const BoxEditMenu = ({ menu }) => {
     const data = {
       id: parseInt(menu.id),
       name: menuName,
+      happy_hours: [],
       days_of_week: daysOfWeek,
       start_date: handleDateData(startDate),
       end_date: handleDateData(endDate),
@@ -80,8 +81,7 @@ const BoxEditMenu = ({ menu }) => {
       toast.error(response?.error?.message ?? "Update failed");
       return;
     }
-    toast.success("Menu Updated!");
-    refetchMenus();
+    window.location.reload();
   };
 
   const InputChangeName = ({ val, handleChangeName }) => {

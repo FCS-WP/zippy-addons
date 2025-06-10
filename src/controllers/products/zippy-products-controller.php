@@ -112,7 +112,7 @@ class Zippy_Products_Controller
 
     // Check for overlapping time ranges
     $query = $wpdb->prepare(
-      "SELECT m.name, m.start_date, m.end_date, m.days_of_week 
+      "SELECT m.name, m.start_date, m.end_date, m.days_of_week, m.happy_hours
       FROM `{$wpdb->prefix}zippy_menu_products` as pm 
       LEFT JOIN {$wpdb->prefix}zippy_menus as m ON pm.id_menu = m.id 
       WHERE pm.id_product = %s AND (m.end_date >= %s OR m.end_date IS NULL)
@@ -127,6 +127,7 @@ class Zippy_Products_Controller
     // // Decode JSON field
     foreach ($menu as $menu_row) {
       $menu_row->days_of_week = !empty($menu_row->days_of_week) ? json_decode($menu_row->days_of_week, true) : [];
+      $menu_row->happy_hours = !empty($menu_row->happy_hours) ? json_decode($menu_row->happy_hours, true) : [];
     }
 
     return $menu;

@@ -26,3 +26,9 @@ export const productListColumns = [
   "NAME",
   "ACTIONS"
 ]
+
+export const happyHoursColumns = [
+  "START TIME",
+  "END TIME",
+  "ACTIONS",
+]

@@ -286,6 +286,19 @@ const isInRange = (check, start, end) => {
   return startDate <= checkDate && checkDate <= endDate;
 };
 
+const isHappyDate = (date, happyHours) => {
+  const check = happyHours.find(happyHour => {
+    const happyStartDate = new Date(happyHour.start_time);
+    const happyEndDate = new Date(happyHour.end_time);
+    return isInRange(date, happyStartDate, happyEndDate);
+  });
+
+  if (check) {
+    return true;
+  }
+  return false;
+}
+
 const isMenuDayAvailable = (day, daysOfWeek) => {
   const dayData = daysOfWeek.find((item) => item.weekday == day);
   if (!dayData || dayData.is_available == 0) {
@@ -319,6 +332,13 @@ export const isDisabledDate = (date, selectedOutlet, menusConfig, type) => {
 
   if (!checkMenu) {
     return false;
+  }
+
+  if (checkMenu.happy_hours?.length > 0) {
+    const checkHappyDate = isHappyDate(date, checkMenu.happy_hours);
+    if (checkHappyDate) {
+      return false;
+    }
   }
 
   const checkMenuDay = isMenuDayAvailable(checkDay, checkMenu.days_of_week);

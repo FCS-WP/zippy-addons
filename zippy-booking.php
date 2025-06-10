@@ -133,6 +133,7 @@ date_default_timezone_set("Asia/Singapore");
 // Includes
  --------------------------- --------------------------------------------- */
 require ZIPPY_ADDONS_DIR_PATH . '/includes/autoload.php';
+require ZIPPY_ADDONS_DIR_PATH . '/includes/custom_get_products.php';
 
 use  Zippy_Booking\Src\Admin\Zippy_Admin_Settings;
 

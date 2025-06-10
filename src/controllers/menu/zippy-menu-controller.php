@@ -31,6 +31,7 @@ class Zippy_Menu_Controller
       'name' => sanitize_text_field($request['name']),
       'start_date' => sanitize_text_field($request['start_date']),
       'end_date' => sanitize_text_field($request['end_date']),
+      'happy_hours' => json_encode($request['happy_hours']),
       'days_of_week' => json_encode($request['days_of_week'])
     ];
   }
@@ -124,6 +125,7 @@ class Zippy_Menu_Controller
     // // Decode JSON field
     foreach ($menus as &$menu) {
       $menu->days_of_week = !empty($menu->days_of_week) ? json_decode($menu->days_of_week, true) : [];
+      $menu->happy_hours = !empty($menu->happy_hours) ? json_decode($menu->happy_hours, true) : [];
     }
 
     return empty($menus)
@@ -138,6 +140,7 @@ class Zippy_Menu_Controller
       "id" => ["data_type" => "number", "required" => true],
       "name" => ["data_type" => "string", "required" => true],
       "start_date" => ["data_type" => "date", "required" => true],
+      "happy_hours" => ["data_type" => "array", "required" => false],
       "end_date" => ["data_type" => "date", "required" => true],
       "days_of_week" => ["data_type" => "array", "required" => true],
     ], $request)) {
@@ -167,7 +170,7 @@ class Zippy_Menu_Controller
         "{$wpdb->prefix}zippy_menus",
         array_merge($data, ['updated_at' => current_time('mysql')]),
         ['id' => $id],
-        ['%s', '%s', '%s', '%s', '%s'],
+        ['%s', '%s', '%s', '%s', '%s', '%s'],
         ['%d']
       );
     });
