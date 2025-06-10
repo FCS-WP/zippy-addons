@@ -34,7 +34,7 @@ const DateTimeInput = (props) => {
       setSelectedDate(value);
     }
   }, []);
-
+  
   return (
     <>
       <DatePicker
@@ -47,7 +47,6 @@ const DateTimeInput = (props) => {
         customInput={
           <TextField
             size="small"
-            label="Select Date"
             fullWidth
             sx={{ width: "100%" }}
             autoComplete="off"

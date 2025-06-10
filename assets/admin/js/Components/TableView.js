@@ -31,6 +31,7 @@ const TableView = (props) => {
     showBookingFilter = false,
     onChangeList = () => {},
     headerElement,
+    addonsBox,
   } = props;
   const [selectedRows, setSelectedRows] = useState({});
 
@@ -142,6 +143,7 @@ const TableView = (props) => {
           </TableBody>
         </Table>
       </Box>
+      {addonsBox && (addonsBox)}
     </TableContainer>
   );
 };

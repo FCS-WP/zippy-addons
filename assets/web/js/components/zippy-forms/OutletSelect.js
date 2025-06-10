@@ -43,7 +43,7 @@ const OutletSelect = ({
   onChangeData,
   selectedLocation = null,
 }) => {
-  const { outlets, selectedOutlet, setSelectedOutlet } =
+  const { outlets, selectedOutlet, setSelectedOutlet, menusConfig } =
     useContext(OutletContext);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");

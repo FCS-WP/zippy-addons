@@ -10,10 +10,11 @@ const DateCalendar = ({ onSelectDate, defaultDate, menusConfig, selectedOutlet, 
     setSelectedDate(date);
     onSelectDate(date);
   };
+  
   let minDate = new Date();
   minDate.setDate(minDate.getDate() + 2);
   let maxDate = new Date();
-  maxDate.setMonth(maxDate.getMonth() + 1);
+  maxDate.setMonth(maxDate.getMonth() + 2);
 
   return (
     <Box className="date-box">

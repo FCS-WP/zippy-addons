@@ -9,6 +9,7 @@ use Zippy_Booking\Src\App\Models\Zippy_Log_Action;
 use Zippy_Booking\Src\Services\One_Map_Api;
 use DateTime;
 use WP_Query;
+use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 
 defined('ABSPATH') or die();
 
@@ -39,13 +40,13 @@ class Zippy_Admin_Booking_Shipping_Controller
 
             global $wpdb;
             $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
-            if(!empty($outlet_id)){
+            if (!empty($outlet_id)) {
                 $query = "SELECT * FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
             }
-            
+
             $outlet = count($wpdb->get_results($query));
 
-            if($outlet < 1){
+            if ($outlet < 1) {
                 return Zippy_Response_Handler::error("Outlet not exist");
             }
 
@@ -53,14 +54,14 @@ class Zippy_Admin_Booking_Shipping_Controller
             $table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
 
             $outlet_shipping_config_table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
-            
-            if(!empty($outlet_id)){
+
+            if (!empty($outlet_id)) {
                 $query = "SELECT * FROM $outlet_shipping_config_table_name WHERE outlet_id ='" . $outlet_id . "'";
             }
-            
+
             $outlet = count($wpdb->get_results($query));
 
-            if($outlet < 1){
+            if ($outlet < 1) {
                 $insert_data = [
                     "id" => wp_generate_uuid4(),
                     "outlet_id" => $outlet_id,
@@ -72,7 +73,7 @@ class Zippy_Admin_Booking_Shipping_Controller
                 ];
 
                 $is_insert = $wpdb->insert($table_name, $insert_data);
-                if($is_insert){
+                if ($is_insert) {
                     return Zippy_Response_Handler::success($insert_data, "Shipping Config Inserted");
                 }
             } else {
@@ -85,12 +86,11 @@ class Zippy_Admin_Booking_Shipping_Controller
                 ];
 
                 $is_updated = $wpdb->update($outlet_shipping_config_table_name, $update_data, ["outlet_id" => $outlet_id]);
-               
-                if($is_updated){
+
+                if ($is_updated) {
                     return Zippy_Response_Handler::success($update_data, "Shipping Config Updated");
                 }
             }
-
         } catch (\Throwable $th) {
 
             $message = $th->getMessage();
@@ -115,13 +115,13 @@ class Zippy_Admin_Booking_Shipping_Controller
 
             global $wpdb;
             $outlet_table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
-            if(!empty($outlet_id)){
+            if (!empty($outlet_id)) {
                 $query = "SELECT * FROM $outlet_table_name WHERE outlet_id ='" . $outlet_id . "'";
             }
-            
+
             $outlet = $wpdb->get_results($query);
 
-            if(count($outlet) < 1){
+            if (count($outlet) < 1) {
                 return Zippy_Response_Handler::error("Outlet not exist");
             }
 
@@ -130,7 +130,6 @@ class Zippy_Admin_Booking_Shipping_Controller
             $outlet[0]->extra_fee = maybe_unserialize($outlet[0]->extra_fee);
 
             return Zippy_Response_Handler::success($outlet[0], "Success");
-
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
@@ -155,20 +154,19 @@ class Zippy_Admin_Booking_Shipping_Controller
             global $wpdb;
             $shiping_table_name = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
 
-            if(!empty($shipping_id)){
+            if (!empty($shipping_id)) {
                 $query = "SELECT * FROM $shiping_table_name WHERE id ='" . $shipping_id . "'";
             }
 
-            if(count($wpdb->get_results($query)) < 1){
+            if (count($wpdb->get_results($query)) < 1) {
                 return Zippy_Response_Handler::error("Shipping not exist");
             }
 
-            $is_deleted = $wpdb->delete( $shiping_table_name, ["id" => $shipping_id ] );
+            $is_deleted = $wpdb->delete($shiping_table_name, ["id" => $shipping_id]);
 
-            if($is_deleted){
+            if ($is_deleted) {
                 return Zippy_Response_Handler::success("Success");
             }
-
         } catch (\Throwable $th) {
             $message = $th->getMessage();
             Zippy_Log_Action::log('create_shipping_fee', json_encode($request), 'Failure', $message);
@@ -177,7 +175,8 @@ class Zippy_Admin_Booking_Shipping_Controller
 
 
 
-    public static function check_for_remaining_slots(WP_REST_Request $request){
+    public static function check_for_remaining_slots(WP_REST_Request $request)
+    {
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"],
             "billing_date" => ["required" => true, "data_type" => "date"],
@@ -188,27 +187,27 @@ class Zippy_Admin_Booking_Shipping_Controller
             return Zippy_Response_Handler::error($validate);
         }
 
-
         $outlet_id = $request["outlet_id"];
-        $billing_date = $request->get_param( 'billing_date' );
+        $billing_date = $request->get_param('billing_date');
         $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
+
         $week_day = $date_obj->format('w'); // 0 (Sun) -> 6 (Sat)
 
         try {
             global $wpdb;
-            
+
             // check if outlet exist
             $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
             $query = "SELECT * FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
             $outlets = $wpdb->get_results($query);
 
-            if(count($outlets) < 1){
+            if (count($outlets) < 1) {
                 return Zippy_Response_Handler::error("Outlet not exist");
             }
 
             $operating_hours = maybe_unserialize($outlets[0]->operating_hours);
 
-            if(empty($operating_hours)){
+            if (empty($operating_hours)) {
                 return Zippy_Response_Handler::error("Operating hour config not Exist!");
             }
 
@@ -246,7 +245,7 @@ class Zippy_Admin_Booking_Shipping_Controller
                 ],
                 "posts_per_page" => -1,
             ];
-    
+
             $query = new WP_Query($args);
 
             $orders = $query->posts;
@@ -256,11 +255,11 @@ class Zippy_Admin_Booking_Shipping_Controller
                 "pending",
                 "processing"
             ];
-            
+
             // Calculate delivery_slot
             foreach ($orders as $order) {
                 $order_id = $order->ID;
-                $order = wc_get_order( $order_id );
+                $order = wc_get_order($order_id);
                 $order_billing_time = get_post_meta($order_id, "_billing_time", true);
 
                 if (array_keys($config_slot_arr, $order_billing_time) && in_array($order->get_status(), $allowed_status)) {
@@ -281,9 +280,30 @@ class Zippy_Admin_Booking_Shipping_Controller
             foreach ($delivery_hours as $slot) {
                 $response_data[] = [
                     "from" => $slot["from"],
-                    "to"=> $slot["to"],
+                    "to" => $slot["to"],
                     "remaining_slot" => $slot["delivery_slot"],
                 ];
+            }
+            
+            $menu = Zippy_Booking_Helper::get_menu_for_date($billing_date);
+           
+            if ($menu) {
+                $happy_slots = [];
+                $isDisabledDay = Zippy_Booking_Helper::is_disabled_date_in_menu($billing_date, $menu);
+                $menu_slots = Zippy_Booking_Helper::get_happy_hour_slots($menu);
+                foreach ($menu_slots as $happy_hour) {
+                    $happy_slots[] = [
+                        "from" => $happy_hour["from"],
+                        "to" => $happy_hour["to"],
+                        "remaining_slot" => $happy_hour->delivery_slots ?? 100,
+                        "is_happy_hours" => true
+                    ];
+                }
+                if ($isDisabledDay) {
+                    return Zippy_Response_Handler::success(["delivery_hours" => $happy_slots]);
+                } else {
+                    $response_data = array_merge($response_data, $happy_slots);
+                }
             }
 
             return Zippy_Response_Handler::success(["delivery_hours" => $response_data]);
