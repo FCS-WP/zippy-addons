@@ -119,7 +119,7 @@ class One_Map_Api
 	/**
 	 * Authentication with OneMap
 	 */
-	private static function authenticate(array $credentials)
+	public static function authenticate(array $credentials)
 	{
 		$url = ONEMAP_API_URL . self::AUTH_ENDPOINT;
 

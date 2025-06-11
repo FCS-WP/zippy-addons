@@ -10,6 +10,7 @@ namespace Zippy_Booking\Src\Web;
 
 defined('ABSPATH') or die();
 
+use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 use Zippy_Booking\Utils\Zippy_Utils_Core;
 use DateTime;
 
@@ -38,6 +39,9 @@ class Zippy_Booking_Web
     add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
     add_action('woocommerce_before_checkout_form', array($this, 'zippy_add_shortcode_to_checkout'));
 
+    add_action('pre_get_posts', array($this, 'hook_to_pre_get_posts'));
+    add_filter('post_class', array($this, 'custom_class_products'), 10, 3);
+
     /**
      * Shortcode
      */
@@ -52,7 +56,8 @@ class Zippy_Booking_Web
     add_action('wp_enqueue_scripts', array($this, 'booking_assets'));
   }
 
-  public function function_init(){
+  public function function_init()
+  {
     return;
   }
 
@@ -82,17 +87,45 @@ class Zippy_Booking_Web
     }
   }
 
-  public function zippy_form($atts) 
+  public function zippy_form($atts)
   {
-    return '<div id="zippy-form"></div>'; 
+    return '<div id="zippy-form"></div>';
   }
 
-  public function login_form() 
+  public function hook_to_pre_get_posts ($query) 
   {
-    return '<div id="custom-login-form" data-forgot_url="'. esc_url(wp_login_url()).'?action=lostpassword' .'"></div>';
+    if (is_admin() || ! $query->is_main_query()) {
+      return;
+    }
+    global $products_with_special_class;
+    $products_with_special_class = [];
+
+    $disabled_ids = Zippy_Booking_Helper::handle_check_disabled_products();
+    // Check condition
+    if (!empty($disabled_ids)) {
+      $products_with_special_class = $disabled_ids;
+    }
   }
-  
-  function zippy_add_shortcode_to_checkout() {
+
+  public function custom_class_products ($classes, $class, $post_id) 
+  {
+    if ('product' === get_post_type($post_id)) {
+      global $products_with_special_class;
+
+      if (! empty($products_with_special_class) && in_array($post_id, $products_with_special_class)) {
+        $classes[] = 'custom-disabled-product';
+      }
+    }
+    return $classes;
+  }
+
+  public function login_form()
+  {
+    return '<div id="custom-login-form" data-forgot_url="' . esc_url(wp_login_url()) . '?action=lostpassword' . '"></div>';
+  }
+
+  function zippy_add_shortcode_to_checkout()
+  {
     $current_user_id = get_current_user_id();
     if ($current_user_id) {
       return;
