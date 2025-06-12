@@ -8,10 +8,10 @@ const DetailHeader = ({ menu }) => {
     <Grid2 container spacing={3}>
       <Grid2 size={6}>
         <NavLink style={{ fontSize: "13px" }} to={linkMenuAdmin}>
-          Back to menus
+          Back
         </NavLink>
-        <Typography fontWeight={600} variant="h5" my={2}>
-          {menu.name}
+        <Typography fontWeight={600} variant="h5" my={2} pb={4}>
+          Edit for Menu: {menu.name}
         </Typography>
       </Grid2>
     </Grid2>

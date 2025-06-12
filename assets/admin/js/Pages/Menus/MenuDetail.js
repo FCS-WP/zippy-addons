@@ -6,11 +6,11 @@ import { Api } from "../../api";
 import BoxEditMenu from "../../Components/menus/layouts/BoxEditMenu";
 import { ToastContainer } from "react-toastify";
 import MenuContext from "../../contexts/MenuContext";
-import BoxEditHappyHours from "../../Components/menus/layouts/BoxEditHappyHours";
 
 const MenuDetail = ({ menuId }) => {
   const [menu, setMenu] = useState();
   const { setSelectedMenu } = useContext(MenuContext);
+
   const fetchMenuData = async () => {
     const response = await Api.getMenus({ id: menuId });
 
@@ -25,7 +25,6 @@ const MenuDetail = ({ menuId }) => {
 
   useEffect(() => {
     fetchMenuData();
-    return () => {};
   }, []);
 
   return (
@@ -34,7 +33,6 @@ const MenuDetail = ({ menuId }) => {
         <>
           <DetailHeader menu={menu} />
           <BoxEditMenu menu={menu} />
-          <BoxEditHappyHours menu={menu} />
           <MenuProducts menu={menu} />
         </>
       )}
