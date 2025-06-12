@@ -206,7 +206,7 @@ const OutletSelect = ({
             >
               <Typography fontSize={14}>
                 {convertTime24to12(time.from) +
-                  " - " +
+                  " to " +
                   convertTime24to12(time.to)}
               </Typography>
               {/* {time.remaining_slot && (
@@ -218,7 +218,7 @@ const OutletSelect = ({
           </>
         ) : (
           <Typography fontSize={14}>
-            {convertTime24to12(time.from) + " - " + convertTime24to12(time.to)}
+            {convertTime24to12(time.from) + " to " + convertTime24to12(time.to)}
           </Typography>
         )}
       </>
@@ -280,7 +280,7 @@ const OutletSelect = ({
               Select time: <span style={{ color: "red" }}>(*)</span>{" "}
               {selectedTime
                 ? convertTime24to12(selectedTime.from) +
-                  " - " +
+                  " to " +
                   convertTime24to12(selectedTime.to)
                 : ""}
             </h5>
