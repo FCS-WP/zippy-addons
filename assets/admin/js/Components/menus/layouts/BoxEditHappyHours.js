@@ -1,123 +1,87 @@
-import { Box, Button, IconButton, Paper, TableContainer } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import theme from "../../../../theme/theme";
-import TableView from "../../TableView";
-import { happyHoursColumns } from "../../../utils/tableHelper";
-import DeleteIcon from "@mui/icons-material/Delete";
+import React from "react";
+import { Box, Button, Grid2, IconButton, Typography } from "@mui/material";
 import TimeInput from "../inputs/TimeInput";
-import { format } from "date-fns";
-import { Api } from "../../../api";
-import { toast } from "react-toastify";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { format, parse, isValid as isDateValid } from "date-fns";
 
-const BoxEditHappyHours = ({ menu }) => {
-  const [dataTimes, setDataTimes] = useState(menu.happy_hours ?? []);
-  const [dataRows, setDataRows] = useState([]);
-
-  const handleDeleteRow = (indexToRemove) => {
-    const updatedData = dataTimes.filter(
-      (item, index) => index !== indexToRemove
-    );
-    setDataTimes(updatedData);
-  };
-
-  const handleChangeTime = (newValue, type, index) => {
-    let updatedRows = [...dataTimes];
-    if (type === "start") {
-      updatedRows[index].start_time = newValue
-        ? format(newValue, "yyyy-MM-dd HH:mm")
-        : "";
-    } else {
-      updatedRows[index].end_time = newValue
-        ? format(newValue, "yyyy-MM-dd HH:mm")
-        : "";
+const BoxEditHappyHours = ({ happyHours, setHappyHours, minDate, maxDate }) => {
+  const validateTimeRange = (start, end) => {
+    if (!start || !end) return false;
+    try {
+      const startDate = parse(start, "yyyy-MM-dd HH:mm", new Date());
+      const endDate = parse(end, "yyyy-MM-dd HH:mm", new Date());
+      return (
+        isDateValid(startDate) && isDateValid(endDate) && endDate > startDate
+      );
+    } catch {
+      return false;
     }
-    setDataTimes(updatedRows);
   };
 
-  const convertData = () => {
-    const rows = dataTimes.map((item, index) => {
-      return {
-        "START TIME": (
-          <TimeInput
-            onChange={(date) => handleChangeTime(date, "start", index)}
-            value={item.start_time}
-            minDate={menu.start_date ?? null}
-            maxDate={menu.end_date ?? null}
-          />
-        ),
-        "END TIME": (
-          <TimeInput
-            onChange={(date) => handleChangeTime(date, "end", index)}
-            minDate={item.start_time ?? null}
-            value={item.end_time}
-            maxDate={menu.end_date ?? null}
-          />
-        ),
-        ACTIONS: (
-          <IconButton
-            aria-label="delete"
-            size="small"
-            onClick={() => handleDeleteRow(index)}
-          >
-            <DeleteIcon
-              sx={{ fontSize: "20px", color: theme.palette.danger.main }}
-            />
-          </IconButton>
-        ),
+  const handleChangeTime = (value, type, index) => {
+    setHappyHours((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [type === "start" ? "start_time" : "end_time"]: value
+          ? format(value, "yyyy-MM-dd HH:mm")
+          : "",
       };
+      return updated;
     });
-    setDataRows(rows);
   };
 
-  const AddonsBox = () => {
-    return (
-      <Box display={"flex"} justifyContent={"end"} m={3} gap={2}>
-        <Button variant="outlined" onClick={handleAddRow}>
-          Add more time
-        </Button>
-        <Button variant="contained" onClick={handleSaveConfigHappyHour}>
-          Save Configs
-        </Button>
-      </Box>
-    );
+  const handleAddHappyHour = () => {
+    setHappyHours((prev) => [...prev, { start_time: "", end_time: "" }]);
   };
 
-  const handleAddRow = (e) => {
-    setDataTimes((prev) => [...prev, { start_time: "", end_time: "" }]);
-  };
-
-  const handleSaveConfigHappyHour = async () => {
-    const data = {
-      id: parseInt(menu.id),
-      name: menu.name,
-      happy_hours: dataTimes,
-      days_of_week: menu.days_of_week,
-      start_date: menu.start_date,
-      end_date: menu.end_date,
-    };
-
-    const response = await Api.updateMenu(data);
-    if (!response || response.error) {
-      toast.error(response?.error?.message ?? "Update failed");
-      return;
+  const handleDeleteHappyHour = (index) => {
+    if (window.confirm("Are you sure you want to remove this time slot?")) {
+      setHappyHours((prev) => prev.filter((_, i) => i !== index));
     }
-    window.location.reload();
   };
-
-  useEffect(() => {
-    convertData();
-  }, [dataTimes]);
 
   return (
-    <Box mb={4}>
-      <h3>Happy Hours</h3>
-      <TableView
-        hideCheckbox={true}
-        cols={happyHoursColumns}
-        rows={dataRows}
-        addRow={true}
-        addonsBox={<AddonsBox />}
-      />
+    <Box>
+      <Typography variant="subtitle1" fontWeight={600}>
+        Happy Hours
+      </Typography>
+
+      {happyHours.map((hh, index) => (
+        <Grid2 container spacing={2} key={index} mt={1} align="center">
+          <Grid2>
+            <TimeInput
+              label="Start Time"
+              value={hh.start_time}
+              onChange={(val) => handleChangeTime(val, "start", index)}
+              error={!hh.start_time}
+              minDate={minDate}
+              maxDate={maxDate}
+            />
+          </Grid2>
+          <Grid2>
+            <TimeInput
+              label="End Time"
+              value={hh.end_time}
+              onChange={(val) => handleChangeTime(val, "end", index)}
+              error={!validateTimeRange(hh.start_time, hh.end_time)}
+              minDate={minDate}
+              maxDate={maxDate}
+            />
+          </Grid2>
+          <Grid2>
+            <IconButton onClick={() => handleDeleteHappyHour(index)}>
+              <DeleteIcon />
+            </IconButton>
+          </Grid2>
+        </Grid2>
+      ))}
+
+      <Box sx={{ mt: 2 }}>
+        <Button variant="outlined" onClick={handleAddHappyHour}>
+          Add Time Slot
+        </Button>
+      </Box>
     </Box>
   );
 };
