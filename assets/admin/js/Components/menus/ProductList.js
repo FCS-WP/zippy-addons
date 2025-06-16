@@ -85,7 +85,7 @@ const ProductList = ({ refetchProducts, products, menuId }) => {
   return (
     <Box>
       <Typography variant="h6" mb={2} fontWeight={600}>
-        Products In Menu
+        Products
       </Typography>
       <>
         <TableView
