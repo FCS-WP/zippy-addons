@@ -307,7 +307,7 @@ const isMenuDayAvailable = (day, daysOfWeek) => {
   return true;
 };
 
-export const isDisabledDate = (date, selectedOutlet, menusConfig, type) => {
+export const isDisabledDate = (date, selectedOutlet, currentMenu, type) => {
   const checkDate = new Date(date);
   const checkDay = checkDate.getDay();
   const disabledDays = getDisabledDays(selectedOutlet, type);
@@ -322,29 +322,46 @@ export const isDisabledDate = (date, selectedOutlet, menusConfig, type) => {
     return true;
   }
 
-  if (!menusConfig || menusConfig.length == 0) {
-    return false;
+  if (!currentMenu) {
+    return false
   }
 
-  const checkMenu = menusConfig.find((menu) =>
-    isInRange(date, menu.start_date, menu.end_date)
-  );
-
-  if (!checkMenu) {
-    return false;
-  }
-
-  if (checkMenu.happy_hours?.length > 0) {
-    const checkHappyDate = isHappyDate(date, checkMenu.happy_hours);
-    if (checkHappyDate) {
-      return false;
-    }
-  }
-
-  const checkMenuDay = isMenuDayAvailable(checkDay, checkMenu.days_of_week);
-  if (!checkMenuDay) {
+  const endDate = new Date(currentMenu.end_date);
+  if (checkDate > endDate) {
     return true;
   }
 
+  // if (!menusConfig || menusConfig.length == 0) {
+  //   return false;
+  // }
+
+  // const checkMenu = menusConfig.find((menu) =>
+  //   isInRange(date, menu.start_date, menu.end_date)
+  // );
+
+  // if (!checkMenu) {
+  //   return false;
+  // }
+
+  // if (checkMenu.happy_hours?.length > 0) {
+  //   const checkHappyDate = isHappyDate(date, checkMenu.happy_hours);
+  //   if (checkHappyDate) {
+  //     return false;
+  //   }
+  // }
+
+  // const checkMenuDay = isMenuDayAvailable(checkDay, checkMenu.days_of_week);
+  // if (!checkMenuDay) {
+  //   return true;
+  // }
+
   return false;
 };
+
+export const getActiveMenuByDate = (date, menus) => {
+  if (!menus) return undefined;
+  const checkMenu = menus.find((menu) =>
+    isInRange(date, menu.start_date, menu.end_date)
+  );
+  return checkMenu;
+}

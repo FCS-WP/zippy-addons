@@ -47,12 +47,14 @@ const TimeInput = (props) => {
         selected={selectedTime ?? null}
         onChange={(date) => handleChangeTime(date)}
         showTimeSelect
-        dateFormat="yyyy-MM-dd h:mm aa"
+        showTimeSelectOnly
+        dateFormat="h:mm aa"
         timeCaption="Time"
-        minDate={minDate ?? null}
+        // minDate={minDate ?? null}
         filterTime={handleFilterTime}
-        maxDate={maxDate ?? null}
+        // maxDate={maxDate ?? null}
         autoComplete="off"
+        da
         customInput={
           <TextField
             size="small"
