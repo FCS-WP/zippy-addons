@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -16,16 +16,20 @@ import { format, parse, isValid as isDateValid } from "date-fns";
 import { Api } from "../../../api";
 import { toast } from "react-toastify";
 import MenuContext from "../../../contexts/MenuContext";
-import { handleDateData } from "../../../utils/dateHelper";
+import {
+  createDateWithHourStr,
+  handleDateData,
+} from "../../../utils/dateHelper";
 import BoxEditHappyHours from "./BoxEditHappyHours";
 
-const BoxEditMenu = ({ menu, handleChangeMenu }) => {
+const BoxEditMenu = ({ menu }) => {
   const [daysOfWeek, setDaysOfWeek] = useState(menu.days_of_week ?? []);
   const [startDate, setStartDate] = useState(menu.start_date);
   const [endDate, setEndDate] = useState(menu.end_date);
   const [menuName, setMenuName] = useState(menu.name);
   const [happyHours, setHappyHours] = useState(menu.happy_hours ?? []);
   const { disabledRanges, refetchMenus } = useContext(MenuContext);
+  const [isValidHappyHours, setIsValidHappyHours] = useState(false);
 
   const handleChangeMenuDate = (date, type) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -40,13 +44,6 @@ const BoxEditMenu = ({ menu, handleChangeMenu }) => {
     setStartDate(dateSelected[0]);
     setEndDate(dateSelected[1]);
     setHappyHours([]);
-
-    handleChangeMenu([
-      {
-        start_date: dateSelected[0],
-        end_date: dateSelected[1],
-      },
-    ]);
   };
 
   const handleChangeAvailableDate = (value, day) => {
@@ -63,8 +60,8 @@ const BoxEditMenu = ({ menu, handleChangeMenu }) => {
   const validateTimeRange = (start, end) => {
     if (!start || !end) return false;
     try {
-      const startDate = parse(start, "yyyy-MM-dd HH:mm", new Date());
-      const endDate = parse(end, "yyyy-MM-dd HH:mm", new Date());
+      const startDate = createDateWithHourStr(start);
+      const endDate = createDateWithHourStr(end);
       return (
         isDateValid(startDate) && isDateValid(endDate) && endDate > startDate
       );
@@ -73,11 +70,20 @@ const BoxEditMenu = ({ menu, handleChangeMenu }) => {
     }
   };
 
-  const isValidHappyHours = happyHours.every(
-    (h) =>
-      h.start_time && h.end_time && validateTimeRange(h.start_time, h.end_time)
-  );
+  const checkValidHours = () => {
+    const checked = happyHours.every(
+      (hour) =>
+        hour.start_time &&
+        hour.end_time &&
+        validateTimeRange(hour.start_time, hour.end_time)
+    );
+    setIsValidHappyHours(checked);
+    return checked;
+  };
 
+  useEffect(() => {
+    checkValidHours();
+  }, [happyHours]);
 
   const handleUpdateMenu = async () => {
     if (!isValidHappyHours) {

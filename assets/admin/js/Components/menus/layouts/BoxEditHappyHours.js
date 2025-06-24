@@ -1,21 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Grid2, IconButton, Typography } from "@mui/material";
-import TimeInput from "../inputs/TimeInput";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { format, parse, isValid as isDateValid } from "date-fns";
+import TimeSlot from "./TimeSlot";
+import { createDateWithHourStr } from "../../../utils/dateHelper";
 
-const BoxEditHappyHours = ({ happyHours, setHappyHours, minDate, maxDate }) => {
-  const validateTimeRange = (start, end) => {
-    if (!start || !end) return false;
-    try {
-      const startDate = parse(start, "yyyy-MM-dd HH:mm", new Date());
-      const endDate = parse(end, "yyyy-MM-dd HH:mm", new Date());
-      return (
-        isDateValid(startDate) && isDateValid(endDate) && endDate > startDate
-      );
-    } catch {
-      return false;
-    }
+const BoxEditHappyHours = ({ happyHours, setHappyHours }) => {
+  const [happyHoursWithIds, setHappyHoursWithIds] = useState(happyHours);
+
+  const addIdsForHappyHours = () => {
+    const withIds = happyHours.map((item) => ({
+      ...item,
+      id: crypto.randomUUID(),
+    }));
+    setHappyHoursWithIds(withIds);
   };
 
   const handleChangeTime = (value, type, index) => {
@@ -24,7 +21,7 @@ const BoxEditHappyHours = ({ happyHours, setHappyHours, minDate, maxDate }) => {
       updated[index] = {
         ...updated[index],
         [type === "start" ? "start_time" : "end_time"]: value
-          ? format(value, "yyyy-MM-dd HH:mm")
+          ? format(value, "HH:mm")
           : "",
       };
       return updated;
@@ -35,11 +32,18 @@ const BoxEditHappyHours = ({ happyHours, setHappyHours, minDate, maxDate }) => {
     setHappyHours((prev) => [...prev, { start_time: "", end_time: "" }]);
   };
 
-  const handleDeleteHappyHour = (index) => {
+  const handleDeleteHappyHour = (indexToRemove) => {
     if (window.confirm("Are you sure you want to remove this time slot?")) {
-      setHappyHours((prev) => prev.filter((_, i) => i !== index));
+      setHappyHours((prev) => {
+        const newList = prev.filter((_, i) => i !== indexToRemove);
+        return newList;
+      });
     }
   };
+
+  useEffect(() => {
+    addIdsForHappyHours();
+  }, [happyHours]);
 
   return (
     <Box>
@@ -47,34 +51,15 @@ const BoxEditHappyHours = ({ happyHours, setHappyHours, minDate, maxDate }) => {
         Happy Hours
       </Typography>
 
-      {happyHours.map((hh, index) => (
-        <Grid2 container spacing={2} key={index} mt={1} align="center">
-          <Grid2>
-            <TimeInput
-              label="Start Time"
-              value={hh.start_time}
-              onChange={(val) => handleChangeTime(val, "start", index)}
-              error={!hh.start_time}
-              minDate={minDate}
-              maxDate={maxDate}
-            />
-          </Grid2>
-          <Grid2>
-            <TimeInput
-              label="End Time"
-              value={hh.end_time}
-              onChange={(val) => handleChangeTime(val, "end", index)}
-              error={!validateTimeRange(hh.start_time, hh.end_time)}
-              minDate={minDate}
-              maxDate={maxDate}
-            />
-          </Grid2>
-          <Grid2>
-            <IconButton onClick={() => handleDeleteHappyHour(index)}>
-              <DeleteIcon />
-            </IconButton>
-          </Grid2>
-        </Grid2>
+      {happyHoursWithIds.map((item, index) => (
+        <TimeSlot
+          key={item?.id || index}
+          startDate={createDateWithHourStr(item.start_time)}
+          endDate={createDateWithHourStr(item.end_time)}
+          index={index}
+          handleChangeTime={handleChangeTime}
+          handleDeleteHappyHour={handleDeleteHappyHour}
+        />
       ))}
 
       <Box sx={{ mt: 2 }}>
