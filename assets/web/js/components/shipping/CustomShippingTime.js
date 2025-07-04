@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import { Box, Button, Input } from "@mui/material";
 import { format } from "date-fns";
-import { webApi } from "../../api";
 
 const CustomShippingTime = () => {
   let today = new Date();
@@ -12,13 +11,6 @@ const CustomShippingTime = () => {
   const [selectedBtn, setSelectedBtn] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   const [closedDates, setClosedDates] = useState([]);
-
-  const getConfig = async () => {
-    const response = await webApi.getStores();
-    if (response.data && response.data.status === "success") {
-      setClosedDates(response.data.data[0].closed_dates);
-    }
-  };
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -66,10 +58,6 @@ const CustomShippingTime = () => {
     return false;
   };
 
-  useEffect(() => {
-    getConfig();
-  }, []);
-
   return (
     <div>
       <Box className="preferred-delivery-date">
@@ -104,21 +92,7 @@ const CustomShippingTime = () => {
             variant={selectedBtn == 1 ? "contained" : "outlined"}
             className={selectedBtn == 1 ? "btn-time active" : "btn-time"}
           >
-            10AM - 5PM
-          </Button>
-          <Button
-            onClick={() => handleChangeSelectedBtn(2)}
-            variant={selectedBtn == 2 ? "contained" : "outlined"}
-            className={selectedBtn == 2 ? "btn-time active" : "btn-time"}
-          >
-            2PM - 7PM
-          </Button>
-          <Button
-            onClick={() => handleChangeSelectedBtn(3)}
-            variant={selectedBtn == 3 ? "contained" : "outlined"}
-            className={selectedBtn == 3 ? "btn-time active" : "btn-time"}
-          >
-            6PM - 9PM
+            1PM - 5PM
           </Button>
         </Box>
       </Box>
