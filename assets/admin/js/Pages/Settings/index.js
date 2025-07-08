@@ -220,7 +220,10 @@ const Settings = () => {
     let formattedValue = value;
 
     if (key === "date" && value) {
-      formattedValue = new Date(value).toISOString().split("T")[0];
+      const [start, end] = value;
+      if (start && end) {
+        formattedValue = [format(start, 'yyyy-MM-dd'), format(end, 'yyyy-MM-dd')];
+      }
     }
 
     setHolidays((prevHolidays) =>
