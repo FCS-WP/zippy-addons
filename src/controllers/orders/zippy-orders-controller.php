@@ -16,6 +16,7 @@ class Zippy_Orders_Controller
 
         $required_fields = [
             "file_type" => ["required" => true, "data_type" => "range", "allowed_values" => ["csv", "pdf"]],
+            "customer_id" => ["required" => true, "data_type" => "string"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -24,49 +25,48 @@ class Zippy_Orders_Controller
         }
 
         $file_type = sanitize_text_field($request->get_param('file_type'));
+        $customer_id = sanitize_text_field($request->get_param('customer_id'));
 
         $args = array(
             'status' => 'completed',
             'limit' => -1,
+            'customer_id' => $customer_id
         );
-
+        
         $orders = wc_get_orders($args);
-
+        
         // Return if no completed order
         if (empty($orders)) {
-            return Zippy_Response_Handler::success([], 'No comptled orders found');
+            return Zippy_Response_Handler::success([], 'No completed orders found');
         }
 
         $order_data = [];
         foreach ($orders as $order) {
-            $transaction_id = $order->get_transaction_id();
-            if (!empty($transaction_id)) {
-                $quantity = 0;
-                foreach ($order->get_items() as $item) {
-                    $quantity += $item->get_quantity();
-                }
-
-                $payment_status = $order->is_paid() ? 'Paid' : 'Unpaid';
-
-                $billing_date = get_post_meta($order->get_id(), '_billing_date', true);
-
-                //  billing_date to M d, Y
-                $formatted_date = '';
-                if (!empty($billing_date)) {
-                    $timestamp = is_numeric($billing_date) ? (int) $billing_date : strtotime($billing_date);
-                    if ($timestamp !== false) {
-                        $formatted_date = date_i18n('F j, Y', $timestamp);
-                    }
-                }
-
-                $order_data[] = array(
-                    'order_date' => $formatted_date ?: 'N/A',
-                    'transaction_id' => $transaction_id,
-                    'payment_method' => $order->get_payment_method_title(),
-                    'amount' => "$" . $order->get_total(),
-                    'payment_status' => $payment_status,
-                );
+            $quantity = 0;
+            foreach ($order->get_items() as $item) {
+                $quantity += $item->get_quantity();
             }
+
+            $payment_status = $order->is_paid() ? 'Paid' : 'Unpaid';
+
+            $billing_date = get_post_meta($order->get_id(), '_billing_date', true);
+
+            //  billing_date to M d, Y
+            $formatted_date = '';
+            if (!empty($billing_date)) {
+                $timestamp = is_numeric($billing_date) ? (int) $billing_date : strtotime($billing_date);
+                if ($timestamp !== false) {
+                    $formatted_date = date_i18n('F j, Y', $timestamp);
+                }
+            }
+
+            $order_data[] = array(
+                'order_date' => $formatted_date ?: 'N/A',
+                'transaction_id' => $order->get_transaction_id(),
+                'payment_method' => $order->get_payment_method_title(),
+                'amount' => "$" . $order->get_total(),
+                'payment_status' => $payment_status,
+            );
         }
 
         // Return if no order with transaction id
