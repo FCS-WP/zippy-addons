@@ -26,7 +26,7 @@ class Zippy_Orders_Controller
         $file_type = sanitize_text_field($request->get_param('file_type'));
 
         $args = array(
-            // 'status' => 'completed',
+            'status' => 'completed',
             'limit' => -1,
         );
 
@@ -40,7 +40,7 @@ class Zippy_Orders_Controller
         $order_data = [];
         foreach ($orders as $order) {
             $transaction_id = $order->get_transaction_id();
-            if (empty($transaction_id)) {
+            if (!empty($transaction_id)) {
                 $quantity = 0;
                 foreach ($order->get_items() as $item) {
                     $quantity += $item->get_quantity();
