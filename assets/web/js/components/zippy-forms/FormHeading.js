@@ -19,6 +19,7 @@ const FormHeading = ({ onBack, title }) => {
       display={"flex"}
       alignItems={"center"}
       justifyContent={"space-between"}
+      px={2}
     >
       <CustomButton onClick={() => onBack()} color="gray">
         <KeyboardBackspaceIcon />

@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FormHeading from "../FormHeading";
 import OutletSelect from "../OutletSelect";
 import theme from "../../../../theme/customTheme";
@@ -9,6 +9,8 @@ import { showAlert } from "../../../helper/showAlert";
 
 const TakeAwayForm = ({ onChangeMode }) => {
   const [takeawayData, setTakeawayData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
 
   const handletakeawayData = (data) => {
     setTakeawayData(data);
@@ -16,16 +18,11 @@ const TakeAwayForm = ({ onChangeMode }) => {
 
   const handleConfirm = async () => {
     if (!takeawayData) {
-      Swal.fire({
-        title: "Failed!",
-        text: "Please fill all required field!",
-        icon: "error",
-        timer: 3000,
-        showConfirmButton: false,
-        timerProgressBar: true,
-      });
+      showAlert('error', "Failed!", "Please fill all required field!");
       return;
     }
+    setIsLoading(true);
+
     const params = {
       product_id: getSelectProductId(),
       order_mode: "takeaway",
@@ -38,14 +35,25 @@ const TakeAwayForm = ({ onChangeMode }) => {
 
     if (!response?.data || response.data.status !== 'success') {
       showAlert('error', "Failed!", "Can not add product. Please try again!");
+      setIsLoading(false);
       return false;
     }
 
-    showAlert('success', "Success", "Product added to cart.");
+    showAlert('success', "Success", "Product added to cart.", 2000);
+
     setTimeout(() => {
       window.location.reload();
-    }, 3000);
+      setIsLoading(false);
+    }, 2000);
   };
+
+  useEffect(()=>{
+    if (takeawayData) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [takeawayData]);
 
   return (
     <Box>
@@ -63,6 +71,8 @@ const TakeAwayForm = ({ onChangeMode }) => {
 
         <Box p={2}>
           <Button
+            disabled={isDisabled}
+            loading={isLoading}
             fullWidth
             sx={{
               paddingY: "10px",

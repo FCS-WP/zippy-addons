@@ -18,16 +18,21 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomTableRow from "./Table/CustomTableRow";
+import theme from "../../theme/theme";
 
-const TableView = ({
-  cols,
-  rows,
-  columnWidths = {},
-  canBeDeleted = false,
-  onDeleteRows = () => {},
-  showBookingFilter = false,
-  onChangeList = () => {},
-}) => {
+const TableView = (props) => {
+  const {
+    hideCheckbox = false,
+    cols,
+    rows,
+    columnWidths = {},
+    canBeDeleted = false,
+    onDeleteRows = () => {},
+    showBookingFilter = false,
+    onChangeList = () => {},
+    headerElement,
+    addonsBox,
+  } = props;
   const [selectedRows, setSelectedRows] = useState({});
 
   useEffect(() => {
@@ -61,7 +66,7 @@ const TableView = ({
 
   const renderDeleteButton = () => {
     return (
-      <Box textAlign={"end"} m={2}>
+      <Box textAlign={"end"}>
         <IconButton
           disabled={!isMasterChecked && !isMasterIndeterminate ? true : false}
           aria-label="delete"
@@ -78,54 +83,67 @@ const TableView = ({
 
   return (
     <TableContainer component={Paper}>
-      {canBeDeleted ? renderDeleteButton() : ""}
-      <Table>
-        <TableHead sx={{ backgroundColor: "#f1f1f1" }}>
-          <TableRow>
-            <TableCell
-              padding="checkbox"
-              style={{ width: "50px", textAlign: "center" }}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={isMasterChecked}
-                    indeterminate={isMasterIndeterminate}
-                    onChange={handleMasterCheckboxChange}
-                    sx={{ textAlign: "center" }}
+      <Grid2 container mb={2}>
+        <Grid2 size={{ xs: 12, md: 6 }}>{headerElement ?? ""}</Grid2>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          {canBeDeleted ? renderDeleteButton() : ""}
+        </Grid2>
+      </Grid2>
+      <Box sx={{ border: '1px solid', borderBottom: 'none' ,borderColor: theme.palette.info.main, boxSizing: 'border-box'}}>
+        <Table>
+          <TableHead sx={{ backgroundColor: theme.palette.info.main }}>
+            <TableRow sx={{ borderColor: theme.palette.primary.main }}>
+              {!hideCheckbox && (
+                <TableCell
+                  padding="checkbox"
+                  style={{ width: "50px", textAlign: "center" }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={isMasterChecked}
+                        indeterminate={isMasterIndeterminate}
+                        onChange={handleMasterCheckboxChange}
+                        sx={{ textAlign: "center" }}
+                      />
+                    }
+                    style={{ marginRight: 0 }}
                   />
-                }
-                style={{ marginRight: 0 }}
+                </TableCell>
+              )}
+              {cols &&
+                cols.map((col, index) => (
+                  <TableCell
+                    key={index}
+                    style={{
+                      width: columnWidths[col] || "auto",
+                      fontWeight: 600,
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {col}
+                  </TableCell>
+                ))}
+            </TableRow>
+          </TableHead>
+          <TableBody sx={{ backgroundColor: "#fff" }}>
+            {rows.map((row, rowIndex) => (
+              <CustomTableRow
+                hideCheckbox={hideCheckbox}
+                key={rowIndex}
+                row={row}
+                cols={cols}
+                columnWidths={columnWidths}
+                selectedRows={selectedRows}
+                rowIndex={rowIndex}
+                onChangeList={onChangeList}
+                onChangeCheckbox={handleRowCheckboxChange}
               />
-            </TableCell>
-            {cols && cols.map((col, index) => (
-              <TableCell
-                key={index}
-                style={{
-                  width: columnWidths[col] || "auto",
-                  backgroundColor: "#f1f1f1",
-                }}
-              >
-                {col}
-              </TableCell>
             ))}
-          </TableRow>
-        </TableHead>
-        <TableBody sx={{ backgroundColor: "#fff" }}>
-          {rows.map((row, rowIndex) => (
-            <CustomTableRow
-              key={rowIndex}
-              row={row}
-              cols={cols}
-              columnWidths={columnWidths}
-              selectedRows={selectedRows}
-              rowIndex={rowIndex}
-              onChangeList={onChangeList}
-              onChangeCheckbox={handleRowCheckboxChange}
-            />
-          ))}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </Box>
+      {addonsBox && (addonsBox)}
     </TableContainer>
   );
 };

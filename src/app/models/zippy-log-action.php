@@ -1,24 +1,29 @@
 <?php
+
 namespace Zippy_booking\Src\App\Models;
 
-class Zippy_Log_Action {
-    public static function log($action, $details, $status, $message = '') {
-        global $wpdb;
-        $table_name = ZIPPY_BOOKING_LOG_TABLE_NAME;
-    
-        $result = $wpdb->insert(
-            $table_name,
-            [
-                'action' => $action,
-                'details' => $details,
-                'status' => $status,
-                'message' => $message,
-                'created_at' => current_time('mysql'),
-            ],
-            [
-                '%s', '%s', '%s', '%s', '%s'
-            ]
-        );
-        return $result !== false;
+class Zippy_Log_Action
+{
+
+    public static $logger;
+
+    const LOG_FILENAME = 'zippy_addon_woocommerce';
+
+    public static function log($action, $details, $status, $message = '')
+    {
+        if (!class_exists('WC_Logger')) {
+            return;
+        }
+
+        $logger = wc_get_logger();
+
+        $log_entry = sprintf('==== Zippy Addon Log Start [%s] ==== ', date('d/m/Y H:i:s')) . "\n";
+        $log_entry .= 'Action:' . $action . "\n";
+        $log_entry .= 'Details:' . $details . "\n";
+        $log_entry .= 'Status:' . $status . "\n";
+        $log_entry .= 'Message:' . $message . "\n";
+        $log_entry .= '==== Zippy Addon Log End====' . "\n\n";
+
+        $logger->debug($log_entry, ['source' => self::LOG_FILENAME]);
     }
 }

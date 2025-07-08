@@ -15,7 +15,6 @@ const TablePaginationCustom = ({ count, page, rowsPerPage, onPageChange }) => {
         count={Math.ceil(count / rowsPerPage)}
         page={page + 1}
         onChange={(_, newPage) => onPageChange(_, newPage - 1)} 
-        color="success"
       />
     </Box>
   );

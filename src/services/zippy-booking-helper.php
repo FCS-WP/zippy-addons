@@ -9,10 +9,12 @@
 namespace Zippy_Booking\Src\Services;
 
 use DateTime;
+use Zippy_Booking\Utils\Zippy_Cart_Handler;
+use Zippy_Booking\Utils\Zippy_Session_Handler;
 
 class Zippy_Booking_Helper
 {
-    public function handle_include_products($data_products, $table_name)
+    public static function handle_include_products($data_products, $table_name)
     {
         global $wpdb;
         foreach ($data_products as $product) {
@@ -52,7 +54,7 @@ class Zippy_Booking_Helper
         return $data_products;
     }
 
-    public function filter_mapping_product($products)
+    public static function filter_mapping_product($products)
     {
         global $wpdb;
         $results = [];
@@ -100,7 +102,7 @@ class Zippy_Booking_Helper
      * Handle extra times
      * @return -1 || product extra price
      */
-    public function handle_extra_price($data)
+    public static function handle_extra_price($data)
     {
         $convert_start_time = new DateTime($data['booking_start_time']);
         $convert_end_time = new DateTime($data['booking_end_time']);
@@ -143,7 +145,7 @@ class Zippy_Booking_Helper
 
         /* Handle holidays */
         $config_holidays = maybe_unserialize(get_option('zippy_booking_holiday_config'));
-        
+
         $start_date = (new DateTime($data['booking_start_date']))->format('Y-m-d');
         if ($config_holidays && count($config_holidays)) {
             $filter = array_filter($config_holidays, function ($holiday) use ($start_date) {
@@ -159,5 +161,147 @@ class Zippy_Booking_Helper
         }
 
         return $extra_price;
+    }
+
+    public static function handle_check_disabled_products()
+    {
+        global $wpdb;
+        /**
+         * get('order_mode') || Delivery || takeaway
+         * get('date) => date
+         * get('time) => delivery time || takeaway time
+         * 
+         */
+
+        $session = new Zippy_Session_Handler();
+        if (!$session->get('order_mode')) {
+            
+            $disabled_ids = self::handle_load_products();
+            return $disabled_ids;
+        }
+
+        $order_date = $session->get('date');
+        $order_date = new DateTime($order_date);
+
+        $disabled_ids = self::handle_load_products($order_date);
+
+        return $disabled_ids;
+    }
+
+    public static function handle_load_products($date = null)
+    {
+
+        $handle_date = $date ? $date : new DateTime();
+        $menu = self::get_menu_for_date($handle_date->format('Y-m-d'));
+        if (!$menu) {
+            return [];
+        }
+
+        $is_disabled_date = self::is_disabled_date_in_menu($handle_date, $menu);
+
+        $disabled_ids = self::get_disabled_ids($menu->id);
+
+        if ($is_disabled_date) {
+            return $disabled_ids;
+        }
+
+        if (!$date) {
+            $is_happy_hours = self::is_in_happy_hours($handle_date, json_decode($menu->happy_hours));
+            return $is_happy_hours ? [] : $disabled_ids;
+        }
+        return $disabled_ids;
+    }
+
+    public static function get_disabled_ids($menu_id)
+    {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zippy_menu_products';
+
+        $ids = $wpdb->get_col($wpdb->prepare("
+            SELECT id_product FROM $table_name
+            WHERE id_menu = %d 
+        ", $menu_id));
+
+        if ($ids) {
+            return $ids;
+        } else {
+            return false;
+        }
+    }
+
+    public static function is_in_happy_hours($time, $happy_hours)
+    {
+        if (count($happy_hours) == 0) {
+            return false;
+        }
+        $formatted_time = DateTime::createFromFormat('H:i', $time->format('H:i'));
+
+        foreach ($happy_hours as $happy_hour) {
+            $happy_start =  DateTime::createFromFormat('H:i', $happy_hour->start_time);
+            $happy_end =  DateTime::createFromFormat('H:i', $happy_hour->end_time);
+            if ($formatted_time >= $happy_start && $formatted_time <= $happy_end) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function get_order_datetime($order_date, $order_time)
+    {
+        $datetime_string = $order_date . ' ' . $order_time;
+        $datetime = new DateTime($datetime_string);
+        return $datetime;
+    }
+
+    public static function get_menu_for_date($check_date)
+    {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zippy_menus';
+        $date = date('Y-m-d', strtotime($check_date));
+        // Query menus where date is within range
+        $menu = $wpdb->get_row($wpdb->prepare("
+            SELECT * FROM $table_name
+            WHERE %s BETWEEN start_date AND end_date
+            LIMIT 1
+        ", $date));
+
+
+        if ($menu) {
+            return $menu;
+        } else {
+            return false;
+        }
+    }
+
+    public static function get_happy_hour_slots($menu)
+    {
+        $results = [];
+
+        if (empty($menu->happy_hours)) {
+            return [];
+        }
+
+        foreach (json_decode($menu->happy_hours) as $slot) {
+            $start_datetime = new DateTime($slot->start_time);
+            $end_datetime = new DateTime($slot->end_time);
+            $from = $start_datetime->format('H:i:s');
+            $to = $end_datetime->format('H:i:s');
+            $results[] = ['from' => $from, 'to' => $to];
+        }
+
+        return $results;
+    }
+
+    public static function is_disabled_date_in_menu($date, $menu)
+    {
+        $check_day = $date->format('w');
+        $days_of_week = json_decode($menu->days_of_week, true);
+            $match = current(array_filter($days_of_week, function ($dow) use ($check_day) {
+            return $dow['weekday'] == $check_day;
+        }));
+
+        $isDisabled = $match['is_available'] == 0 ? true : false;
+
+        return $isDisabled;
     }
 }

@@ -61,4 +61,34 @@ export const Api = {
   async addStoreConfig(params) {
     return await makeRequest("/store-config", params, "POST");
   },
+  async addShipping(params) {
+    return await makeRequest("/shipping", params, "POST");
+  },
+  async getShipping(params) {
+    return await makeRequest("/shipping", params);
+  },
+  async getMenus(params) {
+    return await makeRequest("/menus", params, "GET");
+  },
+  async createMenu(params) {
+    return await makeRequest("/menus", params, "POST");
+  },
+  async updateMenu(params) {
+    return await makeRequest("/menus", params, "PUT");
+  },
+  async deleteMenuItems(params) {
+    return await makeRequest("/menus", params, "DELETE");
+  },
+  async searchProducts(params) {
+    return await makeRequest("/search-products", params);
+  },
+  async getMenuProducts(params) {
+    return await makeRequest("/products-menu", params);
+  },
+  async addProductsToMenu(params) {
+    return await makeRequest("/products-menu", params, "POST");
+  },
+  async removeProductsFromMenu(params) {
+    return await makeRequest("/products-menu", params, "DELETE");
+  },
 };

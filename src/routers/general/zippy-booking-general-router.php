@@ -69,12 +69,6 @@ class Zippy_Booking_General_Router
       'permission_callback' => "__return_true",
     ));
     
-    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/booking-report', array(
-      'methods' => 'GET',
-      'callback' => [Zippy_Admin_Booking_General_Controller::class, 'booking_report'],
-      'args' => Zippy_Api_Booking_Model::booking_report_args(),
-      'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-
-    ));
+    
   }
 }

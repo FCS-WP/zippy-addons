@@ -1,5 +1,6 @@
 import {
   Box,
+  CircularProgress,
   FormControl,
   InputAdornment,
   MenuItem,
@@ -7,15 +8,21 @@ import {
   styled,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import OutletDate from "./OutletDate";
 import StoreIcon from "@mui/icons-material/Store";
 import WatchLaterIcon from "@mui/icons-material/WatchLater";
 import { format } from "date-fns";
 import { webApi } from "../../api";
 import { toast } from "react-toastify";
-import { generateTimeSlots } from "../../helper/datetime";
+import {
+  generateTimeSlots,
+  getAvailableDeliveryTimes,
+} from "../../helper/datetime";
 import { convertTime24to12 } from "../../../../admin/js/utils/dateHelper";
+import OutletContext from "../../contexts/OutletContext";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { getSelectProductId } from "../../helper/booking";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -37,16 +44,23 @@ const OutletSelect = ({
   onChangeData,
   selectedLocation = null,
 }) => {
-  const [outlets, setOutlets] = useState([]);
-  const [selectedOutlet, setSelectedOutlet] = useState("");
+  const { outlets, selectedOutlet, setSelectedOutlet, menusConfig } =
+    useContext(OutletContext);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
   const [times, setTimes] = useState();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleTimes = () => {
-    if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) return false();
+  const handleTimes = async () => {
+    setIsLoading(true);
     let configTime = [];
+    if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) {
+      setSelectedTime("");
+      setTimes(configTime);
+      setIsLoading(false);
+      return false;
+    }
 
     const openingHours = selectedOutlet?.operating_hours.find((item) => {
       return parseInt(item.week_day) === selectedDate.getDay();
@@ -54,11 +68,23 @@ const OutletSelect = ({
 
     switch (type) {
       case "delivery":
-        if (!openingHours.delivery || openingHours.delivery.enable === 'F') return false();
-        configTime = openingHours.delivery.delivery_hours;
+        if (!openingHours.delivery || openingHours.delivery.enable === "F") {
+          setSelectedTime("");
+          setTimes(configTime);
+          setIsLoading(false);
+          return false;
+        }
+        const deliverySlots = await handleCheckSlot();
+        configTime = getAvailableDeliveryTimes(deliverySlots);
+
         break;
       case "takeaway":
-        if (!selectedOutlet.takeaway) return false();
+        if (!selectedOutlet.takeaway) {
+          setSelectedTime("");
+          setTimes(configTime);
+          setIsLoading(false);
+          return false;
+        }
         configTime = generateTimeSlots(
           openingHours?.open_at,
           openingHours?.close_at,
@@ -68,6 +94,7 @@ const OutletSelect = ({
         break;
     }
     setSelectedTime("");
+    setIsLoading(false);
     setTimes(configTime);
   };
 
@@ -77,7 +104,7 @@ const OutletSelect = ({
     onChangeData(null);
   };
 
-  const handleChangeOutlet = (e) => {
+  const handleChangeOutlet = async (e) => {
     setSelectedOutlet(e.target.value);
   };
 
@@ -91,7 +118,7 @@ const OutletSelect = ({
         to: {
           lat: selectedLocation.LATITUDE,
           lng: selectedLocation.LONGITUDE,
-        }
+        },
       };
 
       const { data: response } = await webApi.searchRoute(params);
@@ -116,24 +143,13 @@ const OutletSelect = ({
     return value >= 1000 ? (value / 1000).toFixed(2) + " km" : value + " m";
   };
 
-  const getConfigOutlet = async () => {
-    try {
-      const { data: response } = await webApi.getStores();
-      if (response) {
-        setOutlets(response.data);
-      }
-    } catch (error) {
-      toast.error("Failed to get outlet.");
-    }
-  };
-
   useEffect(() => {
     if (selectedOutlet && selectedDate && selectedTime) {
       onChangeData({
         outlet: selectedOutlet.id,
         date: format(selectedDate, "yyyy-MM-dd"),
         time: selectedTime,
-        mapRoute: mapRoute ?? '',
+        mapRoute: mapRoute ?? "",
       });
     }
   }, [selectedOutlet, selectedDate, selectedTime]);
@@ -144,20 +160,70 @@ const OutletSelect = ({
     }
   }, [selectedLocation, selectedOutlet]);
 
-  useEffect(() => {
-    if (selectedDate) {
-      handleTimes();
-      onChangeData(null);
+  const handleCheckSlot = async () => {
+    
+  const params = {
+      billing_date: format(selectedDate, "yyyy-MM-dd"),
+      outlet_id: selectedOutlet.id,
+      product_id: getSelectProductId()
+    };
+
+    const { data: response } = await webApi.checkSlotDelivery(params);
+    if (!response || response.status !== "success") {
+      return [];
     }
+    return response.data.delivery_hours;
+  };
+
+  useEffect(() => {
+    handleTimes();
+    onChangeData(null);
+    return () => {};
   }, [selectedDate]);
 
   useEffect(() => {
-    getConfigOutlet();
+    if (times && times[0]) {
+      setSelectedTime(times[0]);
+    }
+  }, [times]);
 
+  useEffect(() => {
+    setSelectedOutlet(outlets[0]);
     return () => {
       clearOldData();
     };
   }, []);
+
+  const RenderTimeSlot = ({ time, type }) => {
+    return (
+      <>
+        {type == "delivery" ? (
+          <>
+            <Box
+              display={"flex"}
+              width={"100%"}
+              justifyContent={"space-between"}
+            >
+              <Typography fontSize={14}>
+                {convertTime24to12(time.from) +
+                  " to " +
+                  convertTime24to12(time.to)}
+              </Typography>
+              {/* {time.remaining_slot && (
+                <Typography fontSize={14} color="warning">
+                  {time.remaining_slot} slots remaining
+                </Typography>
+              )} */}
+            </Box>
+          </>
+        ) : (
+          <Typography fontSize={14}>
+            {convertTime24to12(time.from) + " to " + convertTime24to12(time.to)}
+          </Typography>
+        )}
+      </>
+    );
+  };
 
   return (
     <Box className="outlet-selects" mt={2}>
@@ -166,11 +232,11 @@ const OutletSelect = ({
           Select an outlet: <span style={{ color: "red" }}>(*)</span>
         </h5>
         <CustomSelect
-          sx={{mb: 1}}
+          sx={{ mb: 1 }}
           variant="outlined"
           id="outlet-id"
           size="small"
-          value={selectedOutlet}
+          value={selectedOutlet ?? ""}
           onChange={handleChangeOutlet}
           displayEmpty
           startAdornment={
@@ -180,10 +246,10 @@ const OutletSelect = ({
           }
         >
           <MenuItem value={""} disabled>
-              <Typography sx={{ textWrap: "wrap" }} color="#ccc" fontSize={14}>
-                SELECT AN OUTLET
-              </Typography>
-            </MenuItem>
+            <Typography sx={{ textWrap: "wrap" }} color="#ccc" fontSize={14}>
+              SELECT AN OUTLET
+            </Typography>
+          </MenuItem>
           {/* Multi outlets */}
           {outlets.length > 0 &&
             outlets.map((outlet, index) => (
@@ -195,7 +261,9 @@ const OutletSelect = ({
             ))}
         </CustomSelect>
         {mapRoute && (
-          <Typography fontWeight={600} fontSize={13}>Distance: {formatMetersToKm(mapRoute.total_distance)}</Typography>
+          <Typography fontWeight={600} fontSize={13}>
+            Distance: {formatMetersToKm(mapRoute.total_distance)}
+          </Typography>
         )}
       </FormControl>
 
@@ -203,7 +271,7 @@ const OutletSelect = ({
         <Box>
           {/* Select Date */}
           <Box my={3}>
-            <OutletDate onChangeDate={handleChangeDate} />
+            <OutletDate onChangeDate={handleChangeDate} type={type} />
           </Box>
 
           {/* Select Time */}
@@ -212,36 +280,64 @@ const OutletSelect = ({
               Select time: <span style={{ color: "red" }}>(*)</span>{" "}
               {selectedTime
                 ? convertTime24to12(selectedTime.from) +
-                  " - " +
+                  " to " +
                   convertTime24to12(selectedTime.to)
                 : ""}
             </h5>
-            <CustomSelect
-              id="delivery-time"
-              size="small"
-              value={selectedTime}
-              onChange={handleChangeTime}
-              displayEmpty
-              startAdornment={
-                <InputAdornment position="start" sx={{ paddingLeft: "11px" }}>
-                  <WatchLaterIcon sx={{ color: "#ec7265" }} />
-                </InputAdornment>
-              }
-            >
-              <MenuItem value="" disabled>
-                <Typography fontSize={14} color="#ccc">SELECT TIME</Typography>
-              </MenuItem>
-              {times &&
-                times.map((time, index) => (
-                  <MenuItem key={index} value={time}>
-                    <Typography fontSize={14}>
-                      {convertTime24to12(time.from) +
-                        " - " +
-                        convertTime24to12(time.to)}
-                    </Typography>
-                  </MenuItem>
-                ))}
-            </CustomSelect>
+            {!isLoading ? (
+              <>
+                {times.length > 0 ? (
+                  <CustomSelect
+                    id="delivery-time"
+                    size="small"
+                    value={selectedTime}
+                    onChange={handleChangeTime}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment
+                        position="start"
+                        sx={{ paddingLeft: "11px" }}
+                      >
+                        <WatchLaterIcon sx={{ color: "#ec7265" }} />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="" disabled>
+                      <Typography fontSize={14} color="#ccc">
+                        SELECT TIME
+                      </Typography>
+                    </MenuItem>
+                    {times &&
+                      times.map((time, index) => (
+                        <MenuItem key={index} value={time}>
+                          <RenderTimeSlot time={time} type={type} />
+                        </MenuItem>
+                      ))}
+                  </CustomSelect>
+                ) : (
+                  <>
+                    {selectedDate && (
+                      <Box
+                        display={"flex"}
+                        my={2}
+                        alignItems={"center"}
+                        justifyContent={"center"}
+                      >
+                        <WarningAmberIcon color="warning" />
+                        <Typography fontWeight={600} fontSize={14}>
+                          Selected date is fully booked. Please select another
+                          date.
+                        </Typography>
+                      </Box>
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <Box mb={2} display={"flex"} justifyContent={"center"}>
+                <CircularProgress color="primary" />
+              </Box>
+            )}
           </FormControl>
         </Box>
       )}

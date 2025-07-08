@@ -11,7 +11,7 @@ namespace Zippy_Booking\Src\Admin;
 defined('ABSPATH') or die();
 
 use Zippy_Booking\Utils\Zippy_Utils_Core;
-use  WC_Order_Item_Product;
+use Zippy_Booking\Src\Services\One_Map_Api;
 
 class Zippy_Admin_Settings
 {
@@ -34,17 +34,14 @@ class Zippy_Admin_Settings
 
     /* Register Menu Admin Part */
     add_action('admin_menu',  array($this, 'zippy_booking_page'));
+
     add_action('admin_enqueue_scripts', array($this, 'remove_default_stylesheets'));
     /* Register Assets Admin Part */
     add_action('admin_enqueue_scripts', array($this, 'admin_booking_assets'));
-
-
     /* Create Zippy API Token */
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'generate_zippy_booking_api_token'));
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_one_map_credentials'));
 
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_log_table'));
-  
-    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_outlet_table'));
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'get_one_map_access_token'));
   }
 
   public function admin_booking_assets()
@@ -66,40 +63,17 @@ class Zippy_Admin_Settings
 
   public function zippy_booking_page()
   {
-    add_menu_page('Zippy Add-ons', 'Zippy Add-ons', 'manage_options', 'zippy-bookings', array($this, 'render'), 'dashicons-list-view', 6);
+    add_menu_page('Zippy Add-ons', 'Zippy Add-ons', 'manage_options', 'zippy-bookings', array($this, 'store_render'), 'dashicons-list-view', 6);
     // SubPage
-    add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
-    add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
+    // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
+    // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
+    // add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
+    add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
+    // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
+    // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
+    add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
-    add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
   }
-
-  function delete_booking_table()
-  {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'bookings';
-
-    $wpdb->query("DROP TABLE IF EXISTS $table_name");
-  }
-
-  function delete_booking_config_table()
-  {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'booking_configs';
-
-    $wpdb->query("DROP TABLE IF EXISTS $table_name");
-  }
-  function delete_product_booking_mapping()
-  {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'products_booking';
-
-    $wpdb->query("DROP TABLE IF EXISTS $table_name");
-  }
-
 
   public function render()
   {
@@ -114,10 +88,17 @@ class Zippy_Admin_Settings
   {
     echo Zippy_Utils_Core::get_template('settings.php', [], dirname(__FILE__), '/templates');
   }
-
+  public function menus_render()
+  {
+    echo Zippy_Utils_Core::get_template('menus.php', [], dirname(__FILE__), '/templates');
+  }
   public function store_render()
   {
     echo Zippy_Utils_Core::get_template('booking-store.php', [], dirname(__FILE__), '/templates');
+  }
+  public function shipping_render()
+  {
+    echo Zippy_Utils_Core::get_template('shipping.php', [], dirname(__FILE__), '/templates');
   }
   public function calendar_render()
   {
@@ -129,7 +110,7 @@ class Zippy_Admin_Settings
       'toplevel_page_zippy-bookings',
       'zippy-bookings_page_bookings',
       'zippy-bookings_page_calendar',
-      'zippy-bookings_page_products-booking',
+      'zippy-add-ons_page_store',
       'zippy-bookings_page_customize'
     ];
 
@@ -171,66 +152,34 @@ class Zippy_Admin_Settings
     }
   }
 
-
-  function generate_zippy_booking_api_token()
+  function create_one_map_credentials()
   {
-    if (get_option(ZIPPY_BOOKING_API_TOKEN_NAME) == false) {
-      add_option(ZIPPY_BOOKING_API_TOKEN_NAME, ZIPPY_BOOKING_API_TOKEN);
+    if (get_option(ONEMAP_META_KEY) == false) {
+
+      $credentials = [
+        "email" => "dev@zippy.sg",
+        "password" => Zippy_Utils_Core::encrypt_data_input("Zippy12345678@"),
+      ];
+
+      add_option(ONEMAP_META_KEY, Zippy_Utils_Core::encrypt_data_input(json_encode($credentials), true));
     }
   }
-  function remove_zippy_booking_api_token()
-  {
-    if (get_option(ZIPPY_BOOKING_API_TOKEN_NAME) == true) {
-      delete_option(ZIPPY_BOOKING_API_TOKEN_NAME);
+  function get_one_map_access_token(){
+
+    $one_map_credentials = get_option(ONEMAP_META_KEY);
+    $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
+    if ($credentials_json == false) {
+      return [
+        "error" => "No credentials found",
+      ];
     }
-  }
 
-
-  function create_log_table()
-  {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'zippy_booking_log';
-
-    $charset_collate = $wpdb->get_charset_collate();
-
-    $sql = "CREATE TABLE $table_name (
-        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-        action VARCHAR(255) NOT NULL,
-        details LONGTEXT NOT NULL,
-        status VARCHAR(20) NOT NULL,
-        message LONGTEXT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-  }
-
-
-
-  function create_outlet_table()
-  {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'zippy_addons_outlet';
-
-    $charset_collate = $wpdb->get_charset_collate();
-
-    $sql = "CREATE TABLE $table_name (
-        id VARCHAR(255) NOT NULL,
-        outlet_name VARCHAR(255) NOT NULL,
-        display VARCHAR(255) NOT NULL,
-        outlet_phone VARCHAR(255) NULL,
-        outlet_address LONGTEXT NULL,
-        operating_hours LONGTEXT NULL,
-        closed_dates LONGTEXT NULL,
-        takeaway LONGTEXT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
+    $credentials = json_decode($credentials_json, true);
+    $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
+    
+    $authen = One_Map_Api::authenticate($credentials);
+    if (!empty($authen["access_token"])) {
+      update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
+    }
   }
 }

@@ -22,7 +22,7 @@ class Zippy_Request_Validation
                 return "$field is required";
             }
 
-            if ($rules["data_type"] == "range" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "range" && !empty($request[$field])) {
                 if (!in_array(strtolower($request[$field]), $rules['allowed_values'], true)) {
                     return "$field must be one of: " . implode(", ", $rules['allowed_values']);
                 }
@@ -30,7 +30,7 @@ class Zippy_Request_Validation
 
 
             // time
-            if ($rules["data_type"] == "time" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "time" && !empty($request[$field])) {
                 $datetime = DateTime::createFromFormat('H:i:s', $request[$field]);
                 if (!$datetime || $datetime->format('H:i:s') !== $request[$field]) {
                     return "$field must be a valid time in the format H:i:s";
@@ -39,7 +39,7 @@ class Zippy_Request_Validation
 
 
             // datetime
-            if ($rules["data_type"] == "datetime" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "datetime" && !empty($request[$field])) {
                 $datetime = DateTime::createFromFormat('Y-m-d H:i:s', $request[$field]);
                 if (!$datetime || $datetime->format('Y-m-d H:i:s') !== $request[$field]) {
                     return "$field must be a valid datetime in the format Y-m-d H:i:s.";
@@ -48,7 +48,7 @@ class Zippy_Request_Validation
 
 
             // date
-            if ($rules["data_type"] == "date" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "date" && !empty($request[$field])) {
                 $datetime = DateTime::createFromFormat('Y-m-d', $request[$field]);
                 if (!$datetime || $datetime->format('Y-m-d') !== $request[$field]) {
                     return "$field must be a valid date in the format Y-m-d.";
@@ -57,7 +57,7 @@ class Zippy_Request_Validation
 
 
             // String
-            if ($rules["data_type"] == "string" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "string" && !empty($request[$field])) {
                 if (!is_string($request[$field])) {
                     return "$field must be string";
                 }
@@ -65,7 +65,7 @@ class Zippy_Request_Validation
 
 
             // Number
-            if ($rules["data_type"] == "number" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "number" && !empty($request[$field])) {
                 if (!is_numeric($request[$field])) {
                     return "$field must be number";
                 }
@@ -73,7 +73,7 @@ class Zippy_Request_Validation
 
 
             // Array
-            if ($rules["data_type"] == "array" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "array" && !empty($request[$field])) {
                 if (!is_array($request[$field])) {
                     return "$field must be array";
                 }
@@ -81,23 +81,33 @@ class Zippy_Request_Validation
 
 
             // Email
-            if ($rules["data_type"] == "email" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "email" && !empty($request[$field])) {
                 if (!is_email($request[$field])) {
                     return "$field must be email";
                 }
             }
 
             // Boolean
-            if ($rules["data_type"] == "boolean" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "boolean" && !empty($request[$field])) {
                 if (!in_array(strtolower($request[$field]), ["t", "f"])) {
                     return "$field must be T or F";
                 }
             }
 
             //
-            if ($rules["data_type"] == "json" && !empty($request[$field])) {
+            if (!empty($rules["data_type"]) && $rules["data_type"] == "json" && !empty($request[$field])) {
                 json_decode($request[$field]);
                 return (json_last_error() === JSON_ERROR_NONE);
+            }
+
+            // Ensure end_date is after start_date
+            if ($field === "end_date" && isset($request["start_date"])) {
+                $start_timestamp = strtotime($request["start_date"]);
+                $end_timestamp = strtotime($request["end_date"]);
+
+                if ($end_timestamp <= $start_timestamp) {
+                    return "end_date must be later than start_date.";
+                }
             }
         }
     }

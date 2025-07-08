@@ -222,10 +222,146 @@ export const getCustomDayOfWeek = (date) => {
   return inputDate.getDay();
 };
 
-export const isWeekend = (date) => {
+export const getDisabledDays = (outletConfig, type) => {
+  let results = [];
+  outletConfig.operating_hours.map((item) => {
+    const timeConditions1 = !item.open_at || !item.close_at;
+    const timeConditions2 = type === "delivery" && item.delivery.enabled == "F";
+    const timeConditions3 =
+      type === "delivery" &&
+      item.delivery.enabled == "T" &&
+      item.delivery.delivery_hours.length == 0;
+
+    if (timeConditions1 || timeConditions2 || timeConditions3) {
+      results.push(item.week_day);
+    }
+
+    if (type === "delivery" && item.delivery.enabled == "T") {
+      const invalidTimes = item.delivery.delivery_hours.filter((item) => {
+        return !item.from || !item.to;
+      });
+      if (invalidTimes.length === item.delivery.delivery_hours.length) {
+        results.push(item.week_day);
+      }
+    }
+  });
+  return results;
+};
+
+export const isCloseDate = (date, closedDays, closedDates) => {
   const checkDate = new Date(date);
-  if (checkDate.getDay() === 0 || checkDate.getDay() === 6) {
+  const isDisabledDay = closedDays.find(
+    (item) => parseInt(item) === checkDate.getDay()
+  );
+
+  if (isDisabledDay) {
+    return true;
+  }
+
+  if (closedDates.length != 0) {
+    const check = closedDates.find(
+      (item) => item.value === format(checkDate, "dd/MM/yyyy")
+    );
+    if (check) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+export const getAvailableDeliveryTimes = (deliveryHours) => {
+  const availableTimes = deliveryHours.filter((item) => {
+    if (parseInt(item.remaining_slot) !== 0) {
+      return item.from && item.to;
+    }
+  });
+  return availableTimes;
+};
+
+const isInRange = (check, start, end) => {
+  const startDate = format(new Date(start), "yyyy-MM-dd");
+  const endDate = format(new Date(end), "yyyy-MM-dd");
+  const checkDate = format(new Date(check), "yyyy-MM-dd");
+  return startDate <= checkDate && checkDate <= endDate;
+};
+
+const isHappyDate = (date, happyHours) => {
+  const check = happyHours.find(happyHour => {
+    const happyStartDate = new Date(happyHour.start_time);
+    const happyEndDate = new Date(happyHour.end_time);
+    return isInRange(date, happyStartDate, happyEndDate);
+  });
+
+  if (check) {
     return true;
   }
   return false;
+}
+
+const isMenuDayAvailable = (day, daysOfWeek) => {
+  const dayData = daysOfWeek.find((item) => item.weekday == day);
+  if (!dayData || dayData.is_available == 0) {
+    return false;
+  }
+  return true;
+};
+
+export const isDisabledDate = (date, selectedOutlet, currentMenu, type) => {
+  const checkDate = new Date(date);
+  const checkDay = checkDate.getDay();
+  const disabledDays = getDisabledDays(selectedOutlet, type);
+
+  const checkCloseDate = isCloseDate(
+    date,
+    disabledDays,
+    selectedOutlet.closed_dates
+  );
+
+  if (checkCloseDate) {
+    return true;
+  }
+
+  if (!currentMenu) {
+    return false
+  }
+
+  const endDate = new Date(currentMenu.end_date);
+  if (checkDate > endDate) {
+    return true;
+  }
+
+  // if (!menusConfig || menusConfig.length == 0) {
+  //   return false;
+  // }
+
+  // const checkMenu = menusConfig.find((menu) =>
+  //   isInRange(date, menu.start_date, menu.end_date)
+  // );
+
+  // if (!checkMenu) {
+  //   return false;
+  // }
+
+  // if (checkMenu.happy_hours?.length > 0) {
+  //   const checkHappyDate = isHappyDate(date, checkMenu.happy_hours);
+  //   if (checkHappyDate) {
+  //     return false;
+  //   }
+  // }
+
+  // const checkMenuDay = isMenuDayAvailable(checkDay, checkMenu.days_of_week);
+  // if (!checkMenuDay) {
+  //   return true;
+  // }
+
+  return false;
+};
+
+export const getActiveMenuByDate = (date, menus) => {
+  if (!menus) return undefined;
+  const checkMenu = menus.find((menu) =>
+    isInRange(date, menu.start_date, menu.end_date)
+  );
+  return checkMenu;
 }

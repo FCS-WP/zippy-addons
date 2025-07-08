@@ -1,0 +1,28 @@
+table {
+  tbody {
+    tr {
+      td {
+        border-bottom: 1px solid #BFD3FE !important;
+      }
+
+      &.has-subrow {
+        td {
+          border-bottom: 0 !important;
+        }
+      }
+      &.delivery-sub-row {
+        td {
+          border-bottom: 0 !important;
+        }
+        &.delivery-sub-row--last {
+          td {
+            border-bottom: 1px solid #BFD3FE !important;
+          }
+        }
+      }
+    }
+  }
+}
+.delivery-slot-input {
+  max-width: 80px !important;
+}
