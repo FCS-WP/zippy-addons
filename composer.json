@@ -1,5 +1,6 @@
 {
     "require": {
-        "tebazil/db-seeder": "^1.0"
+        "tebazil/db-seeder": "^1.0",
+        "dompdf/dompdf": "^3.1"
     }
 }
