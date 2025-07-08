@@ -15,6 +15,7 @@ use Zippy_Booking\Src\Routers\Bookings\Mail\Zippy_Booking_Mail_Route;
 use Zippy_Booking\Src\Routers\General\Zippy_Booking_General_Router;
 use Zippy_Booking\Src\Routers\Menu\Zippy_Menu_Router;
 use Zippy_Booking\Src\Routers\Products\Zippy_Products_Router;
+use Zippy_Booking\Src\Routers\Orders\Zippy_Orders_Router;
 
 
 class Zippy_Booking_Routers
@@ -39,6 +40,7 @@ class Zippy_Booking_Routers
     Zippy_Booking_General_Router::get_instance();
     Zippy_Menu_Router::get_instance();
     Zippy_Products_Router::get_instance();
+    Zippy_Orders_Router::get_instance();
     new Zippy_Booking_Mail_Route();
   }
 }
