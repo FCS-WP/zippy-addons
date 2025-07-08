@@ -125,14 +125,16 @@ date_default_timezone_set("Asia/Singapore");
 
 
 
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 /* ------------------------------------------
 // Includes
  --------------------------- --------------------------------------------- */
 require ZIPPY_ADDONS_DIR_PATH . '/includes/autoload.php';
+require ZIPPY_ADDONS_DIR_PATH . 'vendor/autoload.php';
+
 
 use  Zippy_Booking\Src\Admin\Zippy_Admin_Settings;
 
