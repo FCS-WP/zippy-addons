@@ -35,13 +35,13 @@
             }
 
             .react-datepicker__day--selected {
-                background-color: #30c983;
+                background-color: var( --e-global-color-primary );
                 font-weight: 600;
             }
         }
 
         .react-datepicker__day--keyboard-selected {
-            background: #30c983;
+            background: var( --e-global-color-primary );
             color: #fff;
             font-weight: 600;
 
@@ -94,7 +94,7 @@ button.react-datepicker__navigation {
     color: #333 !important;
     
     &.active {
-        background-color: #30c983 !important;
+        background-color: var( --e-global-color-primary ) !important;
         color: #fff !important;
     }
 }
