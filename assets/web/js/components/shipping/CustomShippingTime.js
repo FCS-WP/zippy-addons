@@ -5,7 +5,8 @@ import { format } from "date-fns";
 
 const CustomShippingTime = () => {
   let today = new Date();
-  const minDate = today.setDate(today.getDate() + 2);
+  const minDate = new Date(today); // Tạo một đối tượng Date mới từ today
+  minDate.setDate(today.getDate() + 2); // Cập nhật ngày cho minDate
 
   const [selectedDate, setSelectedDate] = useState(minDate);
   const [selectedBtn, setSelectedBtn] = useState("");
@@ -20,13 +21,13 @@ const CustomShippingTime = () => {
     setSelectedBtn(value);
     switch (value) {
       case 1:
-        setDeliveryTime("10-17");
+        setDeliveryTime("01-05");
         break;
       case 2:
-        setDeliveryTime("14-19");
+        setDeliveryTime("12-06");
         break;
       case 3:
-        setDeliveryTime("18-21");
+        setDeliveryTime("12-04");
         break;
       default:
         break;
@@ -48,15 +49,31 @@ const CustomShippingTime = () => {
   };
 
   const isClosedDate = (date) => {
-    if (!closedDates || closedDates.length == 0) {
+    if (date.getDay() === 0) { // Disable Sundays
+      return true;
+    }
+    if (!closedDates || closedDates.length === 0) {
       return false;
     }
     const check = closedDates.find((item) => isInRangeDate(date, item.value));
-    if (check) {
-      return true;
-    }
-    return false;
+    return !!check;
   };
+
+  useEffect(() => {
+    if (selectedDate) {
+      const day = selectedDate.getDay();
+      // If weekday (Mon-Fri) and "12PM - 4PM" is selected, reset
+      if (day >= 1 && day <= 5 && selectedBtn === 3) {
+        setSelectedBtn("");
+        setDeliveryTime("");
+      }
+      // If Saturday and "12PM - 6PM" is selected, reset
+      else if (day === 6 && selectedBtn === 2) {
+        setSelectedBtn("");
+        setDeliveryTime("");
+      }
+    }
+  }, [selectedDate, selectedBtn]);
 
   return (
     <div>
@@ -77,7 +94,7 @@ const CustomShippingTime = () => {
           />
           <DatePicker
             minDate={minDate}
-            date={selectedDate ?? ""}
+            selected={selectedDate}
             onChange={handleSelectDate}
             filterDate={(date) => !isClosedDate(date)}
             inline
@@ -89,12 +106,37 @@ const CustomShippingTime = () => {
         <Box display={"flex"} flexWrap={"wrap"} gap={3}>
           <Button
             onClick={() => handleChangeSelectedBtn(1)}
-            variant={selectedBtn == 1 ? "contained" : "outlined"}
-            className={selectedBtn == 1 ? "btn-time active" : "btn-time"}
+            variant={selectedBtn === 1 ? "contained" : "outlined"}
+            className={selectedBtn === 1 ? "btn-time active" : "btn-time"}
           >
             1PM - 5PM
           </Button>
         </Box>
+      </Box>
+      <Box my={3} className="preferred-pickup-time">
+        <h4>Preferred Pickup Time</h4>
+        {selectedDate && selectedDate.getDay() >= 1 && selectedDate.getDay() <= 5 && (
+          <Box display={"flex"} flexWrap={"wrap"} gap={3}>
+            <Button
+              onClick={() => handleChangeSelectedBtn(2)}
+              variant={selectedBtn === 2 ? "contained" : "outlined"}
+              className={selectedBtn === 2 ? "btn-time active" : "btn-time"}
+            >
+              12PM - 6PM
+            </Button>
+          </Box>
+        )}
+        {selectedDate && selectedDate.getDay() === 6 && (
+          <Box display={"flex"} flexWrap={"wrap"} gap={3}>
+            <Button
+              onClick={() => handleChangeSelectedBtn(3)}
+              variant={selectedBtn === 3 ? "contained" : "outlined"}
+              className={selectedBtn === 3 ? "btn-time active" : "btn-time"}
+            >
+              12PM - 4PM
+            </Button>
+          </Box>
+        )}
       </Box>
     </div>
   );
