@@ -191,9 +191,8 @@ class Zippy_Admin_Booking_Shipping_Controller
         $outlet_id = $request["outlet_id"];
         $billing_date = $request->get_param('billing_date');
         $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
-
         $week_day = $date_obj->format('w'); // 0 (Sun) -> 6 (Sat)
-
+     
         try {
             global $wpdb;
 
@@ -211,7 +210,6 @@ class Zippy_Admin_Booking_Shipping_Controller
             if (empty($operating_hours)) {
                 return Zippy_Response_Handler::error("Operating hour config not Exist!");
             }
-
 
             $day_hours = null;
             foreach ($operating_hours as $day) {
@@ -285,28 +283,27 @@ class Zippy_Admin_Booking_Shipping_Controller
                     "remaining_slot" => $slot["delivery_slot"],
                 ];
             }
+            // $menu = Zippy_Booking_Helper::get_menu_for_date($billing_date);
 
-            $menu = Zippy_Booking_Helper::get_menu_for_date($billing_date);
+            // if ($menu) {
+            //     $included_product_ids = Zippy_Booking_Helper::get_disabled_ids($menu->id);
+            //     $is_product_disabled = in_array($product_id, $included_product_ids);
+            //     $happy_slots = [];
+            //     $isDisabledDay = Zippy_Booking_Helper::is_disabled_date_in_menu($billing_date, $menu);
+            //     $menu_slots = Zippy_Booking_Helper::get_happy_hour_slots($menu);
+            //     foreach ($menu_slots as $happy_hour) {
+            //         $happy_slots[] = [
+            //             "from" => $happy_hour["from"],
+            //             "to" => $happy_hour["to"],
+            //             "remaining_slot" => $happy_hour->delivery_slots ?? 100,
+            //             "is_happy_hours" => true
+            //         ];
+            //     }
 
-            if ($menu) {
-                $included_product_ids = Zippy_Booking_Helper::get_disabled_ids($menu->id);
-                $is_product_disabled = in_array($product_id, $included_product_ids);
-                $happy_slots = [];
-                $isDisabledDay = Zippy_Booking_Helper::is_disabled_date_in_menu($billing_date, $menu);
-                $menu_slots = Zippy_Booking_Helper::get_happy_hour_slots($menu);
-                foreach ($menu_slots as $happy_hour) {
-                    $happy_slots[] = [
-                        "from" => $happy_hour["from"],
-                        "to" => $happy_hour["to"],
-                        "remaining_slot" => $happy_hour->delivery_slots ?? 100,
-                        "is_happy_hours" => true
-                    ];
-                }
-
-                if ($isDisabledDay && $is_product_disabled) {
-                    return Zippy_Response_Handler::success(["delivery_hours" => $happy_slots]);
-                }
-            }
+            //     if ($isDisabledDay && $is_product_disabled) {
+            //         return Zippy_Response_Handler::success(["delivery_hours" => $happy_slots]);
+            //     }
+            // }
 
             return Zippy_Response_Handler::success(["delivery_hours" => $response_data]);
         } catch (\Throwable $th) {

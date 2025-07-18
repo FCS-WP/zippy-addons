@@ -81,3 +81,13 @@ export const getDateExpired = (start, end) => {
     return { status: "info", message: "incoming" };
   }
 }
+const isValidTimeFormat = (time) => {
+  return /^([0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/.test(time);
+}
+
+export const createDateWithHourStr = (hourStr) => {
+    const today = new Date();
+    const dateStr = format(today, "yyyy-MM-dd") + " " + hourStr;
+    let result = isValidTimeFormat(hourStr) ? new Date(dateStr) : null;
+    return result;
+  };
