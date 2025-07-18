@@ -15,7 +15,6 @@ const destChildTheme = "./";
 const destFileCss = destChildTheme + "/assets/web/sass/app.scss";
 const destAdminFileCss = destChildTheme + "/assets/admin/sass/app.scss";
 const destAdminFileJs = destChildTheme + "/assets/admin/js/index.js";
-const destDocFileJs = destChildTheme + "/docs/index.js";
 const destFileJs = destChildTheme + "/assets/web/js/index.js";
 const destOutput = destChildTheme + "/assets/dist";
 
@@ -26,7 +25,6 @@ module.exports = [
     entry: {
       web: [destFileCss, destFileJs],
       admin: [destAdminFileCss, destAdminFileJs],
-      doc: [destDocFileJs],
     },
     output: {
       filename: destOutput + "/js/[name].min.js",
@@ -39,7 +37,6 @@ module.exports = [
           test: /\.(js|jsx)$/,
           exclude: /node_modules/,
           loader: "babel-loader",
-          
         },
         // sass compilation
         {
