@@ -89,7 +89,7 @@ const BookingSettings = ({
       {/* Config time revert */}
 
       <Box mb={2}>
-           <Typography variant="body1">Day Limited</Typography>
+           <Typography variant="body1">Sales Window Period</Typography>
           <TextField 
             value={dayLimited}
             type="number"
