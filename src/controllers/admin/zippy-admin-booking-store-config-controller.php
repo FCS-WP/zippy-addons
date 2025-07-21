@@ -23,9 +23,16 @@ class Zippy_Admin_Booking_Store_Config_Controller
             "takeaway" => ["required" => true],
         ];
 
+        // Add option limit days 
+
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
         if (!empty($validate)) {
             return Zippy_Response_Handler::error($validate);
+        }
+        $day_limited = $request->get_param('day_limited');
+        
+        if ($day_limited) {
+            update_option('zippy_day_limited', $day_limited);
         }
 
         // validate sub_field_datas
