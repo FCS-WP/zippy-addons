@@ -73,6 +73,7 @@ class Zippy_Booking_Web
   {
     // if (!is_archive() && !is_single() && !is_checkout()) return;
     $version = time();
+    $day_limited = get_option( 'zippy_day_limited', '' );
 
     $current_user_id = get_current_user_id();
     $user_info = get_userdata($current_user_id);
@@ -82,7 +83,8 @@ class Zippy_Booking_Web
     if ($user_info) {
       wp_localize_script('booking-js', 'admin_data', array(
         'userID' => $current_user_id,
-        'user_email' => $user_info->user_email
+        'user_email' => $user_info->user_email,
+        'day_limited' => $day_limited
       ));
     }
   }

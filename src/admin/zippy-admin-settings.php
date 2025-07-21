@@ -48,16 +48,16 @@ class Zippy_Admin_Settings
   {
     $version = time();
     $current_user_id = get_current_user_id();
+    $day_limited = get_option( 'zippy_day_limited', '' );
     //lib
     // wp_enqueue_style('admin-jquery-ui-css', ZIPPY_ADDONS_URL . 'assets/libs/jquery-ui/jquery-ui.min.css', [], $version);
     // Pass the user ID to the script
     wp_enqueue_script('admin-booking-js', ZIPPY_ADDONS_URL . '/assets/dist/js/admin.min.js', [], $version, true);
     wp_enqueue_style('booking-css', ZIPPY_ADDONS_URL . '/assets/dist/css/admin.min.css', [], $version);
 
-
-
-    wp_localize_script('booking-js-current-id', 'admin_id', array(
+    wp_localize_script('admin-booking-js', 'admin_data', array(
       'userID' => $current_user_id,
+      'day_limited' => $day_limited 
     ));
   }
 

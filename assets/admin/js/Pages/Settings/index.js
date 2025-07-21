@@ -33,6 +33,7 @@ const Settings = () => {
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
+  const [dayLimited, setDayLimited] = useState(window?.admin_data?.day_limited ?? '');
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -287,11 +288,16 @@ const Settings = () => {
     );
   };
 
+  const onChangeDayLimited = (newVal) => {
+    setDayLimited(parseInt(newVal));
+  }
+
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
       const payload = {
         outlet_id: selectedStore,
+        day_limited: dayLimited,
         operating_hours: schedule.map((item, index) => ({
           week_day: index.toString(),
           open_at: item.slots[0]?.from || "",
@@ -365,6 +371,8 @@ const Settings = () => {
                 selectedStore={selectedStore}
                 setSelectedStore={setSelectedStore}
                 disabled={stores.length === 0}
+                dayLimited={dayLimited}
+                onChangeDayLimited={onChangeDayLimited}
               />
               {stores.length === 0 && (
                 <Paper
