@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -8,6 +8,7 @@ import {
   MenuItem,
   Paper,
   Button,
+  TextField,
 } from "@mui/material";
 import theme from "../../../theme/theme";
 
@@ -23,7 +24,10 @@ const BookingSettings = ({
   selectedStore,
   setSelectedStore,
   disabled,
+  dayLimited,
+  onChangeDayLimited
 }) => {
+
   return (
     <Box component={Paper}>
       <Box mb={2}>
@@ -80,6 +84,18 @@ const BookingSettings = ({
         <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
           Set the duration of each booking session.
         </Typography>
+      </Box>
+
+      {/* Config time revert */}
+
+      <Box mb={2}>
+           <Typography variant="body1">Day Limited</Typography>
+          <TextField 
+            value={dayLimited}
+            type="number"
+            fullWidth
+            onChange={(e)=>onChangeDayLimited(e.target.value)}
+          />
       </Box>
 
       {/* Holiday Toggle */}

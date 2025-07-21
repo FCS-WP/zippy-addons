@@ -24,8 +24,10 @@ const DateCalendar = ({
 
   let minDate = new Date();
   minDate.setDate(minDate.getDate() + 2);
+
   let maxDate = menusConfig ? new Date(menusConfig.end_date) : new Date();
-  menusConfig ? null : maxDate.setMonth(maxDate.getMonth() + 2);
+  let day_limited = parseInt(window.admin_data.day_limited) || 30;
+  menusConfig ? null : maxDate.setDate(maxDate.getDate() + day_limited);
 
   return (
     <Box className="date-box">
