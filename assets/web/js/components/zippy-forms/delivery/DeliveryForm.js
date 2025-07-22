@@ -13,6 +13,7 @@ const DeliveryForm = ({ onChangeMode }) => {
   const [deliveryData, setDeliveryData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
+  const [isCalcDistance, setIsCalcDistance] = useState(false);
 
   const handleSelectLocation = (location) => {
     setSelectedLocation(location);
@@ -24,7 +25,7 @@ const DeliveryForm = ({ onChangeMode }) => {
 
   const handleConfirm = async () => {
     if (!deliveryData || !selectedLocation) {
-      showAlert('error', "Failed!", "Please fill all required field!");
+      showAlert("error", "Failed!", "Please fill all required field!");
       return;
     }
     setIsLoading(true);
@@ -35,21 +36,21 @@ const DeliveryForm = ({ onChangeMode }) => {
       delivery_address: {
         address_name: selectedLocation.ADDRESS,
         lat: selectedLocation.LATITUDE,
-        lng: selectedLocation.LONGITUDE
+        lng: selectedLocation.LONGITUDE,
       },
       outlet_id: deliveryData.outlet,
       date: deliveryData.date,
       time: deliveryData.time,
     };
-    
+
     const response = await webApi.addToCart(params);
 
-    if (!response?.data || response.data.status !== 'success') {
-      showAlert('error', "Failed!", "Can not add product. Please try again!");
+    if (!response?.data || response.data.status !== "success") {
+      showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
-    showAlert('success', "Success", "Product added to cart.", 2000);
+    showAlert("success", "Success", "Product added to cart.", 2000);
 
     setTimeout(() => {
       window.location.reload();
@@ -57,13 +58,17 @@ const DeliveryForm = ({ onChangeMode }) => {
     }, 2000);
   };
 
-  useEffect(()=>{
-    if (selectedLocation && deliveryData) {
+  const onChangeDistance = (value) => {
+    setIsCalcDistance(value);
+  };
+
+  useEffect(() => {
+    if (selectedLocation && deliveryData && isCalcDistance) {
       setIsDisabled(false);
     } else {
       setIsDisabled(true);
     }
-  }, [selectedLocation, deliveryData]);
+  }, [selectedLocation, deliveryData, isCalcDistance]);
 
   return (
     <Box>
@@ -81,6 +86,7 @@ const DeliveryForm = ({ onChangeMode }) => {
         </Box>
         <Box>
           <OutletSelect
+            onChangeDistance={onChangeDistance}
             onChangeData={handleDeliveryData}
             selectedLocation={selectedLocation}
           />

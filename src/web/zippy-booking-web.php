@@ -73,20 +73,18 @@ class Zippy_Booking_Web
   {
     // if (!is_archive() && !is_single() && !is_checkout()) return;
     $version = time();
-    $day_limited = get_option( 'zippy_day_limited', '' );
+    $day_limited = get_option('zippy_day_limited', '');
 
     $current_user_id = get_current_user_id();
     $user_info = get_userdata($current_user_id);
     // Form Assets
     wp_enqueue_script('booking-js', ZIPPY_ADDONS_URL . '/assets/dist/js/web.min.js', [], $version, true);
     wp_enqueue_style('booking-css', ZIPPY_ADDONS_URL . '/assets/dist/css/web.min.css', [], $version);
-    if ($user_info) {
-      wp_localize_script('booking-js', 'admin_data', array(
-        'userID' => $current_user_id,
-        'user_email' => $user_info->user_email,
-        'day_limited' => $day_limited
-      ));
-    }
+    wp_localize_script('booking-js', 'admin_data', array(
+      'userID' => $current_user_id,
+      'user_email' => $user_info ? $user_info->user_email : null,
+      'day_limited' => $day_limited
+    ));
   }
 
   public function zippy_form($atts)
@@ -94,7 +92,7 @@ class Zippy_Booking_Web
     return '<div id="zippy-form"></div>';
   }
 
-  public function hook_to_pre_get_posts ($query) 
+  public function hook_to_pre_get_posts($query)
   {
     if (is_admin() || ! $query->is_main_query()) {
       return;
@@ -109,7 +107,7 @@ class Zippy_Booking_Web
     }
   }
 
-  public function custom_class_products ($classes, $class, $post_id) 
+  public function custom_class_products($classes, $class, $post_id)
   {
     if ('product' === get_post_type($post_id)) {
       global $products_with_special_class;

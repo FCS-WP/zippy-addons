@@ -43,6 +43,7 @@ const OutletSelect = ({
   type = "delivery",
   onChangeData,
   selectedLocation = null,
+  onChangeDistance
 }) => {
   const { outlets, selectedOutlet, setSelectedOutlet, menusConfig } =
     useContext(OutletContext);
@@ -123,8 +124,10 @@ const OutletSelect = ({
 
       const { data: response } = await webApi.searchRoute(params);
       setMapRoute(response.data);
+      onChangeDistance(true);
     } catch (error) {
-      toast.error("failed to get distance");
+      onChangeDistance(false);
+      toast.error("Failed to get distance!");
     }
   };
 
