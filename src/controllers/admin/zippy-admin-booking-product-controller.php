@@ -49,19 +49,10 @@ class Zippy_Admin_Booking_Product_Controller
             $session_data["outlet_name"] = $outlet->outlet_name;
             $session_data["outlet_address"] = $outlet_address["address"] ?? null;
 
-            if ($order_mode === 'delivery') {
-                $delivery_info = self::calculate_shipping_fee($request["delivery_address"], $lat, $lng, $request['outlet_id']);
-                if (isset($delivery_info['error'])) {
-                    return Zippy_Response_Handler::error($delivery_info['error']);
-                }
-                $session_data = array_merge($session_data, $delivery_info);
-            }
-
             self::store_to_session($session_data);
             $cart = new Zippy_Cart_Handler;
-            $min_qty = get_post_meta($_product->get_id(), '_custom_minimum_order_qty', true) ?? 1;
+            $min_qty = sanitize_text_field($request["quantity"]) ?? 1;
             $cart->add_to_cart($_product->get_id(), $min_qty);
-
             return Zippy_Response_Handler::success($session_data, "Product added to cart");
         } catch (\Throwable $th) {
             Zippy_Log_Action::log(

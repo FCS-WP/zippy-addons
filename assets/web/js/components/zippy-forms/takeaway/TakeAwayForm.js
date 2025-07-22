@@ -18,28 +18,29 @@ const TakeAwayForm = ({ onChangeMode }) => {
 
   const handleConfirm = async () => {
     if (!takeawayData) {
-      showAlert('error', "Failed!", "Please fill all required field!");
+      showAlert("error", "Failed!", "Please fill all required field!");
       return;
     }
     setIsLoading(true);
 
     const params = {
-      product_id: getSelectProductId(),
+      product_id: getSelectProductId()[0],
+      quantity: getSelectProductId()[1],
       order_mode: "takeaway",
       outlet_id: takeawayData.outlet,
       time: takeawayData.time,
       date: takeawayData.date,
     };
-    
+    console.log(params)
     const response = await webApi.addToCart(params);
 
-    if (!response?.data || response.data.status !== 'success') {
-      showAlert('error', "Failed!", "Can not add product. Please try again!");
+    if (!response?.data || response.data.status !== "success") {
+      showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
 
-    showAlert('success', "Success", "Product added to cart.", 2000);
+    showAlert("success", "Success", "Product added to cart.", 2000);
 
     setTimeout(() => {
       window.location.reload();
@@ -47,7 +48,7 @@ const TakeAwayForm = ({ onChangeMode }) => {
     }, 2000);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     if (takeawayData) {
       setIsDisabled(false);
     } else {
@@ -60,7 +61,7 @@ const TakeAwayForm = ({ onChangeMode }) => {
       <Box>
         <FormHeading
           onBack={() => onChangeMode("select-method")}
-          title={"Take Away Details"}
+          title={"Pickup Details"}
         />
 
         <Box p={2}>

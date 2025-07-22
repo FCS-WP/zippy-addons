@@ -32,7 +32,7 @@ const FormHeading = ({ onBack, title }) => {
       >
         {title ?? ""}
       </Typography>
-      <CustomButton className="btn-close-lightbox" color="gray">
+      <CustomButton className="btn-close-lightbox close" color="gray">
         <ClearIcon />
       </CustomButton>
     </Box>

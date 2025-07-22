@@ -13,7 +13,7 @@ import OutletContext from "../../contexts/OutletContext";
 
 const dates = Array.from({ length: 5 }, (_, i) => {
   const date = new Date();
-  date.setDate(date.getDate() + (2 + i));
+  date.setDate(date.getDate() + (1 + i));
   return date;
 });
 

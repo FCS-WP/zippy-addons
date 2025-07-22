@@ -46,10 +46,21 @@ const OutletSelect = ({
 }) => {
   const { outlets, selectedOutlet, setSelectedOutlet, menusConfig } =
     useContext(OutletContext);
+
+  const defaultTime = [
+    {
+      from: "12:00",
+      to: "13:00",
+    },
+    {
+      from: "17:30",
+      to: "18:30",
+    },
+  ];
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
-  const [times, setTimes] = useState();
+  const [times, setTimes] = useState(defaultTime);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleTimes = async () => {
@@ -57,7 +68,7 @@ const OutletSelect = ({
     let configTime = [];
     if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) {
       setSelectedTime("");
-      setTimes(configTime);
+      // setTimes(configTime);
       setIsLoading(false);
       return false;
     }
@@ -81,7 +92,7 @@ const OutletSelect = ({
       case "takeaway":
         if (!selectedOutlet.takeaway) {
           setSelectedTime("");
-          setTimes(configTime);
+          // setTimes(configTime);
           setIsLoading(false);
           return false;
         }
@@ -95,7 +106,7 @@ const OutletSelect = ({
     }
     setSelectedTime("");
     setIsLoading(false);
-    setTimes(configTime);
+    // setTimes(configTime);
   };
 
   const clearOldData = () => {
@@ -161,11 +172,10 @@ const OutletSelect = ({
   }, [selectedLocation, selectedOutlet]);
 
   const handleCheckSlot = async () => {
-    
-  const params = {
+    const params = {
       billing_date: format(selectedDate, "yyyy-MM-dd"),
       outlet_id: selectedOutlet.id,
-      product_id: getSelectProductId()
+      product_id: getSelectProductId(),
     };
 
     const { data: response } = await webApi.checkSlotDelivery(params);
@@ -229,7 +239,7 @@ const OutletSelect = ({
     <Box className="outlet-selects" mt={2}>
       <FormControl variant="outlined" fullWidth>
         <h5>
-          Select an outlet: <span style={{ color: "red" }}>(*)</span>
+          Pickup location: <span style={{ color: "red" }}>(*)</span>
         </h5>
         <CustomSelect
           sx={{ mb: 1 }}
@@ -239,6 +249,7 @@ const OutletSelect = ({
           value={selectedOutlet ?? ""}
           onChange={handleChangeOutlet}
           displayEmpty
+          className="select-stores"
           startAdornment={
             <InputAdornment position="start" sx={{ paddingLeft: "11px" }}>
               <StoreIcon sx={{ color: "#ec7265" }} />

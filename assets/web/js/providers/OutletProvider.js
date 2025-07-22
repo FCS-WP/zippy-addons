@@ -26,7 +26,7 @@ const OutletProvider = ({ children }) => {
       return;
     }
 
-    const productId = getSelectProductId();
+    const productId = getSelectProductId()[0];
     const outletId = selectedOutlet.id;
     const currentDate = new Date();
 

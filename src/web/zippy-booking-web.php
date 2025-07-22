@@ -33,10 +33,10 @@ class Zippy_Booking_Web
   public function __construct()
   {
     /* Set timezone SG */
-    date_default_timezone_set('Asia/Singapore');
+    // date_default_timezone_set('Asia/Singapore');
 
     /* Init Function */
-    add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
+    // add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
     add_action('woocommerce_before_checkout_form', array($this, 'zippy_add_shortcode_to_checkout'));
 
     add_action('pre_get_posts', array($this, 'hook_to_pre_get_posts'));

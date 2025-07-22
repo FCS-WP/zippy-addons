@@ -5,7 +5,7 @@ import DeliveryForm from "./delivery/DeliveryForm";
 import TakeAwayForm from "./takeaway/TakeAwayForm";
 import OutletProvider from "../../providers/OutletProvider";
 
-const OrderForm = ({productId}) => {
+const OrderForm = ({productId,quantity}) => {
   /**
    * Display mode:
    * 1. 'select-method'
@@ -30,11 +30,11 @@ const OrderForm = ({productId}) => {
         </Box>
       )}
 
-      {mode === "delivery" && (
+      {/* {mode === "delivery" && (
         <Box id="zippy-delivery-form">
           <DeliveryForm onChangeMode={handleChangeMethod}/>
         </Box>
-      )}
+      )} */}
 
       {mode === "takeaway" && (
         <Box id="zippy-takeaway-form">

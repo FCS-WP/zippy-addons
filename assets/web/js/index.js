@@ -9,43 +9,53 @@ import LoginForm from "./pages/LoginForm";
 
 $(function () {
   const target = document.getElementById("lightbox-zippy-form");
-  const zippyMain = document.getElementById("zippy-form");
   let root = null;
 
   // Function to render React component
-  function renderReactApp(productId) {
+  function renderReactApp(productId, quantity = 1) {
+    const zippyMain = document.getElementById("zippy-form");
+    const root = ReactDOM.createRoot(zippyMain);
+
     if (zippyMain) {
-      if (!root) {
-        root = ReactDOM.createRoot(zippyMain); // Only create root once
-      }
+      // if (!root) {
+      //   root = ReactDOM.createRoot(zippyMain); // Only create root once
+      // }
       root.render(
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <OrderForm productId={productId} />
+          <OrderForm productId={productId} quantity={quantity} />
           <ToastContainer />
         </ThemeProvider>
       );
     }
   }
 
-  // Observe changes to attributes on the target element
-  const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-      if (
-        mutation.type === "attributes" &&
-        mutation.attributeName === "data-product_id"
-      ) {
-        const newProductId = target.getAttribute("data-product_id");
-        renderReactApp(newProductId);
+  const body = document.body;
+
+  // Create a MutationObserver
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      // Check if new nodes were added
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          // Check if the added node is an Elementor popup modal
+          if (
+            node.classList &&
+            node.classList.contains("elementor-popup-modal")
+          ) {
+            console.log("Elementor popup detected:", node);
+            let form = document.getElementById("zippy-form");
+            let productId = form.getAttribute("data-product_id");
+            let quantity = form.getAttribute("quantity");
+            renderReactApp(productId, quantity);
+          }
+        });
       }
-    }
+    });
   });
 
-  observer.observe(target, { attributes: true });
-
-  // Optional: Initial render if needed
-  const initialProductId = target.getAttribute("data-product_id");
-  renderReactApp(initialProductId);
+  // Configure the observer to monitor the <body>
+  observer.observe(body, { childList: true });
 
   document.addEventListener("DOMContentLoaded", function () {
     const zippyLoginForm = document.getElementById("custom-login-form");

@@ -18,11 +18,12 @@ export const getBookingsByDate = async (booking_id, date, status = []) => {
 };
 
 export const getSelectProductId = () => {
-  const zippyForm = document.getElementById("lightbox-zippy-form");
+  const zippyForm = document.getElementById("zippy-form");
   const productId = zippyForm.getAttribute("data-product_id");
-  return productId;
+  const quantity = zippyForm.getAttribute("quantity") ?? 1;
+  return [productId, quantity];
 };
 
 export const triggerCloseLightbox = () => {
   document.querySelector(".mfp-close").click();
-}
+};

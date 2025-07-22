@@ -27,7 +27,7 @@ const SelectMethod = ({ onChangeMode }) => {
         Select Your Preference
       </Typography>
       <Box display={"flex"} m={4} justifyContent={"space-around"}>
-        <Box>
+        {/* <Box>
           <CustomButton onClick={() => onChangeMode("delivery")}>
             <img src={deliveryIcon} alt="delivery" />
           </CustomButton>
@@ -39,19 +39,20 @@ const SelectMethod = ({ onChangeMode }) => {
           >
             Delivery
           </Typography>
-        </Box>
+        </Box> */}
 
         <Box>
-          <CustomButton onClick={() => onChangeMode("takeaway")}>
+          <CustomButton className="method-icon" onClick={() => onChangeMode("takeaway")}>
             <img src={takeawayIcon} alt="takeaway" />
           </CustomButton>
           <Typography
             textAlign={"center"}
-            variant="h6"
+            variant="h5"
             fontSize={16}
             fontWeight={700}
+            className="method-title"
           >
-            Take Away
+            Pick Up
           </Typography>
         </Box>
       </Box>
@@ -62,6 +63,8 @@ const SelectMethod = ({ onChangeMode }) => {
           background: "#f5e7e7",
           textTransform: "capitalize",
           color: "#000",
+          padding: "0px",
+          background: "none",
         }}
       >
         Continue Browsing
