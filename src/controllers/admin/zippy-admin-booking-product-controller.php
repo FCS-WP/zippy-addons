@@ -189,6 +189,7 @@ class Zippy_Admin_Booking_Product_Controller
     private static function store_to_session($data)
     {
         $session = new Zippy_Session_Handler;
+        $session->init_session();
         foreach ($data as $key => $value) {
             $session->set($key, $value);
         }
