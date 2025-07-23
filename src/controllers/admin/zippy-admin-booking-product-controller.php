@@ -9,6 +9,7 @@ use Zippy_booking\Src\App\Models\Zippy_Log_Action;
 use Zippy_Booking\Src\Services\One_Map_Api;
 use Zippy_Booking\Utils\Zippy_Session_Handler;
 use Zippy_Booking\Utils\Zippy_Cart_Handler;
+use WP_REST_Response;
 
 defined('ABSPATH') or die();
 
@@ -25,7 +26,7 @@ class Zippy_Admin_Booking_Product_Controller
                 return Zippy_Response_Handler::error($validation);
             }
 
-            $outlet = self::get_outlet($request['outlet_id']);
+            $outlet = $request['outlet_name'];
             if (!$outlet) {
                 return Zippy_Response_Handler::error("Outlet not exist!");
             }
@@ -36,20 +37,12 @@ class Zippy_Admin_Booking_Product_Controller
                 return Zippy_Response_Handler::error("Product not exist!");
             }
 
-            $outlet_address = maybe_unserialize($outlet->outlet_address);
-            $lat = $outlet_address["coordinates"]["lat"] ?? null;
-            $lng = $outlet_address["coordinates"]["lng"] ?? null;
-
-            if (empty($lat) || empty($lng)) {
-                return Zippy_Response_Handler::error("This Outlet does not have address yet!");
-            }
-
             $session_data = self::extract_common_data($request);
-
-            $session_data["outlet_name"] = $outlet->outlet_name;
-            $session_data["outlet_address"] = $outlet_address["address"] ?? null;
-
+            $session_data["outlet_name"] = $outlet;
+        
+            $session_data["outlet_address"] = $outlet ?? null;
             self::store_to_session($session_data);
+          
             $cart = new Zippy_Cart_Handler;
             $min_qty = sanitize_text_field($request["quantity"]) ?? 1;
             $cart->add_to_cart($_product->get_id(), $min_qty);
@@ -70,7 +63,7 @@ class Zippy_Admin_Booking_Product_Controller
         $required_fields = [
             "product_id" => ["required" => true, "data_type" => "string"],
             "order_mode" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
-            "outlet_id" => ["required" => true, "data_type" => "string"],
+            "outlet_name" => ["required" => true, "data_type" => "string"],
             "date" => ["required" => true, "data_type" => "string"],
             "time" => ["required" => true],
         ];
@@ -163,6 +156,7 @@ class Zippy_Admin_Booking_Product_Controller
             "product_id",
             "quantity",
             "order_mode",
+            "current_cart",
             "date",
             "time"
         ];
@@ -180,9 +174,49 @@ class Zippy_Admin_Booking_Product_Controller
     private static function store_to_session($data)
     {
         $session = new Zippy_Session_Handler;
+        $session->init_session();
         foreach ($data as $key => $value) {
             $session->set($key, $value);
         }
         $session->set('status_popup', true);
+    }
+
+    public static function check_before_add_to_cart(WP_REST_Request $request)
+    {
+        $product_id = $request->get_param('product_id');
+        if (!$product_id) {
+            return Zippy_Response_Handler::error("Missing product param!");
+        }
+    
+        $terms = get_the_terms($product_id, 'product_cat');
+
+        $flag = false;
+        if ($terms && !is_wp_error($terms)) {
+            foreach ($terms as $term) {
+                if (str_contains($term->slug, 'retail-store')) {
+                    $flag = true;
+                }
+            }
+        }
+
+        return new WP_REST_Response(['is_available_delivery' => $flag, 'status' => 'success'], 200);
+    }
+
+    public static function check_session_before_add_to_cart(WP_REST_Request $request)
+    {
+        $new_cart = $request->get_param('new_cart');
+        if (!$new_cart) {
+            return Zippy_Response_Handler::error("Missing new_cart param!");
+        }
+        $session = new Zippy_Session_Handler();
+        if (!$session->get('order_mode')) {
+            return Zippy_Response_Handler::success(["cart_available" => true], 'Add to cart available!');
+        }
+        $current_cart = $session->get('current_cart');
+
+        if ($current_cart === $new_cart) {
+            return Zippy_Response_Handler::success(["cart_available" => true], 'Add to cart available!');
+        }
+        return Zippy_Response_Handler::success(["cart_available" => false], 'Need to clean cart!');
     }
 }

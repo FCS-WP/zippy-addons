@@ -1,29 +1,33 @@
 import { Box } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
-import {
-  getDisabledDays,
-  isCloseDate,
-  isDisabledDate,
-} from "../../../helper/datetime";
+import OutletContext from "../../../contexts/OutletContext";
 
-const DateCalendar = ({
-  onSelectDate,
-  defaultDate,
-  menusConfig,
-  selectedOutlet,
-  type,
-}) => {
-  const closedDays = getDisabledDays(selectedOutlet, type);
+const DateCalendar = ({ onSelectDate, defaultDate }) => {
   const [selectedDate, setSelectedDate] = useState(defaultDate);
+  const { customOutletSelected } = useContext(OutletContext);
+  const [minDate, setMinDate] = useState(new Date());
+  const [maxDate, setMaxDate] = useState(null);
 
   const handleClick = (date) => {
     setSelectedDate(date);
     onSelectDate(date);
   };
 
-  const minDate = new Date("06/19/2025");
-  const maxDate = new Date("07/07/2025");
+  useEffect(() => {
+    if (customOutletSelected) {
+      setMinDate(
+        customOutletSelected.start_date
+          ? new Date(customOutletSelected.start_date)
+          : null
+      );
+      setMaxDate(
+        customOutletSelected.start_date
+          ? new Date(customOutletSelected.end_date)
+          : null
+      );
+    }
+  }, [customOutletSelected]);
 
   return (
     <Box className="date-box">
@@ -32,9 +36,6 @@ const DateCalendar = ({
         maxDate={maxDate}
         selected={selectedDate}
         onChange={handleClick}
-        filterDate={(date) =>
-          !isDisabledDate(date, selectedOutlet, menusConfig, type)
-        }
         inline
       />
     </Box>

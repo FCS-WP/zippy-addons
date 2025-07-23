@@ -14,12 +14,14 @@ use WC_Session_Handler;
 
 class Zippy_Session_Handler
 {
-  public function __construct()
+  /**
+   * Initialize WooCommerce session.
+   */
+  public function init_session()
   {
-    if (!WC()->session) {
-      WC()->session = new WC_Session_Handler();
-      WC()->session->init();
-    }
+    WC()->session = new WC_Session_Handler();
+    WC()->session->init();
+    WC()->session->set_customer_session_cookie(true);
   }
 
   /**
@@ -30,7 +32,7 @@ class Zippy_Session_Handler
    */
   public function set($key, $value)
   {
-    WC()->session->set($key, $value);
+    WC()->session->__set($key, $value);
   }
 
   /**
@@ -42,7 +44,7 @@ class Zippy_Session_Handler
    */
   public function get($key, $default = null)
   {
-    $value = WC()->session->get($key);
+    $value = WC()->session->__get($key);
     return $value !== null ? $value : $default;
   }
 
@@ -53,6 +55,8 @@ class Zippy_Session_Handler
    */
   public function destroy($key)
   {
-    WC()->session->__unset($key);
+    if (WC()->session) {
+      WC()->session->__unset($key);
+    }
   }
 }

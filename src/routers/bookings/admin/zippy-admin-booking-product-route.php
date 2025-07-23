@@ -25,6 +25,13 @@ class Zippy_Admin_Booking_Product_Route extends Zippy_Booking_Router
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
 
+        // Checking before add to cart.
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/check-before-add-to-cart', array(
+            'methods' => 'GET',
+            'callback' => array(Zippy_Admin_Booking_Product_Controller::class, 'check_before_add_to_cart'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        ));
+
         /* GET product/category */
         register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/mapping-product', array(
             'methods' => 'GET',

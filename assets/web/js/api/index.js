@@ -16,6 +16,9 @@ export const webApi = {
   async addToCart(params) {
     return await makeRequest("/add-to-cart", params, 'POST');
   },
+  async checkBeforeAddToCart(params) {
+    return await makeRequest("/check-before-add-to-cart", params, 'GET');
+  },
   async checkProduct(params) {
     return await makeRequest('/product-checking', params);
   },

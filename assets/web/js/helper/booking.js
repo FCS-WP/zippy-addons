@@ -27,3 +27,39 @@ export const getSelectProductId = () => {
 export const triggerCloseLightbox = () => {
   document.querySelector(".mfp-close").click();
 };
+
+export const dataRetailStore = [
+  {
+    name: "Katong Shopping Centre",
+    start_date: "2025-07-23",
+    end_date: "2025-08-23",
+  },
+  {
+    name: "ION Orchard Level 6 locker area Lounge",
+    start_date: "2025-07-23",
+    end_date: "2025-08-23",
+  },
+];
+
+export const dataPopupReservation = [
+  {
+    name: "ION Orchard Level 6 locker area Lounge",
+    start_date: "2025-07-23",
+    end_date: "2025-08-23",
+  },
+  {
+    name: "White Sands (23 July - 23 Aug)",
+    start_date: "2025-07-23",
+    end_date: "2025-08-23",
+  },
+  {
+    name: "Taka SG60 (31 July- 11 Aug)",
+    start_date: "2025-07-31",
+    end_date: "2025-08-11",
+  },
+  {
+    name: "Chinatown Point (1-7 Sep)",
+    start_date: "2025-09-01",
+    end_date: "2025-09-07",
+  },
+];

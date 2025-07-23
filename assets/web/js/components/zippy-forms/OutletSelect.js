@@ -44,8 +44,15 @@ const OutletSelect = ({
   onChangeData,
   selectedLocation = null,
 }) => {
-  const { outlets, selectedOutlet, setSelectedOutlet, menusConfig } =
-    useContext(OutletContext);
+  const {
+    outlets,
+    selectedOutlet,
+    setSelectedOutlet,
+    menusConfig,
+    customOutletData,
+    customOutletSelected,
+    setCustomOutletSelected,
+  } = useContext(OutletContext);
 
   const defaultTime = [
     {
@@ -62,6 +69,8 @@ const OutletSelect = ({
   const [mapRoute, setMapRoute] = useState(null);
   const [times, setTimes] = useState(defaultTime);
   const [isLoading, setIsLoading] = useState(false);
+  const [donaSelectedOutlet, setDonaSelectedOutlet] =
+    useState(customOutletSelected);
 
   const handleTimes = async () => {
     setIsLoading(true);
@@ -116,7 +125,8 @@ const OutletSelect = ({
   };
 
   const handleChangeOutlet = async (e) => {
-    setSelectedOutlet(e.target.value);
+    setDonaSelectedOutlet(e.target.value);
+    setCustomOutletSelected(e.target.value)
   };
 
   const handleDistance = async () => {
@@ -155,15 +165,15 @@ const OutletSelect = ({
   };
 
   useEffect(() => {
-    if (selectedOutlet && selectedDate && selectedTime) {
+    if (donaSelectedOutlet && selectedDate && selectedTime) {
       onChangeData({
-        outlet: selectedOutlet.id,
+        outlet: donaSelectedOutlet,
         date: format(selectedDate, "yyyy-MM-dd"),
         time: selectedTime,
         mapRoute: mapRoute ?? "",
       });
     }
-  }, [selectedOutlet, selectedDate, selectedTime]);
+  }, [donaSelectedOutlet, selectedDate, selectedTime]);
 
   useEffect(() => {
     if (selectedLocation && selectedOutlet) {
@@ -246,7 +256,7 @@ const OutletSelect = ({
           variant="outlined"
           id="outlet-id"
           size="small"
-          value={selectedOutlet ?? ""}
+          value={donaSelectedOutlet ?? ""}
           onChange={handleChangeOutlet}
           displayEmpty
           className="select-stores"
@@ -262,11 +272,11 @@ const OutletSelect = ({
             </Typography>
           </MenuItem>
           {/* Multi outlets */}
-          {outlets.length > 0 &&
-            outlets.map((outlet, index) => (
+          {customOutletData.length > 0 &&
+            customOutletData.map((outlet, index) => (
               <MenuItem key={index} value={outlet}>
                 <Typography sx={{ textWrap: "wrap" }} fontSize={14}>
-                  {outlet.outlet_address.address}
+                  {outlet.name}
                 </Typography>
               </MenuItem>
             ))}

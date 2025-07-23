@@ -1,16 +1,18 @@
 import { Box, Button } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import FormHeading from "../FormHeading";
 import OutletSelect from "../OutletSelect";
 import theme from "../../../../theme/customTheme";
 import { webApi } from "../../../api";
 import { getSelectProductId } from "../../../helper/booking";
 import { showAlert } from "../../../helper/showAlert";
+import OutletContext from "../../../contexts/OutletContext";
 
-const TakeAwayForm = ({ onChangeMode }) => {
+const TakeAwayForm = ({ onChangeMode, isEnableDelivery }) => {
   const [takeawayData, setTakeawayData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
+  const { cartType } = useContext(OutletContext);
 
   const handletakeawayData = (data) => {
     setTakeawayData(data);
@@ -27,11 +29,12 @@ const TakeAwayForm = ({ onChangeMode }) => {
       product_id: getSelectProductId()[0],
       quantity: getSelectProductId()[1],
       order_mode: "takeaway",
-      outlet_id: takeawayData.outlet,
+      current_cart: cartType,
+      outlet_name: takeawayData.outlet.name,
       time: takeawayData.time,
       date: takeawayData.date,
     };
-    console.log(params)
+
     const response = await webApi.addToCart(params);
 
     if (!response?.data || response.data.status !== "success") {

@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./calendar/old_calendar";
 import theme from "../theme/customTheme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ToastContainer } from "react-toastify";
@@ -8,6 +7,7 @@ import OrderForm from "./components/zippy-forms/OrderForm";
 import LoginForm from "./pages/LoginForm";
 
 $(function () {
+
   const target = document.getElementById("lightbox-zippy-form");
   let root = null;
 
@@ -43,7 +43,6 @@ $(function () {
             node.classList &&
             node.classList.contains("elementor-popup-modal")
           ) {
-            console.log("Elementor popup detected:", node);
             let form = document.getElementById("zippy-form");
             let productId = form.getAttribute("data-product_id");
             let quantity = form.getAttribute("quantity");

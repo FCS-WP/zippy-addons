@@ -1,6 +1,7 @@
 import { Box, Typography, Button, styled } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { deliveryIcon, takeawayIcon } from "../../images";
+import OutletContext from "../../contexts/OutletContext";
 
 const CustomButton = styled(Button)(({ theme }) => ({
   padding: "16px",
@@ -16,6 +17,8 @@ const CustomButton = styled(Button)(({ theme }) => ({
 }));
 
 const SelectMethod = ({ onChangeMode }) => {
+  const { cartType } = useContext(OutletContext);
+  
   return (
     <Box>
       <Typography
@@ -27,19 +30,22 @@ const SelectMethod = ({ onChangeMode }) => {
         Select Your Preference
       </Typography>
       <Box display={"flex"} m={4} justifyContent={"space-around"}>
-        {/* <Box>
-          <CustomButton onClick={() => onChangeMode("delivery")}>
+        {cartType === 'retail-store' && (
+          <Box>
+          <CustomButton  className="method-icon" onClick={() => onChangeMode("delivery")}>
             <img src={deliveryIcon} alt="delivery" />
           </CustomButton>
           <Typography
             textAlign={"center"}
-            variant="h6"
+            variant="h5"
             fontSize={16}
             fontWeight={700}
+            className="method-title"
           >
             Delivery
           </Typography>
-        </Box> */}
+        </Box>
+        )}
 
         <Box>
           <CustomButton className="method-icon" onClick={() => onChangeMode("takeaway")}>

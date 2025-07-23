@@ -10,6 +10,8 @@ namespace Zippy_Booking\Src\Woocommerce;
 
 defined('ABSPATH') or die();
 
+use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
+use Zippy_Booking\Utils\Zippy_Session_Handler;
 use Zippy_Booking\Utils\Zippy_Utils_Core;
 
 class Zippy_Woo_Booking
@@ -41,8 +43,31 @@ class Zippy_Woo_Booking
     /* Update Checkout After Applied Coupon */
     add_action('woocommerce_applied_coupon', array($this, 'after_apply_coupon_action'));
     add_action('woocommerce_product_options_pricing', array($this, 'add_custom_price_field_to_product'));
+    add_filter('woocommerce_add_to_cart_validation', array($this, 'check_product_category_before_add_to_cart'), 10, 5);
+  }
 
-    
+  function check_product_category_before_add_to_cart($passed, $product_id, $quantity, $variation_id = null, $variations = null)
+  {
+    $session = new Zippy_Session_Handler;
+    if (!$session) {
+      return $passed;
+    }
+    $current_cart_type = $session->get('current_cart');
+    // Get product categories (terms)
+    $terms = get_the_terms($product_id, 'product_cat');
+    $flag = false;
+    if ($terms && !is_wp_error($terms)) {
+      foreach ($terms as $term) {
+        if (str_contains($term->slug, $current_cart_type)) {
+          $flag = true;
+        }
+      }
+    }
+    if (!$flag) {
+      wc_add_notice(__('This product does not match your current cart type. Please clear your cart to add this product!', 'your-textdomain'), 'error');
+      return false;
+    }
+    return $passed;
   }
 
   function after_apply_coupon_action($coupon_code)
