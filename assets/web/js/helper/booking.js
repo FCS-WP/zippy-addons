@@ -34,19 +34,9 @@ export const dataRetailStore = [
     start_date: "2025-07-23",
     end_date: "2025-08-23",
   },
-  {
-    name: "ION Orchard Level 6 locker area Lounge",
-    start_date: "2025-07-23",
-    end_date: "2025-08-23",
-  },
 ];
 
 export const dataPopupReservation = [
-  {
-    name: "ION Orchard Level 6 locker area Lounge",
-    start_date: "2025-07-23",
-    end_date: "2025-08-23",
-  },
   {
     name: "White Sands (23 July - 23 Aug)",
     start_date: "2025-07-23",
