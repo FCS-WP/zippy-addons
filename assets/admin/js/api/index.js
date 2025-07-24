@@ -91,4 +91,7 @@ export const Api = {
   async removeProductsFromMenu(params) {
     return await makeRequest("/products-menu", params, "DELETE");
   },
+  async updateProductPrices(params) {
+    return await makeRequest("/product-prices", params, "POST");
+  },
 };

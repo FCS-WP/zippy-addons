@@ -4,6 +4,7 @@ import SelectMethod from "./SelectMethod";
 import DeliveryForm from "./delivery/DeliveryForm";
 import TakeAwayForm from "./takeaway/TakeAwayForm";
 import OutletProvider from "../../providers/OutletProvider";
+import SelectCartType from "./SelectCartType";
 
 const OrderForm = ({ productId, quantity }) => {
   /**
@@ -51,6 +52,7 @@ const OrderForm = ({ productId, quantity }) => {
           </Box>
         ) : (
           <>
+            
             {mode === "select-method" && (
               <Box>
                 <SelectMethod

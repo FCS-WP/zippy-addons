@@ -54,10 +54,15 @@ class Zippy_Admin_Settings
     wp_enqueue_script('admin-booking-js', ZIPPY_ADDONS_URL . '/assets/dist/js/admin.min.js', [], $version, true);
     wp_enqueue_style('booking-css', ZIPPY_ADDONS_URL . '/assets/dist/css/admin.min.css', [], $version);
 
+    $retail_price = get_option('zippy_prices_retail', 0);
+    $popup_price = get_option('zippy_prices_popup', 0);
+    $reservation_fee = get_option('zippy_prices_reservation_fee', 0);
 
-
-    wp_localize_script('booking-js-current-id', 'admin_id', array(
+    wp_localize_script('admin-booking-js', 'admin_data', array(
       'userID' => $current_user_id,
+      'retail_price' => $retail_price,
+      'popup_price' => $popup_price,
+      'reservation_fee' => $reservation_fee,
     ));
   }
 
@@ -72,12 +77,18 @@ class Zippy_Admin_Settings
     // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
     // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
     add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
+    add_submenu_page('zippy-bookings', 'Product Prices', 'Product Prices', 'manage_options', 'Product Prices', array($this, 'render_product_price'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
   }
 
   public function render()
   {
     echo Zippy_Utils_Core::get_template('booking-dashboard.php', [], dirname(__FILE__), '/templates');
+  }
+
+  public function render_product_price()
+  {
+    echo Zippy_Utils_Core::get_template('product-prices.php', [], dirname(__FILE__), '/templates');
   }
 
   public function bookings_render()
@@ -164,7 +175,8 @@ class Zippy_Admin_Settings
       add_option(ONEMAP_META_KEY, Zippy_Utils_Core::encrypt_data_input(json_encode($credentials), true));
     }
   }
-  function get_one_map_access_token(){
+  function get_one_map_access_token()
+  {
 
     $one_map_credentials = get_option(ONEMAP_META_KEY);
     $credentials_json = Zippy_Utils_Core::decrypt_data_input($one_map_credentials);
@@ -176,7 +188,7 @@ class Zippy_Admin_Settings
 
     $credentials = json_decode($credentials_json, true);
     $credentials["password"] = Zippy_Utils_Core::decrypt_data_input($credentials["password"]);
-    
+
     $authen = One_Map_Api::authenticate($credentials);
     if (!empty($authen["access_token"])) {
       update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));

@@ -126,7 +126,7 @@ const OutletSelect = ({
 
   const handleChangeOutlet = async (e) => {
     setDonaSelectedOutlet(e.target.value);
-    setCustomOutletSelected(e.target.value)
+    setCustomOutletSelected(e.target.value);
   };
 
   const handleDistance = async () => {

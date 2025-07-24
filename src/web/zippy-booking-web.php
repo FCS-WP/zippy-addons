@@ -13,6 +13,7 @@ defined('ABSPATH') or die();
 use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 use Zippy_Booking\Utils\Zippy_Utils_Core;
 use DateTime;
+use Zippy_Booking\Utils\Zippy_Session_Handler;
 
 class Zippy_Booking_Web
 {
@@ -41,7 +42,8 @@ class Zippy_Booking_Web
 
     add_action('pre_get_posts', array($this, 'hook_to_pre_get_posts'));
     add_filter('post_class', array($this, 'custom_class_products'), 10, 3);
-
+    add_filter('woocommerce_get_price_html', array($this, 'custom_archive_price_html'), 10, 2);
+    add_action('woocommerce_cart_calculate_fees', array($this, 'add_custom_order_fee'));
     /**
      * Shortcode
      */
@@ -54,11 +56,108 @@ class Zippy_Booking_Web
 
     /* Booking Assets  */
     add_action('wp_enqueue_scripts', array($this, 'booking_assets'));
+
+    add_filter('woocommerce_add_cart_item_data', array($this, 'zippy_add_custom_price_on_add_to_cart'), 10, 2);
+    add_filter('woocommerce_get_cart_item_from_session', array($this, 'zippy_restore_cart_item_data'), 20, 2);
+    add_action('woocommerce_before_calculate_totals', array($this, 'zippy_apply_custom_price'), 100);
+  }
+  public function add_custom_order_fee($cart)
+  {
+    if (is_admin() && !defined('DOING_AJAX')) return;
+
+    $reservation_fee = get_option('zippy_prices_reservation_fee', null);
+    if (!$reservation_fee || $cart->is_empty()) return;
+
+    $total_quantity = 0;
+    foreach ($cart->get_cart() as $cart_item) {
+      $total_quantity += $cart_item['quantity'];
+    }
+
+    $total_fee = floatval($reservation_fee) * $total_quantity;
+    $cart->add_fee(__('Reservation Fee', 'your-text-domain'), $total_fee, false);
+  }
+
+  public function custome_display($item_data, $cart_item_data)
+  {
+    var_dump($cart_item_data);
+
+    return $item_data;
+  }
+  public  function zippy_refresh_cart_fragments($fragments)
+  {
+    ob_start();
+    woocommerce_mini_cart();
+    $fragments['div.widget_shopping_cart_content'] = ob_get_clean();
+    return $fragments;
+  }
+
+  public function zippy_add_custom_price_on_add_to_cart($cart_item_data, $product_id)
+  {
+
+    $session = new Zippy_Session_Handler;
+    $current_cart = $session->get('current_cart');
+
+    $retail_price = get_option('zippy_prices_retail', 0);
+    $popup_price = get_option('zippy_prices_popup', 0);
+    $is_retail = str_contains($current_cart, 'retail-store');
+
+    $added_price = $is_retail ? floatval($retail_price) : floatval($popup_price);
+    // Save it into cart item data
+    $cart_item_data['zippy_added_price'] = $added_price;
+
+    return $cart_item_data;
+  }
+
+  public function zippy_apply_custom_price($cart)
+  {
+    if (is_admin() && !defined('DOING_AJAX')) return;
+
+    foreach ($cart->get_cart() as $cart_item) {
+      if (isset($cart_item['zippy_added_price'])) {
+        $base_price = $cart_item['data']->get_regular_price(); // Or get_price() if you prefer
+        $custom_price = $base_price + floatval($cart_item['zippy_added_price']);
+        $cart_item['data']->set_price($custom_price);
+      }
+    }
+  }
+
+  public function zippy_restore_cart_item_data($cart_item, $values)
+  {
+    if (isset($values['zippy_added_price'])) {
+      $cart_item['zippy_added_price'] = $values['zippy_added_price'];
+    }
+    return $cart_item;
   }
 
   public function function_init()
   {
     return;
+  }
+
+  public function custom_archive_price_html($price_html, $product)
+  {
+    $session = new Zippy_Session_Handler;
+    if ($session->get('current_cart')) {
+      $retail_price = get_option('zippy_prices_retail', 0);
+      $popup_price = get_option('zippy_prices_popup', 0);
+      $add_prices = $session->get('current_cart') == 'retail-store' ? $retail_price : $popup_price;
+      $custom_price = $product->get_price() + floatval($add_prices);
+      $price_html = '<span class="custom-price">' . wc_price($custom_price) . '</span>';
+    } else {
+      $current_path = $_SERVER['REQUEST_URI'];
+      $is_retail = str_contains($current_path, 'retail-store');
+      $is_popup_reser = str_contains($current_path, 'popup-reservation');
+      if ($is_retail || $is_popup_reser) {
+        $retail_price = get_option('zippy_prices_retail', 0);
+        $popup_price = get_option('zippy_prices_popup', 0);
+        $add_prices = $is_retail ? $retail_price : $popup_price;
+        $custom_price = $product->get_price() + floatval($add_prices);
+        if ($custom_price) {
+          $price_html = wc_price($custom_price);
+        }
+      }
+    }
+    return $price_html;
   }
 
   public function zippy_lightbox_flatsome()
@@ -92,7 +191,7 @@ class Zippy_Booking_Web
     return '<div id="zippy-form"></div>';
   }
 
-  public function hook_to_pre_get_posts ($query) 
+  public function hook_to_pre_get_posts($query)
   {
     if (is_admin() || ! $query->is_main_query()) {
       return;
@@ -107,7 +206,7 @@ class Zippy_Booking_Web
     }
   }
 
-  public function custom_class_products ($classes, $class, $post_id) 
+  public function custom_class_products($classes, $class, $post_id)
   {
     if ('product' === get_post_type($post_id)) {
       global $products_with_special_class;

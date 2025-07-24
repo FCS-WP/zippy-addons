@@ -17,21 +17,24 @@ const OutletProvider = ({ children }) => {
   const [customOutletData, setCustomOutletData] = useState();
   const [customOutletSelected, setCustomOutletSelected] = useState();
 
-  const checkProductType = async () => {
-    const params = {
-      product_id: document
-        .querySelector("#zippy-form")
-        .getAttribute("data-product_id"),
-    };
-    const { data: response } = await webApi.checkBeforeAddToCart(params);
-    if (response && response?.status == "success") {
-      let enableDelivery = response.is_available_delivery;
-      setCartType(enableDelivery ? "retail-store" : "popup-reservation");
-      let donaOutletData = enableDelivery ? dataRetailStore : dataPopupReservation
+  const checkCartType = async () => {
+    const currentPath = window.location.pathname;
+    let is_retail = currentPath.includes("retail-store");
+    let is_popup = currentPath.includes("popup-reservation");
+    if (is_retail || is_popup) {
+      setCartType(is_retail ? "retail-store" : "popup-reservation");
+      let donaOutletData = is_retail ? dataRetailStore : dataPopupReservation;
+    }
+  };
+
+  useEffect(() => {
+    if (cartType) {
+      let donaOutletData =
+        cartType === "retail-store" ? dataRetailStore : dataPopupReservation;
       setCustomOutletData(donaOutletData);
       setCustomOutletSelected(donaOutletData[0]);
     }
-  };
+  }, [cartType]);
 
   const getConfigOutlet = async () => {
     try {
@@ -73,7 +76,7 @@ const OutletProvider = ({ children }) => {
 
   useEffect(() => {
     getConfigOutlet();
-    checkProductType();
+    checkCartType();
 
     return () => {};
   }, []);
@@ -84,6 +87,7 @@ const OutletProvider = ({ children }) => {
     setSelectedOutlet,
     menusConfig,
     cartType,
+    setCartType,
     customOutletData,
     customOutletSelected,
     setCustomOutletSelected,

@@ -48,21 +48,30 @@ class Zippy_Woo_Booking
 
   function check_product_category_before_add_to_cart($passed, $product_id, $quantity, $variation_id = null, $variations = null)
   {
+    if (isset($_POST['zippy_source_path'])) {
+        $cart_item_data['zippy_source_path'] = sanitize_text_field($_POST['zippy_source_path']);
+        var_dump(3333);
+    }
+
     $session = new Zippy_Session_Handler;
     if (!$session) {
       return $passed;
     }
     $current_cart_type = $session->get('current_cart');
+    $current_url = $_SERVER['REQUEST_URI'];
     // Get product categories (terms)
-    $terms = get_the_terms($product_id, 'product_cat');
-    $flag = false;
-    if ($terms && !is_wp_error($terms)) {
-      foreach ($terms as $term) {
-        if (str_contains($term->slug, $current_cart_type)) {
-          $flag = true;
-        }
-      }
+    $is_retail = str_contains($current_url, 'retail-store');
+    $is_popup = str_contains($current_url, 'popup-reservation');
+    $flag = true;
+
+    if ($is_retail && $current_cart_type !== 'retail-store') {
+      $flag = false;
     }
+
+    if ($is_popup && $current_cart_type !== 'popup-reservation') {
+      $flag = false;
+    }
+
     if (!$flag) {
       wc_add_notice(__('This product does not match your current cart type. Please clear your cart to add this product!', 'your-textdomain'), 'error');
       return false;

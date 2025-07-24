@@ -183,23 +183,18 @@ class Zippy_Admin_Booking_Product_Controller
 
     public static function check_before_add_to_cart(WP_REST_Request $request)
     {
-        $product_id = $request->get_param('product_id');
-        if (!$product_id) {
-            return Zippy_Response_Handler::error("Missing product param!");
+        // $product_id = $request->get_param('product_id');
+        // if (!$product_id) {
+        //     return Zippy_Response_Handler::error("Missing product param!");
+        // }
+        try {
+            $session = new Zippy_Session_Handler;
+            $cart_type = $session->get('current_cart') ?? '';
+            return new WP_REST_Response(['cart_type' => $cart_type, 'status' => 'success'], 200);
+        } catch (\Throwable $th) {
+             return new WP_REST_Response(['cart_type' => '', 'status' => 'success'], 200);
         }
-    
-        $terms = get_the_terms($product_id, 'product_cat');
-
-        $flag = false;
-        if ($terms && !is_wp_error($terms)) {
-            foreach ($terms as $term) {
-                if (str_contains($term->slug, 'retail-store')) {
-                    $flag = true;
-                }
-            }
-        }
-
-        return new WP_REST_Response(['is_available_delivery' => $flag, 'status' => 'success'], 200);
+        
     }
 
     public static function check_session_before_add_to_cart(WP_REST_Request $request)

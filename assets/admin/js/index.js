@@ -12,6 +12,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../theme/theme";
 import AdminMenus from "./Pages/Menus/AdminMenus";
 import { BrowserRouter } from "react-router";
+import ProductPrices from "./Pages/Prices/ProductPrices";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -20,6 +21,7 @@ function initializeApp() {
   const zippyStore = document.getElementById("zippy_store_booking");
   const zippyShipping = document.getElementById("zippy_shipping");
   const zippyMenus = document.getElementById("zippy_menus");
+  const zippyPrices = document.getElementById("zippy_product_prices");
 
   if (zippyMenus) {
     const root = ReactDOM.createRoot(zippyMenus);
@@ -74,6 +76,15 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Shipping />
+      </ThemeProvider>
+    );
+  }
+  if (zippyPrices) {
+    const root = ReactDOM.createRoot(zippyPrices);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ProductPrices />
       </ThemeProvider>
     );
   }

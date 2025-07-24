@@ -2,6 +2,7 @@
 
 namespace Zippy_Booking\Src\Controllers\Products;
 
+use Exception;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
@@ -222,5 +223,18 @@ class Zippy_Products_Controller
     return empty($response)
       ? Zippy_Response_Handler::error($response, 500)
       : Zippy_Response_Handler::success($response, "Products retrieved successfully.");
+  }
+
+  public static function update_product_prices(WP_REST_Request $request)
+  {
+    $data = $request->get_params();
+    try {
+      update_option('zippy_prices_retail', $data['retail_price']);
+      update_option('zippy_prices_popup', $data['popup_price']);
+      update_option('zippy_prices_reservation_fee', $data['reservation_fee']);
+      wp_send_json_success(['status' => 'success', 'message' => 'Update successfully'], 200);
+    } catch (Exception $e) {
+      wp_send_json_error(['status' => 'error', 'message' => $e->getMessage()], 500);
+    }
   }
 }
