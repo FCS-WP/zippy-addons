@@ -27,7 +27,7 @@ class One_Map_Api
 		$response = self::sendRequest($method, $url, $params, $access_token);
 
 		// Check if token is expired
-		if (isset($response['status']) && $response['status'] == 401) {
+		if ((isset($response['status']) && $response['status'] == 401) || $response['message'] == "Unauthorized") {
 			$new_token = self::refreshAccessToken();
 
 			if (isset($new_token['error'])) {

@@ -26,6 +26,8 @@ class Zippy_Orders_Controller
 
         $file_type = sanitize_text_field($request->get_param('file_type'));
         $customer_id = sanitize_text_field($request->get_param('customer_id'));
+        $from_date = sanitize_text_field($request->get_param('from_date'));
+        $to_date = sanitize_text_field($request->get_param('to_date'));
 
         $args = array(
             'status' => 'completed',
@@ -33,8 +35,17 @@ class Zippy_Orders_Controller
             'customer_id' => $customer_id
         );
         
+        if (!empty($from_date) && !empty($to_date)) {
+            $from_timestamp = strtotime($from_date);
+            $to_timestamp = strtotime($to_date);
+            if ($from_timestamp == false || $to_timestamp == false) {
+                return Zippy_Response_Handler::error('Invalid date format for from_date or to_date');
+            }
+            $args['date_created'] = date('Y-m-d 00:00:00', $from_timestamp) . '...' . date('Y-m-d 23:59:59', $to_timestamp);
+        }
+
         $orders = wc_get_orders($args);
-        
+
         // Return if no completed order
         if (empty($orders)) {
             return Zippy_Response_Handler::success([], 'No completed orders found');
