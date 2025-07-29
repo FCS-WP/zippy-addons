@@ -100,4 +100,79 @@ class Zippy_Admin_Booking_Delivery_Controller
             Zippy_Log_Action::log('create_store', json_encode($request), 'Failure', $message);
         }
     }
+
+    public static function get_delivery_config(WP_REST_Request $request)
+    {
+        $required_fields = [
+            "outlet_id" => ["required" => true, "data_type" => "string"],
+            "delivery_type" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+
+        global $wpdb;
+
+        $time_table = "{$wpdb->prefix}zippy_addons_delivery_times";
+        $slot_table = "{$wpdb->prefix}zippy_addons_delivery_time_slots";
+
+        $outlet_id = $request->get_param('outlet_id');
+        $delivery_type = $request->get_param('delivery_type');
+
+        $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
+        $query = "SELECT id FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
+        $is_outlet_exist = count($wpdb->get_results($query));
+        if ($is_outlet_exist < 1) {
+            return Zippy_Response_Handler::error("Outlet not exist!");
+        }
+
+        // get time config weekdays
+        $time_rows = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM $time_table WHERE outlet_id = %s AND delivery_type = %s", $outlet_id, $delivery_type),
+            ARRAY_A
+        );
+
+        $response = [
+            'outlet_id' => $outlet_id,
+            'delivery_type' => $delivery_type,
+            'time' => []
+        ];
+
+        if(empty($time_rows)){
+            return Zippy_Response_Handler::success([], "No Times Found!");
+        }
+
+        foreach ($time_rows as $time) {
+            $delivery_time_id = $time['id'];
+            $week_day = $time['week_day'];
+            $enabled = $time['is_active']; // 'T' or 'F'
+
+            // get time slots
+            $slots = $wpdb->get_results(
+                $wpdb->prepare("SELECT * FROM $slot_table WHERE delivery_time_id = %s", $delivery_time_id),
+                ARRAY_A
+            );
+
+            $slot_data = [];
+            foreach ($slots as $slot) {
+                $slot_data[] = [
+                    'id' => $slot['id'],
+                    'from' => $slot['time_from'],
+                    'to' => $slot['time_to'],
+                    'delivery_slot' => (string) $slot['delivery_slot']
+                ];
+            }
+
+            $response['time'][] = [
+                'id' => $delivery_time_id,
+                'week_day' => (string) $week_day,
+                'enabled' => $enabled,
+                'time_slot' => $slot_data
+            ];
+        }
+        return Zippy_Response_Handler::success($response, "Success");
+    }
 }
