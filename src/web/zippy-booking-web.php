@@ -40,7 +40,7 @@ class Zippy_Booking_Web
     // add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
     add_action('woocommerce_before_checkout_form', array($this, 'zippy_add_shortcode_to_checkout'));
 
-    add_action('pre_get_posts', array($this, 'hook_to_pre_get_posts'));
+    // add_action('pre_get_posts', array($this, 'hook_to_pre_get_posts'));
     add_filter('post_class', array($this, 'custom_class_products'), 10, 3);
     add_filter('woocommerce_get_price_html', array($this, 'custom_archive_price_html'), 10, 2);
     add_action('woocommerce_cart_calculate_fees', array($this, 'add_custom_order_fee'));
@@ -136,6 +136,7 @@ class Zippy_Booking_Web
 
   public function custom_archive_price_html($price_html, $product)
   {
+    if (is_admin()) return $price_html;
     $session = new Zippy_Session_Handler;
     if ($session->get('current_cart')) {
       $retail_price = get_option('zippy_prices_retail', 0);

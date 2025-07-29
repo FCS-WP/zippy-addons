@@ -34,7 +34,7 @@ const SelectCartType = () => {
         Select Your Preference
       </Typography>
       <Box display={"flex"} m={4} justifyContent={"space-around"}>
-        <Box textAlign={"center"}>
+        <Box className="retail-store" textAlign={"center"}>
           <CustomButton
             className="method-icon"
             onClick={() => onChangeCartType("retail-store")}
@@ -51,7 +51,7 @@ const SelectCartType = () => {
             Retail Store
           </Typography>
         </Box>
-        <Box textAlign={"center"}>
+        <Box className="pop-up-mt" textAlign={"center"}>
           <CustomButton
             className="method-icon"
             onClick={() => onChangeCartType("popup-reservation")}

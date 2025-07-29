@@ -61,12 +61,6 @@ const OrderForm = ({ productId, quantity }) => {
               </Box>
             )}
 
-            {/* {mode === "delivery" && (
-          <Box id="zippy-delivery-form">
-            <DeliveryForm onChangeMode={handleChangeMethod}/>
-          </Box>
-        )} */}
-
             {mode === "takeaway" && (
               <Box id="zippy-takeaway-form">
                 <TakeAwayForm
