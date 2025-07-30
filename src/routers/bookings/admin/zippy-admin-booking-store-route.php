@@ -49,10 +49,10 @@ class Zippy_Admin_Booking_Store_Route extends Zippy_Booking_Router
 
 
         // CREATE a new store config
-        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/store-config', array(
-            'methods' => 'POST',
-            'callback' => array(Zippy_Admin_Booking_Store_Config_Controller::class, 'create_store_config'),
-            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-        ));
+        // register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/store-config', array(
+        //     'methods' => 'POST',
+        //     'callback' => array(Zippy_Admin_Booking_Store_Config_Controller::class, 'create_store_config'),
+        //     'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        // ));
     }
 }

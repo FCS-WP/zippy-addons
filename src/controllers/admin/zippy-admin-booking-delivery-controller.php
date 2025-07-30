@@ -71,7 +71,7 @@ class Zippy_Admin_Booking_Delivery_Controller
 
                 $delivery_time_id = !empty($day['delivery_time_id']) ? sanitize_text_field($day['delivery_time_id']) : wp_generate_uuid4();
 
-                $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $time_table WHERE id = %s", $delivery_time_id));
+                $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $time_table WHERE id = %s AND week_days = %s", $delivery_time_id, $week_day));
 
                 if (!$exists) {
                     $wpdb->insert($time_table, [

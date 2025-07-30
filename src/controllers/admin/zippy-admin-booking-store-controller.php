@@ -90,9 +90,6 @@ class Zippy_Admin_Booking_Store_Controller
             foreach ($outlets as $key => $value) {
                 $unserialze_fields = [
                     "outlet_address",
-                    "operating_hours",
-                    "closed_dates",
-                    "takeaway",
                 ];
                 foreach ($unserialze_fields as $field) {
                     $outlets[$key]->{$field} = maybe_unserialize($outlets[$key]->{$field});
