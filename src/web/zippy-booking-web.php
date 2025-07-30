@@ -136,28 +136,66 @@ class Zippy_Booking_Web
 
   public function custom_archive_price_html($price_html, $product)
   {
-    if (is_admin()) return $price_html;
-    $session = new Zippy_Session_Handler;
-    if ($session->get('current_cart')) {
-      $retail_price = get_option('zippy_prices_retail', 0);
-      $popup_price = get_option('zippy_prices_popup', 0);
-      $add_prices = $session->get('current_cart') == 'retail-store' ? $retail_price : $popup_price;
-      $custom_price = $product->get_price() + floatval($add_prices);
-      $price_html = '<span class="custom-price">' . wc_price($custom_price) . '</span>';
-    } else {
-      $current_path = $_SERVER['REQUEST_URI'];
-      $is_retail = str_contains($current_path, 'retail-store');
-      $is_popup_reser = str_contains($current_path, 'popup-reservation');
-      if ($is_retail || $is_popup_reser) {
-        $retail_price = get_option('zippy_prices_retail', 0);
-        $popup_price = get_option('zippy_prices_popup', 0);
-        $add_prices = $is_retail ? $retail_price : $popup_price;
-        $custom_price = $product->get_price() + floatval($add_prices);
-        if ($custom_price) {
-          $price_html = wc_price($custom_price);
-        }
-      }
+    if (is_admin()) {
+      return $price_html;
     }
+
+    $session       = new Zippy_Session_Handler();
+    $retail_price  = floatval(get_option('zippy_prices_retail', 0));
+    $popup_price   = floatval(get_option('zippy_prices_popup', 0));
+    $base_price    = floatval($product->get_price());
+
+    if (!$session->get('current_cart')) {
+      $tags = get_the_terms($product->get_id(), 'product_tag');
+      $first_tag_slug = (!empty($tags) && !is_wp_error($tags)) ? $tags[0]->slug : '';
+
+      // Retail-only products => show only retail price
+      if ($first_tag_slug === 'retails-only') {
+        $custom_price = $base_price + $retail_price;
+        return sprintf(
+          '<span class="custom-price" style="display:block">Retail Store: %s</span>',
+          wc_price($custom_price)
+        );
+      }
+
+      // Show both retail and popup options
+      $retail_total = $base_price + $retail_price;
+      $popup_total  = $base_price + $popup_price;
+
+      return sprintf(
+        '<span class="custom-price" style="display:block">Retail Store: %s</span>
+             <span class="custom-price" style="display:block">Popup Reservation: %s</span>',
+        wc_price($retail_total),
+        wc_price($popup_total)
+      );
+    }
+
+    $current_cart = $session->get('current_cart');
+    if ($current_cart === 'retail-store' || $current_cart === 'popup-reservation') {
+      $add_price   = ($current_cart === 'retail-store') ? $retail_price : $popup_price;
+      $custom_price = $base_price + $add_price;
+
+      return sprintf(
+        '<span class="custom-price">%s</span>',
+        wc_price($custom_price)
+      );
+    }
+
+    $current_path   = $_SERVER['REQUEST_URI'] ?? '';
+    $is_retail_path = strpos($current_path, 'retail-store') !== false;
+    $is_popup_path  = strpos($current_path, 'popup-reservation') !== false;
+
+    if ($is_retail_path || $is_popup_path) {
+      $add_price   = $is_retail_path ? $retail_price : $popup_price;
+      $custom_price = $base_price + $add_price;
+
+      return sprintf(
+        '<span class="custom-price">%s</span>',
+        wc_price($custom_price)
+      );
+    }
+
+    // Default return (unchanged price)
     return $price_html;
   }
 
