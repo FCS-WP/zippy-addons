@@ -34,5 +34,10 @@ class Zippy_Admin_Booking_Delivery_Route extends Zippy_Booking_Router
             'callback' => array(Zippy_Admin_Booking_Delivery_Controller::class, 'delete_delivery_config'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/deactivate-delivery', array(
+            'methods' => 'UPDATE',
+            'callback' => array(Zippy_Admin_Booking_Delivery_Controller::class, 'deactivate_delivery_config'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        ));
     }
 }
