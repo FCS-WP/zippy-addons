@@ -39,10 +39,10 @@ class Zippy_Admin_Booking_Product_Controller
 
             $session_data = self::extract_common_data($request);
             $session_data["outlet_name"] = $outlet;
-        
+
             $session_data["outlet_address"] = $outlet ?? null;
             self::store_to_session($session_data);
-          
+
             $cart = new Zippy_Cart_Handler;
             $min_qty = sanitize_text_field($request["quantity"]) ?? 1;
             $cart->add_to_cart($_product->get_id(), $min_qty);
@@ -192,9 +192,8 @@ class Zippy_Admin_Booking_Product_Controller
             $cart_type = $session->get('current_cart') ?? '';
             return new WP_REST_Response(['cart_type' => $cart_type, 'status' => 'success'], 200);
         } catch (\Throwable $th) {
-             return new WP_REST_Response(['cart_type' => '', 'status' => 'success'], 200);
+            return new WP_REST_Response(['cart_type' => '', 'status' => 'success'], 200);
         }
-        
     }
 
     public static function check_session_before_add_to_cart(WP_REST_Request $request)

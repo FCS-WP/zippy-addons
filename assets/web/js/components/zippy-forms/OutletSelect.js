@@ -56,12 +56,28 @@ const OutletSelect = ({
 
   const defaultTime = [
     {
-      from: "12:00",
-      to: "13:00",
+      from: "10:30",
+      to: "11:30",
     },
     {
-      from: "17:30",
-      to: "18:30",
+      from: "11:30",
+      to: "12:30",
+    },
+    {
+      from: "12:30",
+      to: "13:30",
+    },
+    {
+      from: "13:30",
+      to: "14:30",
+    },
+    {
+      from: "14:30",
+      to: "15:30",
+    },
+    {
+      from: "15:30",
+      to: "16:30",
     },
   ];
   const [selectedDate, setSelectedDate] = useState("");
