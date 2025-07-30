@@ -59,38 +59,78 @@ class Zippy_Admin_Booking_Delivery_Controller
             $response = [
                 'outlet_id' => $outlet_id,
                 'delivery_type' => $delivery_type,
-                'time' => $time_data
+                'time' => []
             ];
+
+            $time_table = "{$wpdb->prefix}zippy_addons_delivery_times";
+            $slot_table = "{$wpdb->prefix}zippy_addons_delivery_time_slots";
 
             foreach ($time_data as $day) {
                 $week_day = intval($day['week_day']);
-                $is_active = ($day['enabled'] == 'T') ? 'T' : 'F';
+                $is_active = ($day['is_active'] == 'T') ? 'T' : 'F';
 
-                $delivery_time_id = wp_generate_uuid4();
+                $delivery_time_id = !empty($day['delivery_time_id']) ? sanitize_text_field($day['delivery_time_id']) : wp_generate_uuid4();
 
-                $wpdb->insert("{$wpdb->prefix}zippy_addons_delivery_times", [
-                    'id' => $delivery_time_id,
-                    'outlet_id' => $outlet_id,
-                    'delivery_type' => $delivery_type,
-                    'week_day' => $week_day,
-                    'is_active' => $is_active
-                ]);
+                $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $time_table WHERE id = %s", $delivery_time_id));
+
+                if (!$exists) {
+                    $wpdb->insert($time_table, [
+                        'id' => $delivery_time_id,
+                        'outlet_id' => $outlet_id,
+                        'delivery_type' => $delivery_type,
+                        'week_day' => $week_day,
+                        'is_active' => $is_active
+                    ]);
+                }
+
+                // prepare day_slots res data
+                $day_slots = [];
 
                 if (!empty($day['time_slot']) && is_array($day['time_slot'])) {
                     foreach ($day['time_slot'] as $slot) {
                         $from = sanitize_text_field($slot['from']);
                         $to = sanitize_text_field($slot['to']);
                         $slot_count = intval($slot['delivery_slot']);
+                        $slot_id = isset($slot['slot_id']) ? sanitize_text_field($slot['slot_id']) : wp_generate_uuid4();
 
-                        $wpdb->insert("{$wpdb->prefix}zippy_addons_delivery_time_slots", [
-                            'id' => wp_generate_uuid4(),
-                            'delivery_time_id' => $delivery_time_id,
-                            'time_from' => $from,
-                            'time_to' => $to,
-                            'delivery_slot' => $slot_count
-                        ]);
+                        $slot_exists = $wpdb->get_var($wpdb->prepare(
+                            "SELECT COUNT(*) FROM $slot_table WHERE id = %s AND delivery_time_id = %s",
+                            $slot_id
+                        ));
+
+                        if ($slot_exists) {
+                            $wpdb->update($slot_table, [
+                                'time_from' => $from,
+                                'time_to' => $to,
+                                'delivery_slot' => $slot_count,
+                            ], [
+                                'id' => $slot_id
+                            ]);
+                        } else {
+                            $wpdb->insert($slot_table, [
+                                'id' => $slot_id,
+                                'delivery_time_id' => $delivery_time_id,
+                                'time_from' => $from,
+                                'time_to' => $to,
+                                'delivery_slot' => $slot_count
+                            ]);
+                        }
+
+                        $day_slots[] = [
+                            'slot_id' => $slot_id,
+                            'from' => $from,
+                            'to' => $to,
+                            'delivery_slot' => $slot_count,
+                        ];
                     }
                 }
+
+                $response['time'][] = [
+                    'week_day' => $week_day,
+                    'is_active' => $is_active,
+                    'delivery_time_id' => $delivery_time_id,
+                    'time_slot' => $day_slots,
+                ];
             }
 
             return Zippy_Response_Handler::success($response, "Delivery Updated");
@@ -178,8 +218,9 @@ class Zippy_Admin_Booking_Delivery_Controller
     public static function delete_delivery_config(WP_REST_Request $request)
     {
         $required_fields = [
+            "outlet_id" => ["required" => true, "data_type" => "string"],
             "delivery_time_id" => ["required" => true, "data_type" => "string"],
-            "action" => ["required" => true, "data_type" => "range", "allowed_values" => ["delete_slots", "deactivate"]],
+            "slot_ids" => ["required" => true, "data_type" => "array"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -189,45 +230,46 @@ class Zippy_Admin_Booking_Delivery_Controller
 
         global $wpdb;
 
-        $action = sanitize_text_field($request['action'] ?? '');
-        $delivery_time_id = sanitize_text_field($request['delivery_time_id'] ?? '');
-        $time_slot_ids = $request['time_slot_ids'] ?? [];
-
-        $time_table = "{$wpdb->prefix}zippy_addons_delivery_times";
         $slot_table = "{$wpdb->prefix}zippy_addons_delivery_time_slots";
 
-        $row = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $time_table WHERE id = %s",
-            $delivery_time_id,
-        ), ARRAY_A);
-
-        if (!$row) {
-            return Zippy_Response_Handler::error('Invalid delivery_time_id');
-        }
+        $outlet_id = sanitize_text_field($request['outlet_id']);
+        $delivery_time_id = sanitize_text_field($request['delivery_time_id']);
+        $slot_ids = $request['slot_ids'];
 
         try {
-            // deactivate date
-            if ($action == 'deactivate') {
-                $wpdb->update($time_table, ['is_active' => 'F'], ['id' => $delivery_time_id]);
 
-            } elseif ($action == 'delete_slots' && is_array($time_slot_ids)) {
-                // delete time slots
-                foreach ($time_slot_ids as $slot_id) {
-                    $wpdb->delete($slot_table, [
-                        'id' => sanitize_text_field($slot_id),
-                        'delivery_time_id' => $delivery_time_id
-                    ]);
-                }
-
-            } else {
-                return Zippy_Response_Handler::error('Invalid action or missing time_slot_ids');
+            $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
+            $query = "SELECT id FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
+            $is_outlet_exist = count($wpdb->get_results($query));
+            if ($is_outlet_exist < 1) {
+                return Zippy_Response_Handler::error("Outlet not exist!");
             }
 
-            return Zippy_Response_Handler::success('Operation successful');
+            foreach ($slot_ids as $slot_id) {
+                $row = $wpdb->get_row($wpdb->prepare(
+                    "SELECT * FROM $slot_table WHERE id = %s AND delivery_time_id = %s",
+                    $slot_id,
+                    $delivery_time_id,
+                ), ARRAY_A);
+
+                if (!$row) {
+                    return Zippy_Response_Handler::error("Invalid id: slot_id or delivery_time_id");
+                }
+            }
+
+            // delete time slots
+            foreach ($slot_ids as $slot_id) {
+                $wpdb->delete($slot_table, [
+                    'id' => $slot_id,
+                    'delivery_time_id' => $delivery_time_id
+                ]);
+            }
+
+            return Zippy_Response_Handler::success([], 'Operation successful');
+
         } catch (\Throwable $th) {
             Zippy_Log_Action::log('delete_delivery_time', json_encode($request), 'Failure', $th->getMessage());
             return Zippy_Response_Handler::error('An error occurred: ' . $th->getMessage());
         }
-
     }
 }
