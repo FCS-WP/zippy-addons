@@ -14,138 +14,160 @@ class Zippy_Admin_Booking_Delivery_Controller
 
     public static function create_delivery_config(WP_REST_Request $request)
     {
+        global $wpdb;
+        $table_delivery_time = $wpdb->prefix . 'zippy_addons_delivery_times';
+        $table_time_slot = $wpdb->prefix . 'zippy_addons_delivery_time_slots';
+
+        // Validate request
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"],
             "delivery_type" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
             "time" => ["required" => true, "data_type" => "array"],
         ];
-
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
         if (!empty($validate)) {
             return Zippy_Response_Handler::error($validate);
         }
 
-        // Validate time field
-        $time = $request["time"];
+        $outlet_id = sanitize_text_field($request['outlet_id']);
+        $delivery_type = sanitize_text_field($request['delivery_type']);
+        $times = $request['time'];
 
-        $time_required_fields = [
-            "week_day" => ["required" => true, "data_type" => "string"],
-            "is_active" => ["required" => true, "data_type" => "boolean"],
-            "time_slot" => ["required" => false, "data_type" => "array"],
+        $response_data = [
+            'outlet_id' => $outlet_id,
+            'delivery_type' => $delivery_type,
+            'time' => [],
         ];
 
-        foreach ($time as $tm) {
-            $validate = Zippy_Request_Validation::validate_request($time_required_fields, $tm);
-            if (!empty($validate)) {
-                return Zippy_Response_Handler::error($validate);
-            }
-        }
-
-        try {
-            global $wpdb;
-
-            $outlet_id = sanitize_text_field($request['outlet_id']);
-            $delivery_type = sanitize_text_field($request['delivery_type']);
-            $time_data = $request['time'];
-
-
-            $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
-            $query = "SELECT id FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
-            $is_outlet_exist = count($wpdb->get_results($query));
-            if ($is_outlet_exist < 1) {
-                return Zippy_Response_Handler::error("Outlet not exist!");
+        foreach ($times as $time) {
+            // Validate each time block
+            if (!isset($time['week_day']) || !in_array($time['week_day'], range(0, 6))) {
+                return Zippy_Response_Handler::error("week_day must be 0-6)");
             }
 
-            $response = [
-                'outlet_id' => $outlet_id,
-                'delivery_type' => $delivery_type,
-                'time' => []
-            ];
+            if (!in_array($time['is_active'], ['T', 'F'])) {
+                return Zippy_Response_Handler::error("is_active must be 'T' or 'F'");
+            }
 
-            $time_table = "{$wpdb->prefix}zippy_addons_delivery_times";
-            $slot_table = "{$wpdb->prefix}zippy_addons_delivery_time_slots";
+            $week_day = intval($time['week_day']);
+            $is_active = $time['is_active'];
 
-            foreach ($time_data as $day) {
-                $week_day = intval($day['week_day']);
-                $is_active = ($day['is_active'] == 'T') ? 'T' : 'F';
+            // Check if delivery_time for this outlet_id, delivery_type, week_day exists
+            $delivery_time_row = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT * FROM $table_delivery_time WHERE outlet_id = %s AND delivery_type = %s AND week_day = %d",
+                    $outlet_id,
+                    $delivery_type,
+                    $week_day
+                ),
+                ARRAY_A
+            );
 
-                $delivery_time_id = !empty($day['delivery_time_id']) ? sanitize_text_field($day['delivery_time_id']) : wp_generate_uuid4();
+            if ($delivery_time_row) {
+                // Update is_active
+                $wpdb->update(
+                    $table_delivery_time,
+                    [
+                        'is_active' => $is_active,
+                        'updated_at' => current_time('mysql')
+                    ],
+                    ['id' => $delivery_time_row['id']]
+                );
 
-                $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $time_table WHERE id = %s AND week_days = %s", $delivery_time_id, $week_day));
-
-                if (!$exists) {
-                    $wpdb->insert($time_table, [
+                $delivery_time_id = $delivery_time_row['id'];
+            } else {
+                // Create new
+                $delivery_time_id = wp_generate_uuid4();
+                $wpdb->insert(
+                    $table_delivery_time,
+                    [
                         'id' => $delivery_time_id,
                         'outlet_id' => $outlet_id,
                         'delivery_type' => $delivery_type,
                         'week_day' => $week_day,
-                        'is_active' => $is_active
-                    ]);
-                }
-
-                // prepare day_slots res data
-                $day_slots = [];
-
-                if (!empty($day['time_slot']) && is_array($day['time_slot'])) {
-                    foreach ($day['time_slot'] as $slot) {
-                        $from = sanitize_text_field($slot['from']);
-                        $to = sanitize_text_field($slot['to']);
-                        $slot_count = intval($slot['delivery_slot']);
-                        $slot_id = isset($slot['slot_id']) ? sanitize_text_field($slot['slot_id']) : wp_generate_uuid4();
-
-                        $slot_exists = $wpdb->get_var($wpdb->prepare(
-                            "SELECT COUNT(*) FROM $slot_table WHERE id = %s AND delivery_time_id = %s",
-                            $slot_id
-                        ));
-
-                        if ($slot_exists) {
-                            $wpdb->update($slot_table, [
-                                'time_from' => $from,
-                                'time_to' => $to,
-                                'delivery_slot' => $slot_count,
-                            ], [
-                                'id' => $slot_id
-                            ]);
-                        } else {
-                            $wpdb->insert($slot_table, [
-                                'id' => $slot_id,
-                                'delivery_time_id' => $delivery_time_id,
-                                'time_from' => $from,
-                                'time_to' => $to,
-                                'delivery_slot' => $slot_count
-                            ]);
-                        }
-
-                        $day_slots[] = [
-                            'slot_id' => $slot_id,
-                            'from' => $from,
-                            'to' => $to,
-                            'delivery_slot' => $slot_count,
-                        ];
-                    }
-                }
-
-                $response['time'][] = [
-                    'week_day' => $week_day,
-                    'is_active' => $is_active,
-                    'delivery_time_id' => $delivery_time_id,
-                    'time_slot' => $day_slots,
-                ];
+                        'is_active' => $is_active,
+                        'created_at' => current_time('mysql'),
+                        'updated_at' => current_time('mysql'),
+                    ]
+                );
             }
 
-            return Zippy_Response_Handler::success($response, "Delivery Updated");
+            $day_response = [
+                'week_day' => (string) $week_day,
+                'is_active' => $is_active,
+                'time_slot' => []
+            ];
 
-        } catch (\Throwable $th) {
-            $message = $th->getMessage();
-            Zippy_Log_Action::log('create_store', json_encode($request), 'Failure', $message);
+            $slots = isset($time['time_slot']) && is_array($time['time_slot']) ? $time['time_slot'] : [];
+
+            foreach ($slots as $slot) {
+                // Validate each slot
+                if (empty($slot['from']) || empty($slot['to']) || empty($slot['delivery_slot'])) {
+                    return Zippy_Response_Handler::error("Each time_slot must include 'from', 'to', and 'delivery_slot'");
+                }
+
+                $slot_id = isset($slot['slot_id']) ? sanitize_text_field($slot['slot_id']) : null;
+                $from = sanitize_text_field($slot['from']);
+                $to = sanitize_text_field($slot['to']);
+                $delivery_slot = sanitize_text_field($slot['delivery_slot']);
+                $action = isset($slot['action']) ? $slot['action'] : 'update';
+
+                if ($action == 'delete') {
+                    if ($slot_id) {
+                        $wpdb->delete($table_time_slot, ['id' => $slot_id, 'delivery_time_id' => $delivery_time_id]);
+                    }
+                    continue;
+                }
+
+                // If slot_id exists, update
+                if ($slot_id) {
+                    $wpdb->update(
+                        $table_time_slot,
+                        [
+                            'time_from' => $from,
+                            'time_to' => $to,
+                            'delivery_slot' => $delivery_slot,
+                            'updated_at' => current_time('mysql'),
+                        ],
+                        [
+                            'id' => $slot_id,
+                            'delivery_time_id' => $delivery_time_id,
+                        ]
+                    );
+                } else {
+                    // Create new slot
+                    $slot_id = wp_generate_uuid4();
+                    $wpdb->insert(
+                        $table_time_slot,
+                        [
+                            'id' => $slot_id,
+                            'delivery_time_id' => $delivery_time_id,
+                            'time_from' => $from,
+                            'time_to' => $to,
+                            'delivery_slot' => $delivery_slot,
+                            'created_at' => current_time('mysql'),
+                            'updated_at' => current_time('mysql'),
+                        ]
+                    );
+                }
+                $day_response['time_slot'][] = [
+                    'slot_id' => $slot_id,
+                    'from' => $from,
+                    'to' => $to,
+                    'delivery_slot' => $delivery_slot,
+                    'delivery_time' => $delivery_time_id
+                ];
+            }
+            $response_data['time'][] = $day_response;
         }
+        return Zippy_Response_Handler::success($response_data, "Delivery time slots updated.");
     }
 
     public static function get_delivery_config(WP_REST_Request $request)
     {
         $required_fields = [
-            "outlet_id" => ["required" => true, "data_type" => "string"],
-            "delivery_type" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
+            'outlet_id' => ['required' => true, 'data_type' => 'string'],
+            'delivery_type' => ['required' => true, 'data_type' => 'string'],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -153,123 +175,50 @@ class Zippy_Admin_Booking_Delivery_Controller
             return Zippy_Response_Handler::error($validate);
         }
 
+        $outlet_id = sanitize_text_field($request['outlet_id']);
+        $delivery_type = sanitize_text_field($request['delivery_type']);
+
         global $wpdb;
+        $delivery_time_table = $wpdb->prefix . 'zippy_addons_delivery_times';
+        $time_slot_table = $wpdb->prefix . 'zippy_addons_delivery_time_slots';
 
-        $time_table = "{$wpdb->prefix}zippy_addons_delivery_times";
-        $slot_table = "{$wpdb->prefix}zippy_addons_delivery_time_slots";
-
-        $outlet_id = $request->get_param('outlet_id');
-        $delivery_type = $request->get_param('delivery_type');
-
-        $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
-        $query = "SELECT id FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
-        $is_outlet_exist = count($wpdb->get_results($query));
-        if ($is_outlet_exist < 1) {
-            return Zippy_Response_Handler::error("Outlet not exist!");
-        }
-
-        // get time config weekdays
-        $time_rows = $wpdb->get_results(
-            $wpdb->prepare("SELECT * FROM $time_table WHERE outlet_id = %s AND delivery_type = %s", $outlet_id, $delivery_type),
+        // Get all delivery_time rows for this outlet and delivery_type
+        $delivery_times = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM $delivery_time_table WHERE outlet_id = %s AND delivery_type = %s",
+                $outlet_id,
+                $delivery_type
+            ),
             ARRAY_A
         );
 
-        $response = [
-            'outlet_id' => $outlet_id,
-            'delivery_type' => $delivery_type,
-            'time' => []
-        ];
-
-        if (empty($time_rows)) {
-            return Zippy_Response_Handler::success([], "No Times Found!");
+        if (empty($delivery_times)) {
+            return Zippy_Response_Handler::success([], 'No config found');
         }
 
-        foreach ($time_rows as $time) {
-            $delivery_time_id = $time['id'];
-            $week_day = $time['week_day'];
-            $is_active = $time['is_active']; // 'T' or 'F'
+        $result = [
+            'outlet_id' => $outlet_id,
+            'delivery_type' => $delivery_type,
+            'time' => [],
+        ];
 
-            // get time slots
+        foreach ($delivery_times as $delivery_time) {
             $slots = $wpdb->get_results(
-                $wpdb->prepare("SELECT * FROM $slot_table WHERE delivery_time_id = %s", $delivery_time_id),
+                $wpdb->prepare(
+                    "SELECT id, `time_from`, `time_to`, delivery_slot FROM $time_slot_table WHERE delivery_time_id = %s",
+                    $delivery_time['id']
+                ),
                 ARRAY_A
             );
 
-            $slot_data = [];
-            foreach ($slots as $slot) {
-                $slot_data[] = [
-                    'id' => $slot['id'],
-                    'from' => $slot['time_from'],
-                    'to' => $slot['time_to'],
-                    'delivery_slot' => (string) $slot['delivery_slot']
-                ];
-            }
-
-            $response['time'][] = [
-                'id' => $delivery_time_id,
-                'week_day' => (string) $week_day,
-                'is_active' => $is_active,
-                'time_slot' => $slot_data
+            $result['time'][] = [
+                'id' => $delivery_time['id'],
+                'week_day' => $delivery_time['week_day'],
+                'is_active' => $delivery_time['is_active'],
+                'time_slot' => $slots
             ];
         }
-        return Zippy_Response_Handler::success($response, "Success");
-    }
 
-    public static function delete_delivery_config(WP_REST_Request $request)
-    {
-        $required_fields = [
-            "outlet_id" => ["required" => true, "data_type" => "string"],
-            "delivery_time_id" => ["required" => true, "data_type" => "string"],
-            "slot_ids" => ["required" => true, "data_type" => "array"],
-        ];
-
-        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if (!empty($validate)) {
-            return Zippy_Response_Handler::error($validate);
-        }
-
-        global $wpdb;
-
-        $slot_table = "{$wpdb->prefix}zippy_addons_delivery_time_slots";
-
-        $outlet_id = sanitize_text_field($request['outlet_id']);
-        $delivery_time_id = sanitize_text_field($request['delivery_time_id']);
-        $slot_ids = $request['slot_ids'];
-
-        try {
-
-            $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
-            $query = "SELECT id FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
-            $is_outlet_exist = count($wpdb->get_results($query));
-            if ($is_outlet_exist < 1) {
-                return Zippy_Response_Handler::error("Outlet not exist!");
-            }
-
-            foreach ($slot_ids as $slot_id) {
-                $row = $wpdb->get_row($wpdb->prepare(
-                    "SELECT * FROM $slot_table WHERE id = %s AND delivery_time_id = %s",
-                    $slot_id,
-                    $delivery_time_id,
-                ), ARRAY_A);
-
-                if (!$row) {
-                    return Zippy_Response_Handler::error("Invalid id: slot_id or delivery_time_id");
-                }
-            }
-
-            // delete time slots
-            foreach ($slot_ids as $slot_id) {
-                $wpdb->delete($slot_table, [
-                    'id' => $slot_id,
-                    'delivery_time_id' => $delivery_time_id
-                ]);
-            }
-
-            return Zippy_Response_Handler::success([], 'Operation successful');
-
-        } catch (\Throwable $th) {
-            Zippy_Log_Action::log('delete_delivery_time', json_encode($request), 'Failure', $th->getMessage());
-            return Zippy_Response_Handler::error('An error occurred: ' . $th->getMessage());
-        }
+        return Zippy_Response_Handler::success($result, 'Success');
     }
 }
