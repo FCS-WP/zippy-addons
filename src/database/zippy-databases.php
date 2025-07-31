@@ -170,6 +170,8 @@ class Zippy_Databases
       delivery_type VARCHAR(255) NOT NULL,
       week_day INT NOT NULL,
       is_active ENUM('T', 'F') DEFAULT 'T',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (outlet_id) REFERENCES {$wpdb->prefix}zippy_addons_outlet(id) ON DELETE CASCADE
     ) $charset_collate;";
 
@@ -190,6 +192,8 @@ class Zippy_Databases
       time_from VARCHAR(255) NOT NULL,
       time_to VARCHAR(255) NOT NULL,
       delivery_slot INT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (delivery_time_id) REFERENCES {$wpdb->prefix}zippy_addons_delivery_times(id) ON DELETE CASCADE
     ) $charset_collate;";
 
