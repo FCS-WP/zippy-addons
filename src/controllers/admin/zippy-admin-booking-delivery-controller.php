@@ -187,7 +187,7 @@ class Zippy_Admin_Booking_Delivery_Controller
         foreach ($time_rows as $time) {
             $delivery_time_id = $time['id'];
             $week_day = $time['week_day'];
-            $enabled = $time['is_active']; // 'T' or 'F'
+            $is_active = $time['is_active']; // 'T' or 'F'
 
             // get time slots
             $slots = $wpdb->get_results(
@@ -208,7 +208,7 @@ class Zippy_Admin_Booking_Delivery_Controller
             $response['time'][] = [
                 'id' => $delivery_time_id,
                 'week_day' => (string) $week_day,
-                'enabled' => $enabled,
+                'is_active' => $is_active,
                 'time_slot' => $slot_data
             ];
         }
