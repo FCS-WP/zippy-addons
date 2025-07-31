@@ -33,7 +33,11 @@ class Zippy_Admin_Booking_Delivery_Controller
         $delivery_type = sanitize_text_field($request['delivery_type']);
         $times = $request['time'];
 
-        $response_data = [];
+        $response_data = [
+            'outlet_id' => $outlet_id,
+            'delivery_type' => $delivery_type,
+            'time' => [],
+        ];
 
         foreach ($times as $time) {
             // Validate each time block
@@ -88,6 +92,12 @@ class Zippy_Admin_Booking_Delivery_Controller
                 );
             }
 
+            $day_response = [
+                'week_day' => (string) $week_day,
+                'is_active' => $is_active,
+                'time_slot' => []
+            ];
+
             $slots = isset($time['time_slot']) && is_array($time['time_slot']) ? $time['time_slot'] : [];
 
             foreach ($slots as $slot) {
@@ -140,18 +150,15 @@ class Zippy_Admin_Booking_Delivery_Controller
                         ]
                     );
                 }
-
-                $response_data[] = [
-                    'delivery_time_id' => $delivery_time_id,
+                $day_response['time_slot'][] = [
                     'slot_id' => $slot_id,
                     'from' => $from,
                     'to' => $to,
                     'delivery_slot' => $delivery_slot,
-                    'week_day' => $week_day,
-                    'delivery_type' => $delivery_type,
-                    'is_active' => $is_active,
+                    'delivery_time' => $delivery_time_id
                 ];
             }
+            $response_data['time'][] = $day_response;
         }
         return Zippy_Response_Handler::success($response_data, "Delivery time slots updated.");
     }
@@ -185,7 +192,7 @@ class Zippy_Admin_Booking_Delivery_Controller
             ARRAY_A
         );
 
-        if(empty($delivery_times)){
+        if (empty($delivery_times)) {
             return Zippy_Response_Handler::success([], 'No config found');
         }
 
