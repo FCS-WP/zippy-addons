@@ -1,5 +1,14 @@
+// Optimized Settings Component
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Grid, CircularProgress, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Grid,
+  CircularProgress,
+  Paper,
+  Tab,
+  Tabs,
+} from "@mui/material";
 import { Api } from "../../api";
 import { toast, ToastContainer } from "react-toastify";
 import HolidayTable from "../../Components/Configs/HolidayTable";
@@ -20,417 +29,351 @@ const Settings = () => {
   const [schedule, setSchedule] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
-  const [deliveryTimeSlots, setdeliveryTimeSlots] = useState(
+  const [deliveryTimeSlots, setDeliveryTimeSlots] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
-
   const [duration, setDuration] = useState(15);
-  const [storeEmail, setStoreEmail] = useState("");
   const [loading, setLoading] = useState(true);
-  const [deliveryTimeEnabled, setDeliveryTimeEnabled] = useState({});
-
-  const [holidayEnabled, setHolidayEnabled] = useState(false);
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
-  const [dayLimited, setDayLimited] = useState(window?.admin_data?.day_limited ?? '');
+  const [dayLimited, setDayLimited] = useState(
+    window?.admin_data?.day_limited ?? ""
+  );
+  const [activeTab, setActiveTab] = useState("takeaway");
+  const [deletedHolidays, setDeletedHolidays] = useState([]);
+  const [deletedTakeawaySlots, setDeletedTakeawaySlots] = useState([]);
+  const [deletedDeliverySlots, setDeletedDeliverySlots] = useState([]);
 
   useEffect(() => {
     const fetchStores = async () => {
-      setLoading(true);
       try {
-        const storesResponse = await Api.getStore();
-        const storesData = storesResponse.data.data || [];
-        setStores(storesData);
-        if (storesData.length > 0) {
-          setSelectedStore(storesData[0].id);
-        }
-      } catch (error) {
-        console.error("Error fetching stores:", error);
+        setLoading(true);
+        const res = await Api.getStore();
+        const data = res.data.data || [];
+        setStores(data);
+        if (data.length > 0) setSelectedStore(data[0].id);
+      } catch (e) {
+        console.error("Error fetching stores", e);
       } finally {
         setLoading(false);
       }
     };
-
     fetchStores();
   }, []);
 
+  const fetchSettings = async (store, type) => {
+    try {
+      const res = await Api.getDeliveryConfig({
+        outlet_id: store.id,
+        delivery_type: type,
+      });
+      const data = res?.data?.data;
+      const setTarget =
+        type === "delivery" ? setDeliveryTimeSlots : setSchedule;
+      if (!data) return;
+
+      const slots = daysOfWeek.map((day, index) => {
+        const dayData = data.time.find(
+          (item) => parseInt(item.week_day) === index
+        );
+        return {
+          day,
+          slots: Array.isArray(dayData?.time_slot)
+            ? dayData.time_slot.map((slot) => ({
+                id: slot.id,
+                from: slot.time_from,
+                to: slot.time_to,
+                delivery_slot: slot.delivery_slot,
+              }))
+            : [],
+          id: dayData?.id,
+        };
+      });
+
+      setTarget(slots);
+      setDuration(data?.timeslot_duration || 15);
+    } catch (e) {
+      console.error(`Failed to fetch ${type} config`, e);
+    }
+  };
+
+  const fetchHolidaySettings = async (store) => {
+    try {
+      const res = await Api.getHolidayConfig({ outlet_id: store.id });
+      const data = res?.data?.data;
+      if (!Array.isArray(data)) return setHolidays([]);
+      setHolidays(
+        data.map((item) => ({
+          id: item.id,
+          label: item.name || "",
+          date: item.date || "",
+          delivery: item.is_active_delivery === "T",
+          takeaway: item.is_active_take_away === "T",
+        }))
+      );
+    } catch (e) {
+      console.error("Failed to fetch holidays", e);
+    }
+  };
+
   useEffect(() => {
-    if (!selectedStore) return;
-    const fetchSettings = async () => {
+    const load = async () => {
+      if (!selectedStore) return;
+      const store = stores.find((s) => s.id === selectedStore);
+      if (!store) return;
       setLoading(true);
       try {
-        const store = stores.find((s) => s.id === selectedStore);
-        if (!store) return;
-
-        const storeWorkingTime = store.operating_hours || [];
-        const storeHolidays = store.closed_dates || [];
-        const storeDuration = store.takeaway?.timeslot_duration || 15;
-
-        const formattedHolidays = Array.isArray(storeHolidays)
-          ? storeHolidays.map((date) => ({
-              label: date.label,
-              date: date.value,
-            }))
-          : [];
-
-        const deliveryEnabledByDay = {};
-        const deliverySlotsByDay = daysOfWeek.map((day, index) => {
-          const dayData = storeWorkingTime.find(
-            (time) => parseInt(time.week_day) === index
-          );
-
-          const isDeliveryEnabled = dayData?.delivery?.enabled === "T";
-          deliveryEnabledByDay[day] = isDeliveryEnabled;
-
-          return {
-            day,
-            enabled: isDeliveryEnabled,
-            slots: isDeliveryEnabled
-              ? dayData.delivery.delivery_hours.map((slot) => ({
-                  from: slot.from,
-                  to: slot.to,
-                  delivery_slot: slot.delivery_slot || "",
-                }))
-              : [],
-          };
-        });
-
-        setDeliveryTimeEnabled(deliveryEnabledByDay);
-        setdeliveryTimeSlots(deliverySlotsByDay);
-        console.log("Delivery Time Slots:", deliverySlotsByDay);
-
-        const fetchedSchedule = daysOfWeek.map((day, index) => {
-          const daySchedule = storeWorkingTime.find(
-            (time) => parseInt(time.week_day) === index
-          );
-
-          return {
-            day,
-            slots: daySchedule
-              ? [
-                  {
-                    from: daySchedule.open_at || "",
-                    to: daySchedule.close_at || "",
-                  },
-                ]
-              : [],
-            duration: parseInt(daySchedule?.duration) || 15,
-          };
-        });
-
-        setSchedule(fetchedSchedule);
-        setDuration(storeDuration);
-        setHolidays(formattedHolidays);
-        setHolidayEnabled(formattedHolidays.length > 0);
-      } catch (error) {
-        console.error("Error fetching settings:", error);
+        if (activeTab === "holiday") await fetchHolidaySettings(store);
+        else await fetchSettings(store, activeTab);
       } finally {
         setLoading(false);
       }
     };
+    load();
+  }, [selectedStore, stores, activeTab]);
 
-    fetchSettings();
-  }, [selectedStore, stores]);
-
-  const handleDeliveryToggle = (day) => {
-    setDeliveryTimeEnabled((prevState) => {
-      const newState = { ...prevState, [day]: !prevState[day] };
-
-      setdeliveryTimeSlots((prev) =>
-        prev.map((item) =>
-          item.day === day
-            ? {
-                ...item,
-                slots: newState[day] ? [{ from: "", to: "" }] : [],
-              }
-            : item
-        )
-      );
-
-      return newState;
-    });
-  };
-
-  const handleRemoveTimeSlot = (day, slotIndex) => {
-    setSchedule((prev) => {
-      const updatedSchedule = prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: item.slots.filter((_, index) => index !== slotIndex),
-            }
-          : item
-      );
-
-      const daySchedule = updatedSchedule.find((item) => item.day === day);
-
-      if (daySchedule && daySchedule.slots.length === 0) {
-        setDeliveryTimeEnabled((prev) => ({ ...prev, [day]: false }));
-
-        setdeliveryTimeSlots((prev) =>
-          prev.map((item) => (item.day === day ? { ...item, slots: [] } : item))
-        );
-      }
-
-      return updatedSchedule;
-    });
-  };
-
-  const handleAddTimeSlot = (day) => {
-    setSchedule((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? { ...item, slots: [...item.slots, { from: "", to: "" }] }
-          : item
-      )
-    );
-  };
-  const handleTimeChange = (day, slotIndex, field, value) => {
-    const formattedValue = value
-      ? `${value.getHours().toString().padStart(2, "0")}:${value
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}:00`
-      : "";
-
-    setSchedule((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: item.slots.map((slot, index) => {
-                if (index === slotIndex) {
-                  return { ...slot, [field]: formattedValue };
-                }
-                return slot;
-              }),
-            }
-          : item
-      )
-    );
-  };
-
-  const handleRemoveHoliday = (index) => {
-    setHolidays((prevHolidays) => prevHolidays.filter((_, i) => i !== index));
-  };
-  const handleAddHoliday = () => {
-    setHolidays((prevHolidays) => [...prevHolidays, { label: "", date: "" }]);
-  };
-  const handleHolidayChange = (index, key, value) => {
-    let formattedValue = value;
-
-    if (key === "date" && value) {
-      formattedValue = new Date(value).toISOString().split("T")[0];
+  const handleSlotAction = (day, slotIndex, action) => {
+    const isDelivery = activeTab === "delivery";
+    const updater = isDelivery ? setDeliveryTimeSlots : setSchedule;
+    const state = isDelivery ? deliveryTimeSlots : schedule;
+    const setter = isDelivery
+      ? setDeletedDeliverySlots
+      : setDeletedTakeawaySlots;
+    const removed = state.find((d) => d.day === day)?.slots?.[slotIndex];
+    if (removed?.id) {
+      setter((prev) => [
+        ...prev,
+        {
+          slot_id: removed.id,
+          from: removed.from,
+          to: removed.to,
+          delivery_slot: removed.delivery_slot,
+          week_day: daysOfWeek.indexOf(day),
+          action: "delete",
+        },
+      ]);
     }
-
-    setHolidays((prevHolidays) =>
-      prevHolidays.map((holiday, i) =>
-        i === index ? { ...holiday, [key]: formattedValue } : holiday
+    updater((prev) =>
+      prev.map((d) =>
+        d.day === day
+          ? { ...d, slots: d.slots.filter((_, i) => i !== slotIndex) }
+          : d
       )
     );
   };
-
-  const handleRemoveDeliveryTimeSlot = (day, slotIndex) => {
-    setdeliveryTimeSlots((prev) => {
-      const updatedSlots = prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: item.slots.filter((_, index) => index !== slotIndex),
-            }
-          : item
-      );
-
-      const updatedState = updatedSlots.find((item) => item.day === day);
-      if (updatedState && updatedState.slots.length === 0) {
-        setDeliveryTimeEnabled((prev) => ({ ...prev, [day]: false }));
-      }
-
-      return updatedSlots;
-    });
-  };
-
-  const handleDeliveryTimeChange = (day, slotIndex, field, value) => {
-    const formattedValue =
-      field === "delivery_slot"
-        ? value
-        : value
-        ? `${value.getHours().toString().padStart(2, "0")}:${value
-            .getMinutes()
-            .toString()
-            .padStart(2, "0")}:00`
-        : "";
-
-    setdeliveryTimeSlots((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? {
-              ...item,
-              slots: item.slots.map((slot, index) =>
-                index === slotIndex
-                  ? { ...slot, [field]: formattedValue }
-                  : slot
-              ),
-            }
-          : item
-      )
-    );
-  };
-
-  const handleAddDeliveryTimeSlot = (day) => {
-    setdeliveryTimeSlots((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? { ...item, slots: [...item.slots, { from: "", to: "" }] }
-          : item
-      )
-    );
-  };
-
-  const onChangeDayLimited = (newVal) => {
-    setDayLimited(parseInt(newVal));
-  }
 
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
-      const payload = {
-        outlet_id: selectedStore,
-        day_limited: dayLimited,
-        operating_hours: schedule.map((item, index) => ({
-          week_day: index.toString(),
-          open_at: item.slots[0]?.from || "",
-          close_at: item.slots[0]?.to || "",
-          delivery: {
-            enabled: deliveryTimeEnabled[item.day] ? "T" : "F",
-            delivery_hours: deliveryTimeEnabled[item.day]
-              ? (
-                  deliveryTimeSlots.find((slot) => slot.day === item.day)
-                    ?.slots || []
-                ).map((slot) => ({
-                  ...slot,
-                  delivery_slot: slot.delivery_slot || "",
-                }))
-              : [],
-          },
-        })),
-        closed_dates: holidays.map((holiday) => ({
-          label: holiday.label,
-          value: new Date(holiday.date).toISOString().split("T")[0],
-        })),
-        takeaway: {
-          enabled: "F",
-          timeslot_duration: duration,
-        },
-      };
-
-      const response = await Api.addStoreConfig(payload);
-      if (response?.data.status === "success") {
-        toast.success("Settings saved successfully!");
+      if (activeTab === "holiday") {
+        const payload = {
+          outlet_id: selectedStore,
+          date: [
+            ...holidays.map((h) => ({
+              id: h.id,
+              name: h.label,
+              date: h.date,
+              is_active_delivery: h.delivery ? "T" : "F",
+              is_active_take_away: h.takeaway ? "T" : "F",
+              action: h.id ? "update" : "",
+            })),
+            ...deletedHolidays,
+          ],
+        };
+        const res = await Api.updateHolidayConfig(payload);
+        res?.data?.status === "success"
+          ? toast.success("Holiday saved")
+          : toast.error("Failed to save holiday");
       } else {
-        toast.error("Failed to save settings.");
+        const slots = (
+          activeTab === "delivery" ? deliveryTimeSlots : schedule
+        ).map((d, i) => ({
+          id: d.id,
+          week_day: i.toString(),
+          is_active: "T",
+          time_slot: [
+            ...d.slots.map((s) => ({
+              slot_id: s.id,
+              from: s.from,
+              to: s.to,
+              delivery_slot: s.delivery_slot?.toString() || "0",
+              action: s.id ? "update" : "",
+            })),
+            ...((activeTab === "delivery"
+              ? deletedDeliverySlots
+              : deletedTakeawaySlots
+            ).filter((del) => del.week_day === i) || []),
+          ],
+        }));
+
+        const res = await Api.addDeliveryConfig({
+          outlet_id: selectedStore,
+          delivery_type: activeTab,
+          time: slots,
+        });
+        res?.data?.status === "success"
+          ? toast.success("Settings saved")
+          : toast.error("Failed to save settings");
       }
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      toast.error("An unexpected error occurred.");
+    } catch (e) {
+      console.error("Save error", e);
+      toast.error("Unexpected error");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Box p={4}>
-      {loading ? (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="100vh"
-        >
+  const renderTabContent = () => {
+    if (loading)
+      return (
+        <Box display="flex" justifyContent="center" pt={4}>
           <CircularProgress />
         </Box>
-      ) : (
-        <Box>
-          <Typography variant="h5" gutterBottom fontWeight={600}>
-            Settings
-          </Typography>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <BookingSettings
-                duration={duration}
-                setDuration={setDuration}
-                storeEmail={storeEmail}
-                setStoreEmail={setStoreEmail}
-                holidayEnabled={holidayEnabled}
-                setHolidayEnabled={setHolidayEnabled}
-                setHolidays={setHolidays}
-                loading={loading}
-                handleSaveChanges={handleSaveChanges}
-                stores={stores}
-                selectedStore={selectedStore}
-                setSelectedStore={setSelectedStore}
-                disabled={stores.length === 0}
-                dayLimited={dayLimited}
-                onChangeDayLimited={onChangeDayLimited}
-              />
-              {stores.length === 0 && (
-                <Paper
-                  style={{
-                    padding: 5,
-                    paddingLeft: 20,
-                    marginBottom: 20,
-                    marginTop: 20,
-                    backgroundColor: "#eccdcda1",
-                  }}
-                >
-                  <p style={{ color: "red", fontWeight: "bold" }}>
-                    ⚠️ Please add a store first to configure settings.
-                  </p>
-                </Paper>
-              )}
-            </Grid>
-            <Grid item xs={12} md={8}>
-              {loading ? (
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  height="100%"
-                >
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <>
-                  <WeekdayTable
-                    schedule={schedule}
-                    deliveryTimeSlots={deliveryTimeSlots}
-                    deliveryTimeEnabled={deliveryTimeEnabled}
-                    handleDeliveryToggle={handleDeliveryToggle}
-                    handleRemoveTimeSlot={handleRemoveTimeSlot}
-                    handleAddTimeSlot={handleAddTimeSlot}
-                    handleTimeChange={handleTimeChange}
-                    handleRemoveDeliveryTimeSlot={handleRemoveDeliveryTimeSlot}
-                    handleDeliveryTimeChange={handleDeliveryTimeChange}
-                    handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
-                    duration={duration}
-                    disabled={stores.length === 0}
-                  />
-                  {holidayEnabled && (
-                    <HolidayTable
-                      holidays={holidays}
-                      handleAddHoliday={handleAddHoliday}
-                      handleRemoveHoliday={handleRemoveHoliday}
-                      handleHolidayChange={handleHolidayChange}
-                      disabled={stores.length === 0}
-                    />
-                  )}
-                </>
-              )}
-            </Grid>
-          </Grid>
-        </Box>
-      )}
+      );
+
+    const tableProps = {
+      handleRemoveTimeSlot: handleSlotAction,
+      handleAddTimeSlot: (day) => {
+        const updater =
+          activeTab === "delivery" ? setDeliveryTimeSlots : setSchedule;
+        updater((prev) =>
+          prev.map((d) =>
+            d.day === day
+              ? { ...d, slots: [...d.slots, { time_from: "", time_to: "" }] }
+              : d
+          )
+        );
+      },
+      handleTimeChange: (day, index, key, value) => {
+        const formatted =
+          key.includes("time") && value
+            ? `${value.getHours().toString().padStart(2, "0")}:${value
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}:00`
+            : value;
+        const updater =
+          activeTab === "delivery" ? setDeliveryTimeSlots : setSchedule;
+        updater((prev) =>
+          prev.map((d) =>
+            d.day === day
+              ? {
+                  ...d,
+                  slots: d.slots.map((s, i) =>
+                    i === index ? { ...s, [key]: formatted } : s
+                  ),
+                }
+              : d
+          )
+        );
+      },
+      duration,
+      disabled: stores.length === 0,
+    };
+
+    if (activeTab === "holiday") {
+      return (
+        <HolidayTable
+          holidays={holidays}
+          handleAddHoliday={() =>
+            setHolidays([
+              ...holidays,
+              { label: "", date: "", delivery: false, takeaway: false },
+            ])
+          }
+          handleRemoveHoliday={(i) => {
+            const h = holidays[i];
+            if (h?.id)
+              setDeletedHolidays([
+                ...deletedHolidays,
+                { ...h, action: "delete" },
+              ]);
+            setHolidays(holidays.filter((_, idx) => idx !== i));
+          }}
+          handleHolidayChange={(i, k, v) => {
+            const val =
+              k === "date" && v ? new Date(v).toISOString().split("T")[0] : v;
+            setHolidays(
+              holidays.map((h, idx) => (i === idx ? { ...h, [k]: val } : h))
+            );
+          }}
+          handleDeliveryToggle={(i, checked) => {
+            setHolidays((prev) =>
+              prev.map((h, idx) =>
+                i === idx
+                  ? {
+                      ...h,
+                      delivery: checked,
+                      takeaway: checked ? false : h.takeaway,
+                    }
+                  : h
+              )
+            );
+          }}
+          handleTakeawayToggle={(i, checked) => {
+            setHolidays((prev) =>
+              prev.map((h, idx) =>
+                i === idx
+                  ? {
+                      ...h,
+                      takeaway: checked,
+                      delivery: checked ? false : h.delivery,
+                    }
+                  : h
+              )
+            );
+          }}
+          disabled={stores.length === 0}
+        />
+      );
+    }
+    return (
+      <WeekdayTable
+        schedule={activeTab === "delivery" ? deliveryTimeSlots : schedule}
+        {...tableProps}
+      />
+    );
+  };
+
+  return (
+    <Box p={4}>
+      <Typography variant="h5" gutterBottom fontWeight={600}>
+        Settings
+      </Typography>
+      <Tabs
+        value={activeTab}
+        onChange={(_, val) => setActiveTab(val)}
+        sx={{ mb: 2 }}
+      >
+        <Tab value="takeaway" label="Takeaway" />
+        <Tab value="delivery" label="Delivery" />
+        <Tab value="holiday" label="Holiday" />
+      </Tabs>
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={4}>
+          <BookingSettings
+            loading={loading}
+            handleSaveChanges={handleSaveChanges}
+            stores={stores}
+            selectedStore={selectedStore}
+            setSelectedStore={setSelectedStore}
+            disabled={stores.length === 0}
+            dayLimited={dayLimited}
+            onChangeDayLimited={(val) => setDayLimited(parseInt(val))}
+          />
+          {stores.length === 0 && (
+            <Paper sx={{ p: 2, mt: 2, bgcolor: "#eccdcda1" }}>
+              <Typography color="error" fontWeight="bold">
+                ⚠️ Please add a store first to configure settings.
+              </Typography>
+            </Paper>
+          )}
+        </Grid>
+        <Grid item xs={12} md={8}>
+          {renderTabContent()}
+        </Grid>
+      </Grid>
       <ToastContainer />
     </Box>
   );
