@@ -165,6 +165,20 @@ const Settings = () => {
 
   const handleSaveChanges = async () => {
     setLoading(true);
+    const hasEmptySlots = (
+      activeTab === "delivery" ? deliveryTimeSlots : schedule
+    ).some((day) =>
+      day.slots.some(
+        (s) =>
+          !s.from || !s.to || s.delivery_slot === "" || s.delivery_slot == null
+      )
+    );
+
+    if (hasEmptySlots) {
+      toast.error("Please complete all time slots before saving.");
+      setLoading(false);
+      return;
+    }
     try {
       if (activeTab === "holiday") {
         const payload = {
@@ -181,7 +195,7 @@ const Settings = () => {
             ...deletedHolidays,
           ],
         };
-        const res = await Api.updateHolidayConfig(payload);
+        const res = await Api.addHolidayConfig(payload);
         res?.data?.status === "success"
           ? toast.success("Holiday saved")
           : toast.error("Failed to save holiday");
@@ -193,13 +207,22 @@ const Settings = () => {
           week_day: i.toString(),
           is_active: "T",
           time_slot: [
-            ...d.slots.map((s) => ({
-              slot_id: s.id,
-              from: s.from,
-              to: s.to,
-              delivery_slot: s.delivery_slot?.toString() || "0",
-              action: s.id ? "update" : "",
-            })),
+            ...d.slots
+              .filter(
+                (s) =>
+                  s.from &&
+                  s.to &&
+                  s.delivery_slot !== "" &&
+                  s.delivery_slot !== null &&
+                  s.delivery_slot !== undefined
+              )
+              .map((s) => ({
+                slot_id: s.id,
+                from: s.from,
+                to: s.to,
+                delivery_slot: s.delivery_slot.toString(),
+                action: s.id ? "update" : "",
+              })),
             ...((activeTab === "delivery"
               ? deletedDeliverySlots
               : deletedTakeawaySlots
@@ -240,21 +263,34 @@ const Settings = () => {
         updater((prev) =>
           prev.map((d) =>
             d.day === day
-              ? { ...d, slots: [...d.slots, { time_from: "", time_to: "" }] }
+              ? {
+                  ...d,
+                  slots: [
+                    ...d.slots,
+                    {
+                      id: undefined,
+                      from: "",
+                      to: "",
+                      delivery_slot: "",
+                    },
+                  ],
+                }
               : d
           )
         );
       },
       handleTimeChange: (day, index, key, value) => {
         const formatted =
-          key.includes("time") && value
+          (key === "from" || key === "to") && value instanceof Date
             ? `${value.getHours().toString().padStart(2, "0")}:${value
                 .getMinutes()
                 .toString()
-                .padStart(2, "0")}:00`
+                .padStart(2, "0")}`
             : value;
+
         const updater =
           activeTab === "delivery" ? setDeliveryTimeSlots : setSchedule;
+
         updater((prev) =>
           prev.map((d) =>
             d.day === day
@@ -268,6 +304,7 @@ const Settings = () => {
           )
         );
       },
+
       duration,
       disabled: stores.length === 0,
     };
