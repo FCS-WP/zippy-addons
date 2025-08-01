@@ -101,7 +101,6 @@ const WeekdayTable = ({
         </TableContainer>
       </Box>
 
-      {/* Overlay khi disabled */}
       {disabled && (
         <Box
           sx={{
