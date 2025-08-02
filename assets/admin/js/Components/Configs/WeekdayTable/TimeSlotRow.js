@@ -54,7 +54,7 @@ const TimeSlotRow = ({
         <Box display="flex" alignItems="center" gap={1}>
           <Box sx={timePickerBoxStyle}>
             <TimePicker
-              selectedTime={parseTime(slot.from)}
+              selectedTime={slot.from ? parseTime(slot.from) : null}
               onChange={(time) =>
                 handleTimeChange(item.day, slotIndex, "from", time)
               }
@@ -66,7 +66,7 @@ const TimeSlotRow = ({
           </Typography>
           <Box sx={timePickerBoxStyle}>
             <TimePicker
-              selectedTime={parseTime(slot.to)}
+              selectedTime={slot.to ? parseTime(slot.to) : null}
               onChange={(time) =>
                 handleTimeChange(item.day, slotIndex, "to", time)
               }
