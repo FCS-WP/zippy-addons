@@ -24,7 +24,7 @@ const DeliveryForm = ({ onChangeMode }) => {
 
   const handleConfirm = async () => {
     if (!deliveryData || !selectedLocation) {
-      showAlert('error', "Failed!", "Please fill all required field!");
+      showAlert("error", "Failed!", "Please fill all required field!");
       return;
     }
     setIsLoading(true);
@@ -35,29 +35,33 @@ const DeliveryForm = ({ onChangeMode }) => {
       delivery_address: {
         address_name: selectedLocation.ADDRESS,
         lat: selectedLocation.LATITUDE,
-        lng: selectedLocation.LONGITUDE
+        lng: selectedLocation.LONGITUDE,
       },
       outlet_id: deliveryData.outlet,
       date: deliveryData.date,
       time: deliveryData.time,
     };
-    
+
     const response = await webApi.addToCart(params);
 
-    if (!response?.data || response.data.status !== 'success') {
-      showAlert('error', "Failed!", "Can not add product. Please try again!");
+    if (!response?.data || response.data.status !== "success") {
+      showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
-    showAlert('success', "Success", "Product added to cart.", 2000);
+    showAlert("success", "Success", "Product added to cart.", 2000);
 
     setTimeout(() => {
-      window.location.reload();
+      document.body.dispatchEvent(
+        new Event("wc_fragment_refresh", { bubbles: true })
+      );
+
+      window.location.reload(true);
       setIsLoading(false);
     }, 2000);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     if (selectedLocation && deliveryData) {
       setIsDisabled(false);
     } else {

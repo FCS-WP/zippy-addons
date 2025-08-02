@@ -46,9 +46,13 @@ const TakeAwayForm = ({ onChangeMode, isEnableDelivery }) => {
     showAlert("success", "Success", "Product added to cart.", 2000);
 
     setTimeout(() => {
-      window.location.reload();
+      document.body.dispatchEvent(
+        new Event("wc_fragment_refresh", { bubbles: true })
+      );
+      window.location.reload(true);
       setIsLoading(false);
     }, 2000);
+   
   };
 
   useEffect(() => {

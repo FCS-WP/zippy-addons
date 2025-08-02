@@ -45,8 +45,15 @@ class Zippy_Admin_Booking_Product_Controller
 
             $cart = new Zippy_Cart_Handler;
             $min_qty = sanitize_text_field($request["quantity"]) ?? 1;
-            $cart->add_to_cart($_product->get_id(), $min_qty);
-            return Zippy_Response_Handler::success($session_data, "Product added to cart");
+
+            $type = $_product->get_type();
+
+            if ($type == 'grouped') {
+                return Zippy_Response_Handler::success($session_data, "Product added to cart");
+            } else {
+                $cart->add_to_cart($_product->get_id(), $min_qty);
+                return Zippy_Response_Handler::success($session_data, "Product added to cart");
+            }
         } catch (\Throwable $th) {
             Zippy_Log_Action::log(
                 'calculate_shipping_fee',

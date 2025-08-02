@@ -140,6 +140,7 @@ class Zippy_Booking_Web
       return $price_html;
     }
 
+
     $session       = new Zippy_Session_Handler();
     $retail_price  = floatval(get_option('zippy_prices_retail', 0));
     $popup_price   = floatval(get_option('zippy_prices_popup', 0));
@@ -152,6 +153,7 @@ class Zippy_Booking_Web
       // Retail-only products => show only retail price
       if ($first_tag_slug === 'retails-only') {
         $custom_price = $base_price + $retail_price;
+        if ($custom_price <= 0) return '';
         return sprintf(
           '<span class="custom-price" style="display:block">Retail Store: %s</span>',
           wc_price($custom_price)
