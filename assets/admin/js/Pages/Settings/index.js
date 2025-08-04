@@ -162,6 +162,13 @@ const Settings = () => {
       )
     );
   };
+  const formatDate = (date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(d.getDate()).padStart(2, "0")}`;
+  };
 
   const handleSaveChanges = async () => {
     setLoading(true);
@@ -181,53 +188,41 @@ const Settings = () => {
     }
     try {
       if (activeTab === "holiday") {
-        const toCreate = holidays.filter((h) => !h.id);
-        const toUpdate = holidays.filter((h) => h.id);
-
-        const createPayload = {
-          outlet_id: selectedStore,
-          date: toCreate.map((h) => ({
-            name: h.label,
-            date: h.date,
-            is_active_delivery: h.delivery ? "F" : "T",
-            is_active_take_away: h.takeaway ? "F" : "T",
-          })),
-        };
-
-        const updatePayload = {
+        const payload = {
           outlet_id: selectedStore,
           date: [
-            ...toUpdate.map((h) => ({
-              id: h.id,
+            ...holidays.map((h) => ({
+              ...(h.id ? { id: h.id, action: "update" } : { action: "create" }),
               name: h.label,
               date: h.date,
               is_active_delivery: h.delivery ? "F" : "T",
               is_active_take_away: h.takeaway ? "F" : "T",
-              action: "update",
             })),
-            ...deletedHolidays,
+            ...deletedHolidays.map((h) => ({
+              id: h.id,
+              action: "delete",
+            })),
           ],
         };
 
-        if (createPayload.date.length > 0) {
-          const res = await Api.addHolidayConfig(createPayload);
-          if (res?.data?.status !== "success") {
-            toast.error("Failed to create holiday");
-            setLoading(false);
-            return;
-          }
-        }
-
-        if (updatePayload.date.length > 0) {
-          const res = await Api.updateHolidayConfig(updatePayload);
-          if (res?.data?.status !== "success") {
+        try {
+          const res = await Api.addHolidayConfig(payload);
+          if (res?.data?.status === "success") {
+            toast.success("Holiday saved successfully");
+            const store = stores.find((s) => s.id === selectedStore);
+            if (store) await fetchHolidaySettings(store);
+            setDeletedHolidays([]);
+          } else {
             toast.error("Failed to update holiday");
-            setLoading(false);
-            return;
           }
+        } catch (e) {
+          console.error("Update error", e);
+          toast.error("Unexpected error");
+        } finally {
+          setLoading(false);
         }
 
-        toast.success("Holiday saved successfully");
+        return;
       } else {
         const slots = (
           activeTab === "delivery" ? deliveryTimeSlots : schedule
@@ -264,9 +259,21 @@ const Settings = () => {
           delivery_type: activeTab,
           time: slots,
         });
-        res?.data?.status === "success"
-          ? toast.success("Settings saved")
-          : toast.error("Failed to save settings");
+
+        if (res?.data?.status === "success") {
+          toast.success("Settings saved");
+
+          const store = stores.find((s) => s.id === selectedStore);
+          if (store) await fetchSettings(store, activeTab);
+
+          if (activeTab === "delivery") {
+            setDeletedDeliverySlots([]);
+          } else {
+            setDeletedTakeawaySlots([]);
+          }
+        } else {
+          toast.error("Failed to save settings");
+        }
       }
     } catch (e) {
       console.error("Save error", e);
@@ -358,8 +365,7 @@ const Settings = () => {
             setHolidays(holidays.filter((_, idx) => idx !== i));
           }}
           handleHolidayChange={(i, k, v) => {
-            const val =
-              k === "date" && v ? new Date(v).toISOString().split("T")[0] : v;
+            const val = k === "date" && v ? formatDate(v) : v;
             setHolidays(
               holidays.map((h, idx) => (i === idx ? { ...h, [k]: val } : h))
             );
