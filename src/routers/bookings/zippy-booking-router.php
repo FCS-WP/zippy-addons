@@ -22,6 +22,8 @@ use Zippy_Booking\Src\Routers\Bookings\Admin\Zippy_Admin_Booking_Store_Route;
 
 use Zippy_Booking\Src\Routers\Bookings\Admin\Zippy_Admin_Booking_Shipping_Route;
 
+use Zippy_Booking\Src\Routers\Bookings\Admin\Zippy_Admin_Booking_Delivery_Route;
+
 use Zippy_Booking\Src\Routers\Bookings\Admin\Zippy_Admin_Booking_Location_Route;
 
 
@@ -52,6 +54,7 @@ class Zippy_Booking_Router
         new Zippy_Admin_Booking_Store_Route();
         new Zippy_Admin_Booking_Shipping_Route();
         new Zippy_Admin_Booking_Location_Route();
+        new Zippy_Admin_Booking_Delivery_Route();
     }
 
 

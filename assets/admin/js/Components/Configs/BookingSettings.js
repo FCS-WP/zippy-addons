@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import {
   Box,
   Typography,
-  FormControlLabel,
-  Switch,
   Select,
   MenuItem,
   Paper,
@@ -12,22 +10,17 @@ import {
 } from "@mui/material";
 import theme from "../../../theme/theme";
 
-const BookingSettings = ({
-  duration,
-  setDuration,
-  holidayEnabled,
-  setHolidayEnabled,
-  setHolidays,
-  loading,
-  handleSaveChanges,
-  stores,
-  selectedStore,
-  setSelectedStore,
-  disabled,
-  dayLimited,
-  onChangeDayLimited
-}) => {
-
+const BookingSettings = (props) => {
+  const {
+    loading,
+    handleSaveChanges,
+    stores,
+    selectedStore,
+    setSelectedStore,
+    disabled,
+    dayLimited,
+    onChangeDayLimited,
+  } = props;
   return (
     <Box component={Paper}>
       <Box mb={2}>
@@ -58,67 +51,16 @@ const BookingSettings = ({
         </Select>
       </Box>
 
-      {/* Duration Selection */}
-      <Box mb={1}>
-        <Typography variant="body1">Duration</Typography>
-        <Select
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-          fullWidth
-          size="small"
-          sx={{
-            border: `1px solid ${theme.palette.info.main}`,
-            borderRadius: 1,
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: theme.palette.primary.main,
-            },
-          }}
-          disabled={disabled}
-        >
-          {Array.from({ length: 4 }, (_, i) => (i + 1) * 15).map((option) => (
-            <MenuItem key={option} value={option}>
-              {option} minutes
-            </MenuItem>
-          ))}
-        </Select>
-        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-          Set the duration of each booking session.
-        </Typography>
-      </Box>
-
       {/* Config time revert */}
 
       <Box mb={2}>
-           <Typography variant="body1">Sales Window Period</Typography>
-          <TextField 
-            value={dayLimited}
-            type="number"
-            fullWidth
-            onChange={(e)=>onChangeDayLimited(e.target.value)}
-          />
-      </Box>
-
-      {/* Holiday Toggle */}
-      <Box mt={2} mb={2}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={holidayEnabled}
-              onChange={(e) => {
-                const isChecked = e.target.checked;
-                setHolidayEnabled(isChecked);
-                if (!isChecked) {
-                  setHolidays([]);
-                }
-              }}
-              disabled={disabled}
-            />
-          }
-          label="Enable Holidays"
+        <Typography variant="body1">Sales Window Period</Typography>
+        <TextField
+          value={dayLimited}
+          type="number"
+          fullWidth
+          onChange={(e) => onChangeDayLimited(e.target.value)}
         />
-        <Typography variant="body2" color="textSecondary">
-          Toggle to enable or disable holiday settings.
-        </Typography>
       </Box>
 
       {/* Save Button */}
