@@ -181,24 +181,53 @@ const Settings = () => {
     }
     try {
       if (activeTab === "holiday") {
-        const payload = {
+        const toCreate = holidays.filter((h) => !h.id);
+        const toUpdate = holidays.filter((h) => h.id);
+
+        const createPayload = {
+          outlet_id: selectedStore,
+          date: toCreate.map((h) => ({
+            name: h.label,
+            date: h.date,
+            is_active_delivery: h.delivery ? "F" : "T",
+            is_active_take_away: h.takeaway ? "F" : "T",
+          })),
+        };
+
+        const updatePayload = {
           outlet_id: selectedStore,
           date: [
-            ...holidays.map((h) => ({
+            ...toUpdate.map((h) => ({
               id: h.id,
               name: h.label,
               date: h.date,
               is_active_delivery: h.delivery ? "F" : "T",
               is_active_take_away: h.takeaway ? "F" : "T",
-              action: h.id ? "update" : "",
+              action: "update",
             })),
             ...deletedHolidays,
           ],
         };
-        const res = await Api.updateHolidayConfig(payload);
-        res?.data?.status === "success"
-          ? toast.success("Holiday saved")
-          : toast.error("Failed to save holiday");
+
+        if (createPayload.date.length > 0) {
+          const res = await Api.addHolidayConfig(createPayload);
+          if (res?.data?.status !== "success") {
+            toast.error("Failed to create holiday");
+            setLoading(false);
+            return;
+          }
+        }
+
+        if (updatePayload.date.length > 0) {
+          const res = await Api.updateHolidayConfig(updatePayload);
+          if (res?.data?.status !== "success") {
+            toast.error("Failed to update holiday");
+            setLoading(false);
+            return;
+          }
+        }
+
+        toast.success("Holiday saved successfully");
       } else {
         const slots = (
           activeTab === "delivery" ? deliveryTimeSlots : schedule
