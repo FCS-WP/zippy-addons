@@ -192,7 +192,7 @@ class Zippy_Admin_Booking_Store_Config_Controller
         );
 
         if (!$results) {
-            return Zippy_Response_Handler::success("No Holiday Found!");
+            return Zippy_Response_Handler::success([], "No Holiday Found!");
         }
 
         return Zippy_Response_Handler::success($results);
