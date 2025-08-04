@@ -108,8 +108,8 @@ const Settings = () => {
           id: item.id,
           label: item.name || "",
           date: item.date || "",
-          delivery: item.is_active_delivery === "T",
-          takeaway: item.is_active_take_away === "T",
+          delivery: item.is_active_delivery === "F",
+          takeaway: item.is_active_take_away === "F",
         }))
       );
     } catch (e) {
@@ -188,14 +188,14 @@ const Settings = () => {
               id: h.id,
               name: h.label,
               date: h.date,
-              is_active_delivery: h.delivery ? "T" : "F",
-              is_active_take_away: h.takeaway ? "T" : "F",
+              is_active_delivery: h.delivery ? "F" : "T",
+              is_active_take_away: h.takeaway ? "F" : "T",
               action: h.id ? "update" : "",
             })),
             ...deletedHolidays,
           ],
         };
-        const res = await Api.addHolidayConfig(payload);
+        const res = await Api.updateHolidayConfig(payload);
         res?.data?.status === "success"
           ? toast.success("Holiday saved")
           : toast.error("Failed to save holiday");
@@ -337,28 +337,34 @@ const Settings = () => {
           }}
           handleDeliveryToggle={(i, checked) => {
             setHolidays((prev) =>
-              prev.map((h, idx) =>
-                i === idx
-                  ? {
-                      ...h,
-                      delivery: checked,
-                      takeaway: checked ? false : h.takeaway,
-                    }
-                  : h
-              )
+              prev.map((h, idx) => {
+                if (idx !== i) return h;
+
+                const newDelivery = checked;
+                const newTakeaway = !checked && !h.takeaway ? true : h.takeaway;
+
+                return {
+                  ...h,
+                  delivery: newDelivery,
+                  takeaway: newTakeaway,
+                };
+              })
             );
           }}
           handleTakeawayToggle={(i, checked) => {
             setHolidays((prev) =>
-              prev.map((h, idx) =>
-                i === idx
-                  ? {
-                      ...h,
-                      takeaway: checked,
-                      delivery: checked ? false : h.delivery,
-                    }
-                  : h
-              )
+              prev.map((h, idx) => {
+                if (idx !== i) return h;
+
+                const newTakeaway = checked;
+                const newDelivery = !checked && !h.delivery ? true : h.delivery;
+
+                return {
+                  ...h,
+                  takeaway: newTakeaway,
+                  delivery: newDelivery,
+                };
+              })
             );
           }}
           disabled={stores.length === 0}
