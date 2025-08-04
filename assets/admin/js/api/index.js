@@ -73,6 +73,9 @@ export const Api = {
   async getHolidayConfig(params) {
     return await makeRequest("/holiday", params);
   },
+      async updateHolidayConfig(params) {
+    return await makeRequest("/holiday", params, "PUT");
+  },
   async addShipping(params) {
     return await makeRequest("/shipping", params, "POST");
   },
