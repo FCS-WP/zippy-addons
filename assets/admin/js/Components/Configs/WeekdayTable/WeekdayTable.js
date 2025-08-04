@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -8,7 +8,6 @@ import {
   TableRow,
   Paper,
   Box,
-  Typography,
 } from "@mui/material";
 import theme from "../../../../theme/theme";
 import TimeSlotRow from "./TimeSlotRow";
@@ -19,17 +18,9 @@ const WeekdayTable = ({
   handleAddTimeSlot,
   handleTimeChange,
   handleRemoveTimeSlot,
-  handleDeliveryToggle,
-  deliveryTimeEnabled,
-  deliveryTimeSlots,
-  handleRemoveDeliveryTimeSlot,
-  handleDeliveryTimeChange,
-  handleAddDeliveryTimeSlot,
   duration,
   disabled = false,
 }) => {
-  const [tempDeliveryText, setTempDeliveryText] = useState({});
-
   const tableHeadCellStyle = {
     fontWeight: 600,
     color: theme.palette.text.primary,
@@ -57,22 +48,13 @@ const WeekdayTable = ({
         >
           <Table>
             <TableHead sx={{ backgroundColor: theme.palette.info.main }}>
-              <TableRow sx={{ borderColor: theme.palette.primary.main }}>
-                <TableCell sx={{ ...tableHeadCellStyle, width: "20%" }}>
-                  Day
-                </TableCell>
-                <TableCell
-                  sx={{ ...tableHeadCellStyle, width: "40%" }}
-                  colSpan={2}
-                >
+              <TableRow>
+                <TableCell sx={tableHeadCellStyle}>Day</TableCell>
+                <TableCell sx={{ ...tableHeadCellStyle }} colSpan={2}>
                   Time
                 </TableCell>
-                <TableCell sx={{ ...tableHeadCellStyle, width: "30%" }}>
-                  Delivery
-                </TableCell>
-                <TableCell
-                  sx={{ ...tableHeadCellStyle, width: "10%" }}
-                ></TableCell>
+                <TableCell sx={tableHeadCellStyle}>Slot</TableCell>
+                <TableCell sx={tableHeadCellStyle}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -85,31 +67,32 @@ const WeekdayTable = ({
                       disabled={disabled}
                     />
                   ) : (
-                    item.slots.map((slot, slotIndex) => (
-                      <TimeSlotRow
-                        key={slotIndex}
-                        item={item}
-                        slot={slot}
-                        slotIndex={slotIndex}
-                        duration={duration}
-                        handleTimeChange={handleTimeChange}
-                        handleRemoveTimeSlot={handleRemoveTimeSlot}
-                        deliveryTimeEnabled={deliveryTimeEnabled}
-                        handleDeliveryToggle={handleDeliveryToggle}
-                        deliverySlots={
-                          deliveryTimeSlots.find((d) => d.day === item.day)
-                            ?.slots || []
-                        }
-                        handleDeliveryTimeChange={handleDeliveryTimeChange}
-                        handleRemoveDeliveryTimeSlot={
-                          handleRemoveDeliveryTimeSlot
-                        }
-                        tempDeliveryText={tempDeliveryText}
-                        setTempDeliveryText={setTempDeliveryText}
-                        handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
-                        disabled={disabled}
-                      />
-                    ))
+                    item.slots.map((slot, slotIndex) => {
+                      const isFirst = slotIndex === 0;
+                      const isLast = slotIndex === item.slots.length - 1;
+                      const hasSubrows = item.slots.length > 1;
+
+                      const rowClass = isFirst
+                        ? hasSubrows
+                          ? "has-subrow"
+                          : ""
+                        : `sub-row ${isLast ? "sub-row--last" : ""}`;
+
+                      return (
+                        <TimeSlotRow
+                          key={slotIndex}
+                          item={item}
+                          slot={slot}
+                          className={rowClass}
+                          slotIndex={slotIndex}
+                          handleAddTimeSlot={handleAddTimeSlot}
+                          duration={duration}
+                          handleTimeChange={handleTimeChange}
+                          handleRemoveTimeSlot={handleRemoveTimeSlot}
+                          disabled={disabled}
+                        />
+                      );
+                    })
                   )}
                 </React.Fragment>
               ))}
@@ -118,7 +101,6 @@ const WeekdayTable = ({
         </TableContainer>
       </Box>
 
-      {/* Overlay to show visually that it's disabled */}
       {disabled && (
         <Box
           sx={{
