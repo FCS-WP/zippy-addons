@@ -70,10 +70,10 @@ class Zippy_Admin_Booking_Store_Route extends Zippy_Booking_Router
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
         // Update store
-        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/holiday', array(
-            'methods' => 'PUT',
-            'callback' => array(Zippy_Admin_Booking_Store_Config_Controller::class, 'update_holiday'),
-            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-        ));
+        // register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/holiday', array(
+        //     'methods' => 'PUT',
+        //     'callback' => array(Zippy_Admin_Booking_Store_Config_Controller::class, 'update_holiday'),
+        //     'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        // ));
     }
 }

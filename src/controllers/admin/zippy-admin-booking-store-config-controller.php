@@ -108,55 +108,103 @@ class Zippy_Admin_Booking_Store_Config_Controller
             return Zippy_Response_Handler::error($validate);
         }
 
-        $date_required_fields = [
+        $create_required_fields = [
             "name" => ["required" => false],
             "date" => ["required" => true, "data_type" => "date"],
+            "action" => ["required" => true, "data_type" => "range", "allowed_values" => ["update", "delete", "create"]],
             "is_active_take_away" => ["required" => true, "data_type" => "boolean"],
             "is_active_delivery" => ["required" => true, "data_type" => "boolean"],
+        ];
+
+        $update_required_fields = [
+            "id" => ["required" => true, "data_type" => "string"],
+            "name" => ["required" => false],
+            "date" => ["required" => true, "data_type" => "date"],
+            "action" => ["required" => true, "data_type" => "range", "allowed_values" => ["update", "delete", "create"]],
+            "is_active_take_away" => ["required" => true, "data_type" => "boolean"],
+            "is_active_delivery" => ["required" => true, "data_type" => "boolean"],
+        ];
+
+        $detele_required_fields = [
+            "id" => ["required" => true, "data_type" => "string"],
+            "action" => ["required" => true, "data_type" => "range", "allowed_values" => ["update", "delete", "create"]],
         ];
 
         $dates = $request["date"];
 
         foreach ($dates as $date) {
-            $validate = Zippy_Request_Validation::validate_request($date_required_fields, $date);
+            if ($date["action"] == "delete") {
+                $validate = Zippy_Request_Validation::validate_request($detele_required_fields, $date);
+            } else if ($date["action"] == "update") {
+                $validate = Zippy_Request_Validation::validate_request($update_required_fields, $date);
+            } else {
+                $validate = Zippy_Request_Validation::validate_request($create_required_fields, $date);
+            }
 
             if (!empty($validate)) {
                 return Zippy_Response_Handler::error($validate);
             }
         }
 
+        $outlet_id = sanitize_text_field($request['outlet_id']);
+
+
+
         global $wpdb;
         $table = $wpdb->prefix . 'zippy_addons_holiday_configs';
 
-        $outlet_id = sanitize_text_field($request['outlet_id']);
-
-        $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
-        $query = "SELECT id FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
-        $is_outlet_exist = count($wpdb->get_results($query));
-        if ($is_outlet_exist < 1) {
-            return Zippy_Response_Handler::error("Outlet not exist!");
+        foreach ($dates as $date) {
+            $date_id = $date["id"];
+            $action = $date["action"];
+            if ($action == "update" || $action == "delete") {
+                $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %s AND outlet_id = %s", $date["id"], $outlet_id), ARRAY_A);
+                if (!$row) {
+                    return Zippy_Response_Handler::error("Holiday ID: $date_id not found");
+                }
+            }
         }
 
         $response_data = [];
 
         foreach ($dates as $date) {
-            $data = [
-                'id' => wp_generate_uuid4(),
-                'outlet_id' => $outlet_id,
-                'name' => sanitize_text_field($date['name']),
-                'date' => sanitize_text_field($date['date']),
-                'is_active_take_away' => ($date['is_active_take_away'] === 'T') ? 'T' : 'F',
-                'is_active_delivery' => ($date['is_active_delivery'] === 'T') ? 'T' : 'F',
-                "created_at" => current_time('mysql'),
-                "updated_at" => current_time('mysql'),
-            ];
+            $action = $date["action"];
+            $id = sanitize_text_field($date["id"]);
+            if ($action == "update") {
+                $update_data = [
+                    'name' => sanitize_text_field($date['name']),
+                    'date' => sanitize_text_field($date['date']),
+                    'is_active_take_away' => ($date['is_active_take_away'] === 'T') ? 'T' : 'F',
+                    'is_active_delivery' => ($date['is_active_delivery'] === 'T') ? 'T' : 'F',
+                    "updated_at" => current_time('mysql'),
+                ];
 
-
-            $wpdb->insert($table, $data);
-            $response_data[] = $data;
+                $wpdb->update($table, $update_data, ['id' => $date["id"]]);
+                $update_data["action"] = $action;
+                $response_data[] = $update_data;
+            } else if ($action == "delete") {
+                $wpdb->delete($table, ['id' => $id]);
+                $response_data[] = [
+                    "id" => $id,
+                    "action" => $action
+                ];
+            } else {
+                $data = [
+                    'id' => wp_generate_uuid4(),
+                    'outlet_id' => $outlet_id,
+                    'name' => sanitize_text_field($date['name']),
+                    'date' => sanitize_text_field($date['date']),
+                    'is_active_take_away' => ($date['is_active_take_away'] === 'T') ? 'T' : 'F',
+                    'is_active_delivery' => ($date['is_active_delivery'] === 'T') ? 'T' : 'F',
+                    "created_at" => current_time('mysql'),
+                    "updated_at" => current_time('mysql'),
+                ];
+                $wpdb->insert($table, $data);
+                $data["action"] = $action;
+                $response_data[] = $data;
+            }
         }
 
-        return Zippy_Response_Handler::success($response_data, "Holiday created");
+        return Zippy_Response_Handler::success($response_data, "Holiday updated");
     }
 
 
@@ -196,88 +244,5 @@ class Zippy_Admin_Booking_Store_Config_Controller
         }
 
         return Zippy_Response_Handler::success($results);
-    }
-
-    public static function update_holiday(WP_REST_Request $request)
-    {
-        $required_fields = [
-            "outlet_id" => ["required" => true, "data_type" => "string"],
-            "date" => ["required" => true, "data_type" => "array"],
-        ];
-
-        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if (!empty($validate)) {
-            return Zippy_Response_Handler::error($validate);
-        }
-
-        $update_required_fields = [
-            "id" => ["required" => true, "data_type" => "string"],
-            "name" => ["required" => false],
-            "date" => ["required" => true, "data_type" => "date"],
-            "action" => ["required" => true, "data_type" => "range", "allowed_values" => ["update", "delete"]],
-            "is_active_take_away" => ["required" => true, "data_type" => "boolean"],
-            "is_active_delivery" => ["required" => true, "data_type" => "boolean"],
-        ];
-
-        $detele_required_fields = [
-            "id" => ["required" => true, "data_type" => "string"],
-            "action" => ["required" => true, "data_type" => "range", "allowed_values" => ["update", "delete"]],
-        ];
-
-        $dates = $request["date"];
-
-        foreach ($dates as $date) {
-            if($date["action"] == "delete"){
-                $validate = Zippy_Request_Validation::validate_request($detele_required_fields, $date);
-            } else {
-                $validate = Zippy_Request_Validation::validate_request($update_required_fields, $date);
-            }
-            
-
-            if (!empty($validate)) {
-                return Zippy_Response_Handler::error($validate);
-            }
-        }
-
-        $outlet_id = sanitize_text_field($request['outlet_id']);
-
-        global $wpdb;
-
-        $table = $wpdb->prefix . 'zippy_addons_holiday_configs';
-
-        foreach ($dates as $date) {
-            $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %s AND outlet_id = %s", $date["id"], $outlet_id), ARRAY_A);
-            if (!$row) {
-                return Zippy_Response_Handler::error("Holiday not found");
-            }
-        }
-
-        $response_data = [];
-
-        foreach ($dates as $date) {
-            $action = $date["action"];
-            $id = sanitize_text_field($date["id"]);
-            if ($action == "update") {
-                $update_data = [
-                    'name' => sanitize_text_field($date['name']),
-                    'date' => sanitize_text_field($date['date']),
-                    'is_active_take_away' => ($date['is_active_take_away'] === 'T') ? 'T' : 'F',
-                    'is_active_delivery' => ($date['is_active_delivery'] === 'T') ? 'T' : 'F',
-                    "updated_at" => current_time('mysql'),
-                ];
-
-                $wpdb->update($table, $update_data, ['id' => $date["id"]]);
-                $response_data[] = $update_data;
-            } else if ($action == "delete") {
-                $wpdb->delete($table, ['id' => $id]);
-                $response_data[] = [
-                    "id" => $id,
-                    "action" => "deleted"
-                ];
-            }
-
-        }
-
-        return Zippy_Response_Handler::success($response_data, "Holiday updated");
     }
 }
