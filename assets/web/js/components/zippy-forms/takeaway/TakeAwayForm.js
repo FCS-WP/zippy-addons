@@ -6,19 +6,33 @@ import theme from "../../../../theme/customTheme";
 import { webApi } from "../../../api";
 import { getSelectProductId } from "../../../helper/booking";
 import { showAlert } from "../../../helper/showAlert";
+import { useOutletProvider } from "../../../providers/OutletProvider";
 
 const TakeAwayForm = ({ onChangeMode }) => {
   const [takeawayData, setTakeawayData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
-
+  const { selectedOutlet, orderModeData, setOrderModeData } = useOutletProvider();
   const handletakeawayData = (data) => {
     setTakeawayData(data);
   };
 
+  const handleGetTakeAwayConfig = async () => {
+    const params = {
+      outlet_id: selectedOutlet.id,
+      delivery_type: "takeaway",
+    };
+    const { data: response } = await webApi.getDeliveryConfig(params);
+    if (!response) {
+      console.log("Error get config from BE");
+      return;
+    }
+    setOrderModeData(response.data);
+  };
+
   const handleConfirm = async () => {
     if (!takeawayData) {
-      showAlert('error', "Failed!", "Please fill all required field!");
+      showAlert("error", "Failed!", "Please fill all required field!");
       return;
     }
     setIsLoading(true);
@@ -30,16 +44,16 @@ const TakeAwayForm = ({ onChangeMode }) => {
       time: takeawayData.time,
       date: takeawayData.date,
     };
-    
+
     const response = await webApi.addToCart(params);
 
-    if (!response?.data || response.data.status !== 'success') {
-      showAlert('error', "Failed!", "Can not add product. Please try again!");
+    if (!response?.data || response.data.status !== "success") {
+      showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
 
-    showAlert('success', "Success", "Product added to cart.", 2000);
+    showAlert("success", "Success", "Product added to cart.", 2000);
 
     setTimeout(() => {
       window.location.reload();
@@ -47,13 +61,19 @@ const TakeAwayForm = ({ onChangeMode }) => {
     }, 2000);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     if (takeawayData) {
       setIsDisabled(false);
     } else {
       setIsDisabled(true);
     }
   }, [takeawayData]);
+
+  useEffect(()=>{
+    if (selectedOutlet) {
+      handleGetTakeAwayConfig();
+    }
+  }, [selectedOutlet]);
 
   return (
     <Box>

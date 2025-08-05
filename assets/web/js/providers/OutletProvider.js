@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import OutletContext from "../contexts/OutletContext";
 import { webApi } from "../api";
 import { showAlert } from "../helper/showAlert";
@@ -9,6 +9,8 @@ const OutletProvider = ({ children }) => {
   const [outlets, setOutlets] = useState([]);
   const [selectedOutlet, setSelectedOutlet] = useState();
   const [menusConfig, setMenusConfig] = useState([]);
+  const [orderModeData, setOrderModeData] = useState();
+  const [holidayConfig, setHolidayConfig] = useState([]);
 
   const getConfigOutlet = async () => {
     try {
@@ -18,6 +20,24 @@ const OutletProvider = ({ children }) => {
       }
     } catch (error) {
       console.warn("Missing outlets");
+    }
+  };
+
+  const getHolidayConfig = async () => {
+    if (!selectedOutlet) {
+      setHolidayConfig([]);
+      return;
+    }
+    const params = {
+      outlet_id: selectedOutlet.id,
+    };
+
+    const { data: response } = await webApi.getHolidayConfig(params);
+    if (!response) {
+      return;
+    }
+    if (response.data && response.data.length > 0) {
+      setHolidayConfig(response.data);
     }
   };
 
@@ -45,7 +65,8 @@ const OutletProvider = ({ children }) => {
   };
 
   useEffect(() => {
-   handleChangeOutlet();
+    handleChangeOutlet();
+    getHolidayConfig();
   }, [selectedOutlet]);
 
   useEffect(() => {
@@ -54,10 +75,19 @@ const OutletProvider = ({ children }) => {
     return () => {};
   }, []);
 
-  const value = { outlets, selectedOutlet, setSelectedOutlet, menusConfig };
+  const value = {
+    outlets,
+    holidayConfig,
+    orderModeData,
+    selectedOutlet,
+    setSelectedOutlet,
+    menusConfig,
+    setOrderModeData,
+  };
   return (
     <OutletContext.Provider value={value}>{children}</OutletContext.Provider>
   );
 };
 
 export default OutletProvider;
+export const useOutletProvider = () => useContext(OutletContext);
