@@ -194,7 +194,7 @@ class Zippy_Admin_Booking_Shipping_Controller
         $week_day = $date_obj->format('w'); // 0 (Sun) -> 6 (Sat)
 
 
-        $regex = '/\b\d{1,2}:\d{2}(?::\d{2})?\b/';
+        $billing_time_regex = '/\b\d{1,2}:\d{2}(?::\d{2})?\b/';
 
         try {
             global $wpdb;
@@ -252,15 +252,14 @@ class Zippy_Admin_Booking_Shipping_Controller
                 ]
             ];
 
-            $temp_time_slots = [];
-
             // Calculate delivery_slot
             foreach ($orders as $order) {
                 $order_id = $order->ID;
+                $order_billing_date = get_post_meta($order_id, "_billing_date", true);
                 $order_billing_time = get_post_meta($order_id, "_billing_time", true);
 
-                if ($order_billing_time !== "") {
-                    preg_match_all($regex, $order_billing_time, $matches);
+                if ($order_billing_time !== "" && $order_billing_date == $billing_date) {
+                    preg_match_all($billing_time_regex, $order_billing_time, $matches);
                     $from = $matches[0][0];
                     $to = $matches[0][1];
                     foreach ($slots as $key => $slot) {
