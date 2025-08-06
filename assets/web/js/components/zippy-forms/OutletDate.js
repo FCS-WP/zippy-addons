@@ -4,12 +4,12 @@ import {
   Grid2 as Grid,
   Typography,
 } from "@mui/material";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getActiveMenuByDate, getDisabledDays, isCloseDate, isDisabledDate } from "../../helper/datetime";
 import { format } from "date-fns";
 import DateBoxed from "./dates/DateBoxed";
 import DateCalendar from "./dates/DateCalendar";
-import OutletContext from "../../contexts/OutletContext";
+import { useOutletProvider } from "../../providers/OutletProvider";
 
 const dates = Array.from({ length: 5 }, (_, i) => {
   const date = new Date();
@@ -23,7 +23,7 @@ const OutletDate = ({ onChangeDate, type }) => {
    */
   const [mode, setMode] = useState("boxed");
   const [selectedDate, setSelectedDate] = useState(null);
-  const { selectedOutlet, menusConfig } = useContext(OutletContext);
+  const { selectedOutlet, menusConfig, orderModeData, holidayConfig } = useOutletProvider();
 
   const currentMenu = getActiveMenuByDate(new Date(), menusConfig);
 
@@ -93,7 +93,7 @@ const OutletDate = ({ onChangeDate, type }) => {
                 date={date}
                 selected={selectedDate?.toDateString() === date.toDateString()}
                 onClick={handleSelectDate}
-                disabled={isDisabledDate(date, selectedOutlet, currentMenu, type)}
+                disabled={isDisabledDate(date, orderModeData, currentMenu, type, holidayConfig, menusConfig)}
               />
             </Grid>
           ))}
@@ -104,7 +104,7 @@ const OutletDate = ({ onChangeDate, type }) => {
             defaultDate={selectedDate}
             onSelectDate={handleSelectDate}
             selectedOutlet={selectedOutlet}
-            menusConfig={currentMenu}
+            currentMenu={currentMenu}
             type={type}
           />
         </div>
