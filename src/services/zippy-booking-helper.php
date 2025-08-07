@@ -177,6 +177,7 @@ class Zippy_Booking_Helper
         if (!$session->get('order_mode')) {
             
             $disabled_ids = self::handle_load_products();
+
             return $disabled_ids;
         }
 
@@ -184,7 +185,7 @@ class Zippy_Booking_Helper
         $order_date = new DateTime($order_date);
 
         $disabled_ids = self::handle_load_products($order_date);
-
+           
         return $disabled_ids;
     }
 
@@ -198,9 +199,9 @@ class Zippy_Booking_Helper
         }
 
         $is_disabled_date = self::is_disabled_date_in_menu($handle_date, $menu);
-
+      
         $disabled_ids = self::get_disabled_ids($menu->id);
-
+       
         if ($is_disabled_date) {
             return $disabled_ids;
         }
@@ -209,7 +210,8 @@ class Zippy_Booking_Helper
             $is_happy_hours = self::is_in_happy_hours($handle_date, json_decode($menu->happy_hours));
             return $is_happy_hours ? [] : $disabled_ids;
         }
-        return $disabled_ids;
+         
+        return [];
     }
 
     public static function get_disabled_ids($menu_id)

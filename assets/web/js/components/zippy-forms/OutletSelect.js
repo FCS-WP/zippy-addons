@@ -91,14 +91,22 @@ const OutletSelect = ({
     if (!responseTime) {
       return [];
     }
-    const results = responseTime.map((item)=>{
-      if (parseInt(item.delivery_slot) > 0) return {
+    const filteredItem = responseTime.filter(
+      (item) => parseInt(item.delivery_slot) > 0
+    );
+
+    if (!filteredItem) {
+      return [];
+    }
+    const results = filteredItem.map((item) => {
+      return {
         from: item.time_from,
         to: item.time_to,
-      }
-    })
+      };
+    });
+
     return results;
-  }
+  };
 
   const clearOldData = () => {
     setSelectedOutlet("");
