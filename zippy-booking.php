@@ -75,6 +75,11 @@ if (!defined('ZIPPY_LOG_TABLE_NAME')) {
 }
 
 
+/* Booking Product Mapping table name */
+if (!defined('DELIVERY_TABLE')) {
+  define('DELIVERY_TABLE', $wpdb->prefix . 'zippy_addons_delivery');
+}
+
 // Booking type
 if (!defined('ZIPPY_BOOKING_BOOKING_TYPE_SINGLE')) {
   define('ZIPPY_BOOKING_BOOKING_TYPE_SINGLE', 'single');

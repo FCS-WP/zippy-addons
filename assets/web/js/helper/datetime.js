@@ -222,29 +222,18 @@ export const getCustomDayOfWeek = (date) => {
   return inputDate.getDay();
 };
 
-export const getDisabledDays = (outletConfig, type) => {
+export const getDisabledDays = (orderModeData) => {
   let results = [];
-  outletConfig.operating_hours.map((item) => {
-    const timeConditions1 = !item.open_at || !item.close_at;
-    const timeConditions2 = type === "delivery" && item.delivery.enabled == "F";
-    const timeConditions3 =
-      type === "delivery" &&
-      item.delivery.enabled == "T" &&
-      item.delivery.delivery_hours.length == 0;
+  if (!orderModeData) {
+    return [];
+  }
 
-    if (timeConditions1 || timeConditions2 || timeConditions3) {
-      results.push(item.week_day);
-    }
-
-    if (type === "delivery" && item.delivery.enabled == "T") {
-      const invalidTimes = item.delivery.delivery_hours.filter((item) => {
-        return !item.from || !item.to;
-      });
-      if (invalidTimes.length === item.delivery.delivery_hours.length) {
-        results.push(item.week_day);
-      }
+  orderModeData.time.map((timeItem, index) => {
+    if (timeItem.is_active !== "T" || timeItem.time_slot.length == 0) {
+      results.push(timeItem.week_day);
     }
   });
+
   return results;
 };
 
@@ -258,10 +247,11 @@ export const isCloseDate = (date, closedDays, closedDates) => {
     return true;
   }
 
-  if (closedDates.length != 0) {
+  if (closedDates && closedDates.length > 0) {
     const check = closedDates.find(
-      (item) => item.value === format(checkDate, "dd/MM/yyyy")
+      (closeDate) => closeDate === format(checkDate, "yyyy-MM-dd")
     );
+
     if (check) {
       return true;
     }
@@ -287,7 +277,7 @@ const isInRange = (check, start, end) => {
 };
 
 const isHappyDate = (date, happyHours) => {
-  const check = happyHours.find(happyHour => {
+  const check = happyHours.find((happyHour) => {
     const happyStartDate = new Date(happyHour.start_time);
     const happyEndDate = new Date(happyHour.end_time);
     return isInRange(date, happyStartDate, happyEndDate);
@@ -297,7 +287,7 @@ const isHappyDate = (date, happyHours) => {
     return true;
   }
   return false;
-}
+};
 
 const isMenuDayAvailable = (day, daysOfWeek) => {
   const dayData = daysOfWeek.find((item) => item.weekday == day);
@@ -307,23 +297,55 @@ const isMenuDayAvailable = (day, daysOfWeek) => {
   return true;
 };
 
-export const isDisabledDate = (date, selectedOutlet, currentMenu, type) => {
+export const getHolidayCloseDates = (holidays, type) => {
+  if (!holidays || holidays.length == 0) {
+    return [];
+  }
+
+  let closedDates = [];
+  switch (type) {
+    case "takeaway":
+      const takeawayHandle = holidays.map((holidayItem, index) => {
+        if (holidayItem.is_active_take_away == "F") {
+          closedDates.push(holidayItem.date);
+        }
+      });
+      break;
+    case "delivery":
+      const handleDates = holidays.map((holidayItem, index) => {
+        if (holidayItem.is_active_delivery == "F") {
+          closedDates.push(holidayItem.date);
+        }
+      });
+      break;
+    default:
+      break;
+  }
+  return closedDates;
+};
+
+export const isDisabledDate = (
+  date,
+  orderModeData,
+  currentMenu,
+  type,
+  holidays,
+  menusConfig
+) => {
   const checkDate = new Date(date);
   const checkDay = checkDate.getDay();
-  const disabledDays = getDisabledDays(selectedOutlet, type);
+  const disabledDays = getDisabledDays(orderModeData);
 
-  const checkCloseDate = isCloseDate(
-    date,
-    disabledDays,
-    selectedOutlet.closed_dates
-  );
+  const holidayCloseDates = getHolidayCloseDates(holidays, type);
+
+  const checkCloseDate = isCloseDate(date, disabledDays, holidayCloseDates);
 
   if (checkCloseDate) {
     return true;
   }
 
   if (!currentMenu) {
-    return false
+    return false;
   }
 
   const endDate = new Date(currentMenu.end_date);
@@ -331,29 +353,29 @@ export const isDisabledDate = (date, selectedOutlet, currentMenu, type) => {
     return true;
   }
 
-  // if (!menusConfig || menusConfig.length == 0) {
-  //   return false;
-  // }
+  if (!menusConfig || menusConfig.length == 0) {
+    return false;
+  }
 
-  // const checkMenu = menusConfig.find((menu) =>
-  //   isInRange(date, menu.start_date, menu.end_date)
-  // );
+  const checkMenu = menusConfig.find((menu) =>
+    isInRange(date, menu.start_date, menu.end_date)
+  );
 
-  // if (!checkMenu) {
-  //   return false;
-  // }
+  if (!checkMenu) {
+    return false;
+  }
 
-  // if (checkMenu.happy_hours?.length > 0) {
-  //   const checkHappyDate = isHappyDate(date, checkMenu.happy_hours);
-  //   if (checkHappyDate) {
-  //     return false;
-  //   }
-  // }
+  if (checkMenu.happy_hours?.length > 0) {
+    const checkHappyDate = isHappyDate(date, checkMenu.happy_hours);
+    if (checkHappyDate) {
+      return false;
+    }
+  }
 
-  // const checkMenuDay = isMenuDayAvailable(checkDay, checkMenu.days_of_week);
-  // if (!checkMenuDay) {
-  //   return true;
-  // }
+  const checkMenuDay = isMenuDayAvailable(checkDay, checkMenu.days_of_week);
+  if (!checkMenuDay) {
+    return true;
+  }
 
   return false;
 };
@@ -364,4 +386,4 @@ export const getActiveMenuByDate = (date, menus) => {
     isInRange(date, menu.start_date, menu.end_date)
   );
   return checkMenu;
-}
+};

@@ -109,10 +109,12 @@ class Zippy_Booking_Web
 
   public function custom_class_products($classes, $class, $post_id)
   {
+
     if ('product' === get_post_type($post_id)) {
       global $products_with_special_class;
-
-      if (! empty($products_with_special_class) && in_array($post_id, $products_with_special_class)) {
+      $is_in_range_period = Zippy_Booking_Helper::is_in_range_period_window($post_id);
+      $condition1 = !empty($products_with_special_class) && in_array($post_id, $products_with_special_class);
+      if ($condition1 || $is_in_range_period) {
         $classes[] = 'custom-disabled-product';
       }
     }

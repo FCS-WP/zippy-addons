@@ -13,9 +13,9 @@ const OrderForm = ({productId}) => {
    * 3. 'takeaway'
    */
   const [mode, setMode] = useState("select-method");
-  
+
   const handleChangeMethod = (method) => {
-    setMode(method)
+    setMode(method);
   }
 
   useEffect(()=>{

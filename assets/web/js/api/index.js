@@ -28,4 +28,10 @@ export const webApi = {
   async checkSlotDelivery(params) {
     return await makeRequest('/slot', params);
   },
+  async getDeliveryConfig(params) {
+    return await makeRequest('/delivery', params);
+  },
+  async getHolidayConfig(params) {
+    return await makeRequest('/holiday', params);
+  }
 };

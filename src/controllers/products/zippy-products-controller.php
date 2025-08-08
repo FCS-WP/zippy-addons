@@ -213,9 +213,12 @@ class Zippy_Products_Controller
 
     $menus = self::get_menus_product_belong_to($data['product_id'], $data['current_date']);
 
+    $period_window = get_field('product_period_window', $data['product_id']) ?? 2;
+
     $response = array(
       'store_operation' => $store_available,
-      'menus_operation' => $menus
+      'menus_operation' => $menus,
+      'period_window' => intval($period_window)
     );
 
     //Step 3: Return the time Available

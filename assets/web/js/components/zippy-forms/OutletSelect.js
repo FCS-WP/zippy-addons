@@ -23,6 +23,7 @@ import { convertTime24to12 } from "../../../../admin/js/utils/dateHelper";
 import OutletContext from "../../contexts/OutletContext";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { getSelectProductId } from "../../helper/booking";
+import { useOutletProvider } from "../../providers/OutletProvider";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -43,10 +44,15 @@ const OutletSelect = ({
   type = "delivery",
   onChangeData,
   selectedLocation = null,
-  onChangeDistance
+  onChangeDistance,
 }) => {
-  const { outlets, selectedOutlet, setSelectedOutlet, menusConfig } =
-    useContext(OutletContext);
+  const {
+    outlets,
+    selectedOutlet,
+    setSelectedOutlet,
+    menusConfig,
+    orderModeData,
+  } = useOutletProvider();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
@@ -56,47 +62,50 @@ const OutletSelect = ({
   const handleTimes = async () => {
     setIsLoading(true);
     let configTime = [];
-    if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) {
+    if (!selectedDate || !orderModeData) {
       setSelectedTime("");
       setTimes(configTime);
       setIsLoading(false);
       return false;
     }
 
-    const openingHours = selectedOutlet?.operating_hours.find((item) => {
+    const openingHours = orderModeData?.time.find((item) => {
       return parseInt(item.week_day) === selectedDate.getDay();
     });
 
-    switch (type) {
-      case "delivery":
-        if (!openingHours.delivery || openingHours.delivery.enable === "F") {
-          setSelectedTime("");
-          setTimes(configTime);
-          setIsLoading(false);
-          return false;
-        }
-        const deliverySlots = await handleCheckSlot();
-        configTime = getAvailableDeliveryTimes(deliverySlots);
-
-        break;
-      case "takeaway":
-        if (!selectedOutlet.takeaway) {
-          setSelectedTime("");
-          setTimes(configTime);
-          setIsLoading(false);
-          return false;
-        }
-        configTime = generateTimeSlots(
-          openingHours?.open_at,
-          openingHours?.close_at,
-          selectedOutlet?.takeaway.timeslot_duration
-        );
-      default:
-        break;
+    if (!openingHours || openingHours.time_slot.length == 0) {
+      setSelectedTime("");
+      setTimes(configTime);
+      setIsLoading(false);
+      return false;
     }
+    // Handle show slot here
+    const slots = await handleCheckSlot();
+    configTime = getSlotsFromTime(slots);
     setSelectedTime("");
     setIsLoading(false);
     setTimes(configTime);
+  };
+
+  const getSlotsFromTime = (responseTime) => {
+    if (!responseTime) {
+      return [];
+    }
+    const filteredItem = responseTime.filter(
+      (item) => parseInt(item.delivery_slot) > 0
+    );
+
+    if (!filteredItem) {
+      return [];
+    }
+    const results = filteredItem.map((item) => {
+      return {
+        from: item.time_from,
+        to: item.time_to,
+      };
+    });
+
+    return results;
   };
 
   const clearOldData = () => {
@@ -164,18 +173,17 @@ const OutletSelect = ({
   }, [selectedLocation, selectedOutlet]);
 
   const handleCheckSlot = async () => {
-    
-  const params = {
+    const params = {
       billing_date: format(selectedDate, "yyyy-MM-dd"),
       outlet_id: selectedOutlet.id,
-      product_id: getSelectProductId()
+      delivery_type: type,
     };
 
     const { data: response } = await webApi.checkSlotDelivery(params);
     if (!response || response.status !== "success") {
       return [];
     }
-    return response.data.delivery_hours;
+    return response.data.time.time_slot;
   };
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import theme from "../../../../theme/customTheme";
 import { getSelectProductId } from "../../../helper/booking";
 import { webApi } from "../../../api";
 import { showAlert } from "../../../helper/showAlert";
+import { useOutletProvider } from "../../../providers/OutletProvider";
 
 const DeliveryForm = ({ onChangeMode }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -14,10 +15,25 @@ const DeliveryForm = ({ onChangeMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
   const [isCalcDistance, setIsCalcDistance] = useState(false);
-
+  const { selectedOutlet, orderModeData, setOrderModeData } = useOutletProvider();
+  
   const handleSelectLocation = (location) => {
     setSelectedLocation(location);
   };
+
+  const handleGetDeliveryConfig = async () => {
+
+    const params = {
+      outlet_id: selectedOutlet.id,
+      delivery_type: 'delivery'
+    }
+    const {data: response} = await webApi.getDeliveryConfig(params);
+    if (!response) {
+      console.log("Error get config from BE");
+      return;
+    }
+    setOrderModeData(response.data);
+  }
 
   const handleDeliveryData = (data) => {
     setDeliveryData(data);
@@ -43,14 +59,15 @@ const DeliveryForm = ({ onChangeMode }) => {
       time: deliveryData.time,
     };
 
-    const response = await webApi.addToCart(params);
+    const {data: response} = await webApi.addToCart(params);
 
-    if (!response?.data || response.data.status !== "success") {
+    if (!response?.data || response.status !== "success") {
       showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
-    showAlert("success", "Success", "Product added to cart.", 2000);
+    
+    showAlert("success", "Success", response?.message, 2000);
 
     setTimeout(() => {
       window.location.reload();
@@ -69,6 +86,12 @@ const DeliveryForm = ({ onChangeMode }) => {
       setIsDisabled(true);
     }
   }, [selectedLocation, deliveryData, isCalcDistance]);
+
+  useEffect(()=>{
+    if (selectedOutlet) {
+      handleGetDeliveryConfig();
+    }
+  }, [selectedOutlet]);
 
   return (
     <Box>
