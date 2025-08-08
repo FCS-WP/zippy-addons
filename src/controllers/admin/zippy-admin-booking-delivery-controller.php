@@ -17,12 +17,14 @@ class Zippy_Admin_Booking_Delivery_Controller
         global $wpdb;
         $table_delivery_time = $wpdb->prefix . 'zippy_addons_delivery_times';
         $table_time_slot = $wpdb->prefix . 'zippy_addons_delivery_time_slots';
+        $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
 
         // Validate request
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"],
             "delivery_type" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
             "time" => ["required" => true, "data_type" => "array"],
+            "day_limited" => ["required" => true, "data_type" => "number"],
         ];
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
         if (!empty($validate)) {
@@ -62,6 +64,7 @@ class Zippy_Admin_Booking_Delivery_Controller
                 ),
                 ARRAY_A
             );
+
 
             if ($delivery_time_row) {
                 // Update is_active
@@ -158,6 +161,13 @@ class Zippy_Admin_Booking_Delivery_Controller
                     'delivery_time' => $delivery_time_id
                 ];
             }
+
+            $day_limited = $request["day_limited"];
+
+            update_option('zippy_day_limited', $day_limited);
+            
+            $response_data["day_limited"] = $day_limited;
+
             $response_data['time'][] = $day_response;
         }
         return Zippy_Response_Handler::success($response_data, "Delivery time slots updated.");
@@ -181,6 +191,7 @@ class Zippy_Admin_Booking_Delivery_Controller
         global $wpdb;
         $delivery_time_table = $wpdb->prefix . 'zippy_addons_delivery_times';
         $time_slot_table = $wpdb->prefix . 'zippy_addons_delivery_time_slots';
+        $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
 
         // Get all delivery_time rows for this outlet and delivery_type
         $delivery_times = $wpdb->get_results(
@@ -199,6 +210,7 @@ class Zippy_Admin_Booking_Delivery_Controller
         $result = [
             'outlet_id' => $outlet_id,
             'delivery_type' => $delivery_type,
+            "day_limited" => null,
             'time' => [],
         ];
 
@@ -217,6 +229,12 @@ class Zippy_Admin_Booking_Delivery_Controller
                 'is_active' => $delivery_time['is_active'],
                 'time_slot' => $slots
             ];
+        }
+
+        $day_limited = get_option('zippy_day_limited');
+
+        if ($day_limited) {
+            $result["day_limited"] = $day_limited;
         }
 
         return Zippy_Response_Handler::success($result, 'Success');
