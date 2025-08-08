@@ -15,7 +15,6 @@ const dates = Array.from({ length: 5 }, (_, i) => {
   date.setDate(date.getDate() + (1 + i));
   return date;
 });
-
 const OutletDate = ({ onChangeDate, type }) => {
   /**
    * Mode: boxed - calendar
@@ -38,16 +37,30 @@ const OutletDate = ({ onChangeDate, type }) => {
   useEffect(() => {
     handleSelectDate(null);
     if (customOutletSelected.end_date && customOutletSelected.start_date) {
+      const now = new Date();
+      const nowformattedDate = now.toISOString().slice(0, 10);
       const startDate = new Date(customOutletSelected.start_date);
-      const newDateRange =Array.from({ length: 5 }, (_, i) => {
-        const date = new Date(startDate);
-        date.setDate(date.getDate() + i);
-        return date;
-      });
-      setDateRange(newDateRange);
-    }
-  }, [customOutletSelected]);
 
+      if (customOutletSelected.start_date < nowformattedDate) {
+        const startDateNew = new Date();
+        const startDateformattedDate = now.toISOString().slice(0, 10);
+        const newDateRange = Array.from({ length: 5 }, (_, i) => {
+          const date = new Date(startDateformattedDate);
+          date.setDate(date.getDate() + i);
+          return date;
+        });
+        setDateRange(newDateRange);
+      } else {
+        const newDateRange = Array.from({ length: 5 }, (_, i) => {
+          const date = new Date(startDate);
+          date.setDate(date.getDate() + i);
+          return date;
+        });
+        setDateRange(newDateRange);
+      }
+    }
+
+  }, [customOutletSelected]);
 
   return (
     <Box>

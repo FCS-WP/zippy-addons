@@ -16,11 +16,19 @@ const DateCalendar = ({ onSelectDate, defaultDate }) => {
 
   useEffect(() => {
     if (customOutletSelected) {
-      setMinDate(
-        customOutletSelected.start_date
-          ? new Date(customOutletSelected.start_date)
-          : null
-      );
+      const now = new Date();
+      const nowformattedDate = now.toISOString().slice(0, 10);
+      const startDate = new Date(customOutletSelected.start_date);
+      if (customOutletSelected.start_date < nowformattedDate) {
+        setMinDate(nowformattedDate);
+      } else {
+        setMinDate(
+          customOutletSelected.start_date
+            ? new Date(customOutletSelected.start_date)
+            : null
+        );
+      }
+
       setMaxDate(
         customOutletSelected.start_date
           ? new Date(customOutletSelected.end_date)
