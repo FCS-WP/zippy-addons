@@ -11,6 +11,7 @@ const OutletProvider = ({ children }) => {
   const [menusConfig, setMenusConfig] = useState([]);
   const [orderModeData, setOrderModeData] = useState();
   const [holidayConfig, setHolidayConfig] = useState([]);
+  const [periodWindow, setPeriodWindow] = useState(0);
 
   const getConfigOutlet = async () => {
     try {
@@ -60,7 +61,7 @@ const OutletProvider = ({ children }) => {
     if (!response || response.status !== "success") {
       console.warn(response?.message ?? "Can not check product!");
     }
-
+    setPeriodWindow(response.data?.period_window);
     setMenusConfig(response.data.menus_operation);
   };
 
@@ -83,6 +84,7 @@ const OutletProvider = ({ children }) => {
     setSelectedOutlet,
     menusConfig,
     setOrderModeData,
+    periodWindow,
   };
   return (
     <OutletContext.Provider value={value}>{children}</OutletContext.Provider>

@@ -12,7 +12,7 @@ import { useOutletProvider } from "../../../providers/OutletProvider";
 const DateCalendar = (props) => {
   const { onSelectDate, defaultDate, currentMenu, selectedOutlet, type } =
     props;
-  const { orderModeData, holidayConfig, menusConfig } = useOutletProvider();
+  const { orderModeData, holidayConfig, menusConfig, periodWindow } = useOutletProvider();
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const handleClick = (date) => {
     setSelectedDate(date);
@@ -20,7 +20,7 @@ const DateCalendar = (props) => {
   };
 
   let minDate = new Date();
-  minDate.setDate(minDate.getDate() + 2);
+  minDate.setDate(minDate.getDate() + periodWindow);
   
   let maxDate = currentMenu ? new Date(currentMenu.end_date) : new Date();
   let day_limited = parseInt(window.admin_data.day_limited) || 30;
