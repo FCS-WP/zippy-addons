@@ -17,14 +17,12 @@ class Zippy_Admin_Booking_Delivery_Controller
         global $wpdb;
         $table_delivery_time = $wpdb->prefix . 'zippy_addons_delivery_times';
         $table_time_slot = $wpdb->prefix . 'zippy_addons_delivery_time_slots';
-        $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
 
         // Validate request
         $required_fields = [
             "outlet_id" => ["required" => true, "data_type" => "string"],
             "delivery_type" => ["required" => true, "data_type" => "range", "allowed_values" => ["delivery", "takeaway"]],
             "time" => ["required" => true, "data_type" => "array"],
-            "day_limited" => ["required" => true, "data_type" => "number"],
         ];
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
         if (!empty($validate)) {
@@ -162,12 +160,6 @@ class Zippy_Admin_Booking_Delivery_Controller
                 ];
             }
 
-            $day_limited = $request["day_limited"];
-
-            update_option('zippy_day_limited', $day_limited);
-            
-            $response_data["day_limited"] = $day_limited;
-
             $response_data['time'][] = $day_response;
         }
         return Zippy_Response_Handler::success($response_data, "Delivery time slots updated.");
@@ -207,10 +199,19 @@ class Zippy_Admin_Booking_Delivery_Controller
             return Zippy_Response_Handler::success([], 'No config found');
         }
 
+
+        $day_limited = $slots = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT day_limited FROM $outlet_table_name WHERE id = %s",
+                $outlet_id
+            ),
+            ARRAY_A
+        );
+
         $result = [
             'outlet_id' => $outlet_id,
             'delivery_type' => $delivery_type,
-            "day_limited" => null,
+            'day_limited' => $day_limited["day_limited"],
             'time' => [],
         ];
 
@@ -231,11 +232,6 @@ class Zippy_Admin_Booking_Delivery_Controller
             ];
         }
 
-        $day_limited = get_option('zippy_day_limited');
-
-        if ($day_limited) {
-            $result["day_limited"] = $day_limited;
-        }
 
         return Zippy_Response_Handler::success($result, 'Success');
     }

@@ -83,6 +83,7 @@ class Zippy_Databases
         display VARCHAR(255) NOT NULL,
         outlet_phone VARCHAR(255) NULL,
         outlet_address LONGTEXT NULL,
+        day_limited INT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
