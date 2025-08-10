@@ -37,9 +37,9 @@ const Settings = () => {
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
-  const [dayLimited, setDayLimited] = useState(
-    window?.admin_data?.day_limited ?? ""
-  );
+  // const [dayLimited, setDayLimited] = useState(
+  //   window?.admin_data?.day_limited ?? ""
+  // );
   const [activeTab, setActiveTab] = useState("takeaway");
   const [deletedHolidays, setDeletedHolidays] = useState([]);
   const [deletedTakeawaySlots, setDeletedTakeawaySlots] = useState([]);
@@ -352,7 +352,7 @@ const Settings = () => {
           handleAddHoliday={() =>
             setHolidays([
               ...holidays,
-              { label: "", date: "", delivery: false, takeaway: false },
+              { label: "", date: "", delivery: true, takeaway: true },
             ])
           }
           handleRemoveHoliday={(i) => {
@@ -437,7 +437,7 @@ const Settings = () => {
             selectedStore={selectedStore}
             setSelectedStore={setSelectedStore}
             disabled={stores.length === 0}
-            dayLimited={dayLimited}
+            // dayLimited={dayLimited}
             onChangeDayLimited={(val) => setDayLimited(parseInt(val))}
           />
           {stores.length === 0 && (

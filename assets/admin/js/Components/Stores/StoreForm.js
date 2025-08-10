@@ -24,6 +24,7 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
     latitude: "",
     longitude: "",
     phone: "",
+    day_limited: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -36,6 +37,7 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
     if (!store.postal_code) tempErrors.postal_code = "Postal code is required";
     if (!store.address) tempErrors.address = "Address is required";
     if (!store.phone) tempErrors.phone = "Phone number is required";
+    if (!store.day_limited) tempErrors.day_limited = "Day limited is required";
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -94,6 +96,7 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
         display: "T",
         outlet_name: store.store_name,
         outlet_phone: store.phone,
+        day_limited: Number(store.day_limited),
         outlet_address: {
           postal_code: store.postal_code,
           address: store.address,
@@ -118,6 +121,7 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
             latitude: "",
             longitude: "",
             phone: "",
+            day_limited: "",
           });
           setAddressOptions([]);
           setSelectedAddress(null);
@@ -183,6 +187,18 @@ const StoreForm = ({ open, onClose, onAddStore, loading }) => {
               <Typography color="error">{errors.address}</Typography>
             )}
           </FormControl>
+
+          <TextField
+            label="Pre-order window period (days)"
+            name="day_limited"
+            type="number"
+            value={store.day_limited}
+            onChange={handleChange}
+            error={!!errors.day_limited}
+            helperText={errors.day_limited}
+            fullWidth
+            margin="dense"
+          />
         </Box>
       </DialogContent>
       <DialogActions>

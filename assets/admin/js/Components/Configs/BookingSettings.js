@@ -18,7 +18,7 @@ const BookingSettings = (props) => {
     selectedStore,
     setSelectedStore,
     disabled,
-    dayLimited,
+    // dayLimited,
     onChangeDayLimited,
   } = props;
   return (
@@ -53,7 +53,7 @@ const BookingSettings = (props) => {
 
       {/* Config time revert */}
 
-      <Box mb={2}>
+      {/* <Box mb={2}>
         <Typography variant="body1">Pre-order window period</Typography>
         <TextField
           value={dayLimited}
@@ -61,7 +61,7 @@ const BookingSettings = (props) => {
           fullWidth
           onChange={(e) => onChangeDayLimited(e.target.value)}
         />
-      </Box>
+      </Box> */}
 
       {/* Save Button */}
       <Box mt={2}>
