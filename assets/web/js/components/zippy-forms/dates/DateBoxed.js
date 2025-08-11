@@ -4,13 +4,15 @@ import { Typography } from "@mui/material";
 
 const DateBoxed = (props) => {
   const { date, selected, onClick, disabled: disabledProp } = props;
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const disableDate = new Date("2025-08-09");
-  const disableDateFomated = disableDate.toISOString().slice(0, 10);
+  const disableDates = ["2025-08-09", "2025-08-12"];
+
   const dateItem = date.toISOString().slice(0, 10);
-  const disabled = disabledProp || disableDateFomated == dateItem;
+
+  const disabled = disabledProp || disableDates.includes(dateItem);
 
   const dayOfWeek = date
     .toLocaleString("en-US", { weekday: "short" })
