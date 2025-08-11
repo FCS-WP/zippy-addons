@@ -34,12 +34,13 @@ const Settings = () => {
   );
   const [duration, setDuration] = useState(15);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
-  const [dayLimited, setDayLimited] = useState(
-    window?.admin_data?.day_limited ?? ""
-  );
+  // const [dayLimited, setDayLimited] = useState(
+  //   window?.admin_data?.day_limited ?? ""
+  // );
   const [activeTab, setActiveTab] = useState("takeaway");
   const [deletedHolidays, setDeletedHolidays] = useState([]);
   const [deletedTakeawaySlots, setDeletedTakeawaySlots] = useState([]);
@@ -101,7 +102,8 @@ const Settings = () => {
   const fetchHolidaySettings = async (store) => {
     try {
       const res = await Api.getHolidayConfig({ outlet_id: store.id });
-      const data = res?.data?.data;
+      const data = res?.data?.data.date;
+
       if (!Array.isArray(data)) return setHolidays([]);
       setHolidays(
         data.map((item) => ({
@@ -171,7 +173,8 @@ const Settings = () => {
   };
 
   const handleSaveChanges = async () => {
-    setLoading(true);
+    setIsSaving(true);
+     setLoading(true);
     const hasEmptySlots = (
       activeTab === "delivery" ? deliveryTimeSlots : schedule
     ).some((day) =>
@@ -183,9 +186,11 @@ const Settings = () => {
 
     if (hasEmptySlots) {
       toast.error("Please complete all time slots before saving.");
+      setIsSaving(false);
       setLoading(false);
       return;
     }
+
     try {
       if (activeTab === "holiday") {
         const payload = {
@@ -219,7 +224,8 @@ const Settings = () => {
           console.error("Update error", e);
           toast.error("Unexpected error");
         } finally {
-          setLoading(false);
+          setIsSaving(false);
+           setLoading(false);
         }
 
         return;
@@ -279,7 +285,8 @@ const Settings = () => {
       console.error("Save error", e);
       toast.error("Unexpected error");
     } finally {
-      setLoading(false);
+      setIsSaving(false);
+       setLoading(false);
     }
   };
 
@@ -352,7 +359,7 @@ const Settings = () => {
           handleAddHoliday={() =>
             setHolidays([
               ...holidays,
-              { label: "", date: "", delivery: false, takeaway: false },
+              { label: "", date: "", delivery: true, takeaway: true },
             ])
           }
           handleRemoveHoliday={(i) => {
@@ -431,13 +438,14 @@ const Settings = () => {
       <Grid container spacing={4}>
         <Grid item xs={12} md={4}>
           <BookingSettings
+            isSaving={isSaving}
             loading={loading}
             handleSaveChanges={handleSaveChanges}
             stores={stores}
             selectedStore={selectedStore}
             setSelectedStore={setSelectedStore}
             disabled={stores.length === 0}
-            dayLimited={dayLimited}
+            // dayLimited={dayLimited}
             onChangeDayLimited={(val) => setDayLimited(parseInt(val))}
           />
           {stores.length === 0 && (

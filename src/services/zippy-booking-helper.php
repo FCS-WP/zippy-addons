@@ -175,8 +175,9 @@ class Zippy_Booking_Helper
 
         $session = new Zippy_Session_Handler();
         if (!$session->get('order_mode')) {
-            
+
             $disabled_ids = self::handle_load_products();
+
             return $disabled_ids;
         }
 
@@ -192,6 +193,7 @@ class Zippy_Booking_Helper
     {
 
         $handle_date = $date ? $date : new DateTime();
+
         $menu = self::get_menu_for_date($handle_date->format('Y-m-d'));
         if (!$menu) {
             return [];
@@ -209,7 +211,33 @@ class Zippy_Booking_Helper
             $is_happy_hours = self::is_in_happy_hours($handle_date, json_decode($menu->happy_hours));
             return $is_happy_hours ? [] : $disabled_ids;
         }
-        return $disabled_ids;
+
+        return [];
+    }
+
+    public static function is_in_range_period_window($product_id)
+    {
+        if (!$product_id || is_admin()) {
+            return false;
+        }
+
+
+        $session = new Zippy_Session_Handler();
+        $period_window = get_field('product_period_window', $product_id) ? get_field('product_period_window', $product_id) : 2;
+        if (!$session->get('order_mode')) {
+            return false;
+        }
+
+        $order_date = $session->get('date');
+        $order_date = new DateTime($order_date);
+        $today = new DateTime();
+        $today = new DateTime($today->format('Y-m-d'));
+
+        $period_date = (clone $today)->modify('+' . $period_window . ' days');
+        if ($order_date < $period_date) {
+            return true;
+        }
+        return false;
     }
 
     public static function get_disabled_ids($menu_id)
@@ -296,7 +324,7 @@ class Zippy_Booking_Helper
     {
         $check_day = $date->format('w');
         $days_of_week = json_decode($menu->days_of_week, true);
-            $match = current(array_filter($days_of_week, function ($dow) use ($check_day) {
+        $match = current(array_filter($days_of_week, function ($dow) use ($check_day) {
             return $dow['weekday'] == $check_day;
         }));
 

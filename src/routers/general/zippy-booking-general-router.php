@@ -68,7 +68,6 @@ class Zippy_Booking_General_Router
       'args' => Zippy_Api_Booking_Model::register_args(),
       'permission_callback' => "__return_true",
     ));
-    
-    
+
   }
 }

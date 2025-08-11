@@ -37,9 +37,7 @@ export const Api = {
       "POST"
     );
   },
-  async createOptions(params) {
-    return await makeRequest("/zippy-options", params, "POST");
-  },
+
   async searchMappingProducts(params) {
     return await makeRequest(
       "/support-booking/search-mapping-products",

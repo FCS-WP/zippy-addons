@@ -59,14 +59,15 @@ const DeliveryForm = ({ onChangeMode }) => {
       time: deliveryData.time,
     };
 
-    const response = await webApi.addToCart(params);
+    const {data: response} = await webApi.addToCart(params);
 
-    if (!response?.data || response.data.status !== "success") {
+    if (!response?.data || response.status !== "success") {
       showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
-    showAlert("success", "Success", "Product added to cart.", 2000);
+    
+    showAlert("success", "Success", response?.message, 2000);
 
     setTimeout(() => {
       window.location.reload();

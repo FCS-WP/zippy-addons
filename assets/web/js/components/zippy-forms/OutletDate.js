@@ -1,21 +1,15 @@
-import {
-  Box,
-  Button,
-  Grid2 as Grid,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid2 as Grid, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { getActiveMenuByDate, getDisabledDays, isCloseDate, isDisabledDate } from "../../helper/datetime";
+import {
+  getActiveMenuByDate,
+  getDisabledDays,
+  isCloseDate,
+  isDisabledDate,
+} from "../../helper/datetime";
 import { format } from "date-fns";
 import DateBoxed from "./dates/DateBoxed";
 import DateCalendar from "./dates/DateCalendar";
 import { useOutletProvider } from "../../providers/OutletProvider";
-
-const dates = Array.from({ length: 5 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() + (2 + i));
-  return date;
-});
 
 const OutletDate = ({ onChangeDate, type }) => {
   /**
@@ -23,9 +17,16 @@ const OutletDate = ({ onChangeDate, type }) => {
    */
   const [mode, setMode] = useState("boxed");
   const [selectedDate, setSelectedDate] = useState(null);
-  const { selectedOutlet, menusConfig, orderModeData, holidayConfig } = useOutletProvider();
+  const {
+    selectedOutlet,
+    menusConfig,
+    orderModeData,
+    holidayConfig,
+    periodWindow,
+  } = useOutletProvider();
 
   const currentMenu = getActiveMenuByDate(new Date(), menusConfig);
+  const [boxDates, setBoxDates] = useState([]);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -37,8 +38,21 @@ const OutletDate = ({ onChangeDate, type }) => {
     setMode(newMode);
   };
 
-  useEffect(()=>{
-    handleSelectDate(null)
+  const handleGetBoxDates = (gapDate) => {
+    const dates = Array.from({ length: 5 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() + (gapDate + i));
+      return date;
+    });
+    setBoxDates(dates);
+  };
+
+  useEffect(() => {
+    handleGetBoxDates(periodWindow);
+  }, [periodWindow]);
+
+  useEffect(() => {
+    handleSelectDate(null);
   }, [selectedOutlet]);
 
   return (
@@ -87,16 +101,26 @@ const OutletDate = ({ onChangeDate, type }) => {
           justifyContent={"space-between"}
           spacing={{ xs: 1, sm: 2 }}
         >
-          {dates.map((date, index) => (
-            <Grid key={index} size={2.4}>
-              <DateBoxed
-                date={date}
-                selected={selectedDate?.toDateString() === date.toDateString()}
-                onClick={handleSelectDate}
-                disabled={isDisabledDate(date, orderModeData, currentMenu, type, holidayConfig, menusConfig)}
-              />
-            </Grid>
-          ))}
+          {boxDates.length > 0 &&
+            boxDates.map((date, index) => (
+              <Grid key={index} size={2.4}>
+                <DateBoxed
+                  date={date}
+                  selected={
+                    selectedDate?.toDateString() === date.toDateString()
+                  }
+                  onClick={handleSelectDate}
+                  disabled={isDisabledDate(
+                    date,
+                    orderModeData,
+                    currentMenu,
+                    type,
+                    holidayConfig,
+                    menusConfig
+                  )}
+                />
+              </Grid>
+            ))}
         </Grid>
       ) : (
         <div>

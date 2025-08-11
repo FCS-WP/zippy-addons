@@ -12,7 +12,8 @@ const TakeAwayForm = ({ onChangeMode }) => {
   const [takeawayData, setTakeawayData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
-  const { selectedOutlet, orderModeData, setOrderModeData } = useOutletProvider();
+  const { selectedOutlet, orderModeData, setOrderModeData } =
+    useOutletProvider();
   const handletakeawayData = (data) => {
     setTakeawayData(data);
   };
@@ -45,15 +46,15 @@ const TakeAwayForm = ({ onChangeMode }) => {
       date: takeawayData.date,
     };
 
-    const response = await webApi.addToCart(params);
+    const { data: response } = await webApi.addToCart(params);
 
-    if (!response?.data || response.data.status !== "success") {
+    if (!response || response.status !== "success") {
       showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
 
-    showAlert("success", "Success", "Product added to cart.", 2000);
+    showAlert("success", "Success", response.message, 2000);
 
     setTimeout(() => {
       window.location.reload();
@@ -69,7 +70,7 @@ const TakeAwayForm = ({ onChangeMode }) => {
     }
   }, [takeawayData]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (selectedOutlet) {
       handleGetTakeAwayConfig();
     }
@@ -108,7 +109,6 @@ const TakeAwayForm = ({ onChangeMode }) => {
       </Box>
     </Box>
   );
-  s;
 };
 
 export default TakeAwayForm;

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
 import ShippingConfigTable from "./ShippingConfigTable";
 import theme from "../../../theme/theme";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import MinimumOrderConfig from "./MinimumOrderConfig";
 
 const TabPanelWrapper = ({
   tabIndex,
@@ -18,6 +19,7 @@ const TabPanelWrapper = ({
   handleBlur,
   handleDeleteRow,
   handleAddNewRow,
+  minimumOrder,
 }) => {
   return (
     <>
@@ -44,7 +46,9 @@ const TabPanelWrapper = ({
           label={
             <Box display="flex" alignItems="center" gap={1}>
               <LocalShippingIcon fontSize="small" />
-              <Typography variant="body2" fontWeight="600">Minimum Order to Delivery</Typography>
+              <Typography variant="body2" fontWeight="600">
+                Minimum Order to Delivery
+              </Typography>
             </Box>
           }
         />
@@ -52,7 +56,9 @@ const TabPanelWrapper = ({
           label={
             <Box display="flex" alignItems="center" gap={1}>
               <LocalShippingIcon fontSize="small" />
-              <Typography variant="body2" fontWeight="600" >Minimum Order to Freeship</Typography>
+              <Typography variant="body2" fontWeight="600">
+                Minimum Order to Freeship
+              </Typography>
             </Box>
           }
         />
@@ -60,7 +66,19 @@ const TabPanelWrapper = ({
           label={
             <Box display="flex" alignItems="center" gap={1}>
               <LocalShippingIcon fontSize="small" />
-              <Typography variant="body2" fontWeight="600">Extra Fee</Typography>
+              <Typography variant="body2" fontWeight="600">
+                Delivery Fee
+              </Typography>
+            </Box>
+          }
+        />
+        <Tab
+          label={
+            <Box display="flex" alignItems="center" gap={1}>
+              <LocalShippingIcon fontSize="small" />
+              <Typography variant="body2" fontWeight="600">
+                Minimum Order Config
+              </Typography>
             </Box>
           }
         />
@@ -166,6 +184,9 @@ const TabPanelWrapper = ({
           onBlur={(i, f) => handleBlur(i, f, extraFee, "extra_fee")}
           onDeleteRow={(i) => handleDeleteRow(i, setExtraFee, extraFee)}
         />
+      )}
+      {tabIndex === 3 && (
+        <MinimumOrderConfig currentTab={tabIndex} minimumOrder={minimumOrder} />
       )}
     </>
   );

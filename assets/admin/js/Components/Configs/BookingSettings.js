@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -6,28 +6,35 @@ import {
   MenuItem,
   Paper,
   Button,
-  TextField,
 } from "@mui/material";
 import theme from "../../../theme/theme";
 
-const BookingSettings = (props) => {
-  const {
-    loading,
-    handleSaveChanges,
-    stores,
-    selectedStore,
-    setSelectedStore,
-    disabled,
-    dayLimited,
-    onChangeDayLimited,
-  } = props;
+const BookingSettings = ({ stores, isSaving, isFetching, handleSaveChanges }) => {
+  const [selectedStore, setSelectedStore] = useState("");
+
+  useEffect(() => {
+    const savedStore = localStorage.getItem("selectedStore");
+    if (savedStore) {
+      setSelectedStore(savedStore);
+    } else if (stores && stores.length > 0) {
+      const firstStoreId = stores[0].id;
+      setSelectedStore(firstStoreId);
+      localStorage.setItem("selectedStore", firstStoreId);
+    }
+  }, [stores]);
+
+  const handleChangeStore = (value) => {
+    setSelectedStore(value);
+    localStorage.setItem("selectedStore", value);
+  };
+
   return (
-    <Box component={Paper}>
+    <Box component={Paper} p={2}>
       <Box mb={2}>
         <Typography variant="body1">Select Store</Typography>
         <Select
           value={selectedStore}
-          onChange={(e) => setSelectedStore(e.target.value)}
+          onChange={(e) => handleChangeStore(e.target.value)}
           fullWidth
           size="small"
           displayEmpty
@@ -38,7 +45,7 @@ const BookingSettings = (props) => {
               borderColor: theme.palette.primary.main,
             },
           }}
-          disabled={disabled}
+          disabled={isFetching}
         >
           <MenuItem value="" disabled>
             Please select a store
@@ -51,32 +58,19 @@ const BookingSettings = (props) => {
         </Select>
       </Box>
 
-      {/* Config time revert */}
-
-      <Box mb={2}>
-        <Typography variant="body1">Sales Window Period</Typography>
-        <TextField
-          value={dayLimited}
-          type="number"
-          fullWidth
-          onChange={(e) => onChangeDayLimited(e.target.value)}
-        />
-      </Box>
-
-      {/* Save Button */}
       <Box mt={2}>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSaveChanges}
-          disabled={loading || disabled}
+          disabled={isSaving || isFetching}
           style={{
             borderRadius: "8px",
             padding: "13px 20px",
             textTransform: "none",
           }}
         >
-          {loading ? "Saving..." : "Save Changes"}
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </Box>
     </Box>

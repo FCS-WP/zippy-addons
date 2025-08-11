@@ -12,7 +12,7 @@ import {
   Button,
 } from "@mui/material";
 import { Api } from "../../api";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 
 const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -22,6 +22,7 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
     address: "",
     latitude: "",
     longitude: "",
+    day_limited: "",
   });
   const [addressOptions, setAddressOptions] = useState([]);
 
@@ -35,6 +36,7 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
         address: store.outlet_address?.address || "",
         latitude: store.outlet_address?.coordinates?.lat || "",
         longitude: store.outlet_address?.coordinates?.lng || "",
+        day_limited: store.day_limited || "",
       });
 
       if (store.outlet_address?.address) {
@@ -86,6 +88,7 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
         display: "T",
         outlet_name: formData.outlet_name,
         outlet_phone: formData.outlet_phone,
+        day_limited: Number(formData.day_limited),
         outlet_address: {
           postal_code: formData.postal_code,
           address: formData.address,
@@ -193,6 +196,16 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
                   )}
                 </Select>
               </FormControl>
+            </Box>
+            <Box mb={2}>
+              <Typography variant="body1">Pre-order window period</Typography>
+              <TextField
+                name="day_limited"
+                type="number"
+                value={formData.day_limited}
+                onChange={handleChange}
+                fullWidth
+              />
             </Box>
           </>
         )}

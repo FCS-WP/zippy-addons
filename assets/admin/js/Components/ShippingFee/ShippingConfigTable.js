@@ -32,15 +32,19 @@ const ShippingConfigTable = ({
 
   return (
     <Paper style={{ padding: 20 }}>
-      <div style={{ marginBottom: 10 ,fontSize: "14px" }}>
-        <Typography style={{fontSize: "14px" , fontWeight: "bold"}}>Notes: </Typography>
+      <div style={{ marginBottom: 10, fontSize: "14px" }}>
+        <Typography style={{ fontSize: "14px", fontWeight: "bold" }}>
+          Notes:{" "}
+        </Typography>
         {isExtraFee
           ? "Set additional fees based on specific criteria, such as postal codes or distance ranges."
           : "Define the minimum order amount required for delivery or free shipping. Each row represents a range of order values and the corresponding fee."}
       </div>
 
-      <div style={{ marginBottom: 10 ,fontSize: "14px" }}>
-        <Typography style={{fontSize: "14px" , fontWeight: "bold"}}>Example: </Typography>
+      <div style={{ marginBottom: 10, fontSize: "14px" }}>
+        <Typography style={{ fontSize: "14px", fontWeight: "bold" }}>
+          Example:{" "}
+        </Typography>
         {isExtraFee
           ? "Type: postal_code , From: 12345 , To: 67890 , Fee: 15"
           : "From(M): 100 , To(M) : 500 , Fee: 15"}
@@ -108,7 +112,9 @@ const ShippingConfigTable = ({
               <TableCell>
                 {" "}
                 <Typography fontWeight="bold" fontSize="14px">
-                  Fee (SGD)
+                  {type == "minimum_order_to_delivery"
+                    ? "Delivery Charges ($)"
+                    : "Min Purchase ($)"}
                 </Typography>
               </TableCell>
               <TableCell>

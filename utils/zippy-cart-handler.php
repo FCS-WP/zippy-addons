@@ -36,8 +36,8 @@ class Zippy_Cart_Handler
     }
 
     // Add product to cart
+ 
     $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $custom_data);
-
     return $cart_item_key;
   }
 
