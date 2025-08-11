@@ -37,8 +37,8 @@ const OutletProvider = ({ children }) => {
     if (!response) {
       return;
     }
-    if (response.data && response.data.length > 0) {
-      setHolidayConfig(response.data);
+    if (response?.data.date && response.data.date.length > 0) {
+      setHolidayConfig(response.data.date);
     }
   };
 
