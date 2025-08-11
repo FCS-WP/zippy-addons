@@ -217,7 +217,7 @@ class Zippy_Booking_Helper
 
     public static function is_in_range_period_window($product_id)
     {
-        if (!$product_id) {
+        if (!$product_id || is_admin()) {
             return false;
         }
 
