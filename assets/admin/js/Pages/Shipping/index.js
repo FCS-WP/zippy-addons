@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  Container,
-  Paper,
-  Typography,
-  Button,
-  Box,
-} from "@mui/material";
+import { Container, Paper, Typography, Button, Box } from "@mui/material";
 import StoreSelector from "../../Components/ShippingFee/StoreSelector";
 import TabPanelWrapper from "../../Components/ShippingFee/TabPanelWrapper";
 import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
+import { generalAPI } from "../../api/general";
 
 const ShippingFeeCalculator = () => {
   const [stores, setStores] = useState([]);
@@ -18,9 +13,12 @@ const ShippingFeeCalculator = () => {
   const [minimumOrderToFreeship, setMinimumOrderToFreeship] = useState([]);
   const [extraFee, setExtraFee] = useState([]);
   const [tabIndex, setTabIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [configMinimumOrder, setConfigMinimumOrder] = useState({});
 
   useEffect(() => {
     const fetchStores = async () => {
+      setLoading(true);
       try {
         const response = await Api.getStore();
         const storeList = response.data.data;
@@ -30,6 +28,7 @@ const ShippingFeeCalculator = () => {
           const firstStoreId = storeList[0].id;
           setSelectedStore(firstStoreId);
           fetchConfig(firstStoreId);
+          setLoading(false);
         }
       } catch (error) {
         console.error("Error fetching stores:", error);
@@ -40,9 +39,10 @@ const ShippingFeeCalculator = () => {
 
   const fetchConfig = async (storeId) => {
     if (!storeId) return;
+    setLoading(true);
+
     try {
       const response = await Api.getShipping({ outlet_id: storeId });
-      console.log("Shipping Config Response:", response.data);
       const data = response.data.data;
 
       if (response.data.status === "error") {
@@ -56,11 +56,13 @@ const ShippingFeeCalculator = () => {
       setMinimumOrderToDelivery(data?.minimum_order_to_delivery || []);
       setMinimumOrderToFreeship(data?.minimum_order_to_freeship || []);
       setExtraFee(data?.extra_fee || []);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching shipping config:", error);
       setMinimumOrderToDelivery([]);
       setMinimumOrderToFreeship([]);
       setExtraFee([]);
+      setLoading(false);
     }
   };
 
@@ -179,10 +181,36 @@ const ShippingFeeCalculator = () => {
   };
   const hasEmptyFields = (data, fields) => {
     return data.some((entry) =>
-      fields.some((field) => entry[field] === "" || entry[field] === undefined || entry[field] === null)
+      fields.some(
+        (field) =>
+          entry[field] === "" ||
+          entry[field] === undefined ||
+          entry[field] === null
+      )
     );
   };
   const handleSaveConfig = async () => {
+    setLoading(true);
+
+    if (configMinimumOrder?.key == "minimum_order" && tabIndex == 3) {
+      try {
+        const params = {
+          option_name: [configMinimumOrder.key],
+          option_data: [configMinimumOrder.value],
+        };
+        const { data } = await generalAPI.updateZippOptions(params);
+        if (data.status == "success") {
+          toast.success("Minimum Order configuration saved successfully!");
+          setLoading(false);
+        }
+      } catch (error) {
+        toast.error("Cannot process this action");
+
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!selectedStore) {
       toast.error("Please select a store.");
       return;
@@ -240,11 +268,17 @@ const ShippingFeeCalculator = () => {
     try {
       const response = await Api.addShipping(payload);
       toast.success("Shipping fee configuration saved successfully!");
-      console.log("Saved Configuration:", response.data);
+      setLoading(false);
     } catch (error) {
       console.error("Error saving shipping config:", error);
       toast.error("Failed to save shipping fee configuration.");
+      setLoading(false);
     }
+  };
+
+  const handleConfigMinimumOrder = (data) => {
+    console.log(data);
+    setConfigMinimumOrder(data);
   };
 
   return (
@@ -274,6 +308,7 @@ const ShippingFeeCalculator = () => {
         handleBlur={handleBlur}
         handleDeleteRow={handleDeleteRow}
         handleAddNewRow={handleAddNewRow}
+        minimumOrder={handleConfigMinimumOrder}
       />
       <Button
         variant="contained"
@@ -281,6 +316,7 @@ const ShippingFeeCalculator = () => {
         onClick={handleSaveConfig}
         style={{ marginTop: 20, marginBottom: 20 }}
         disabled={!selectedStore}
+        loading={loading}
       >
         Save
       </Button>
