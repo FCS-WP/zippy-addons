@@ -39,12 +39,60 @@ const OutletDate = ({ onChangeDate, type }) => {
   };
 
   const handleGetBoxDates = (gapDate) => {
-    const dates = Array.from({ length: 5 }, (_, i) => {
+    const checkDates = Array.from({ length: gapDate }, (_, i) => {
       const date = new Date();
-      date.setDate(date.getDate() + (gapDate + i));
+      date.setDate(date.getDate() + i);
       return date;
     });
+
+    const newGapDate = handlePeriodDate(gapDate, checkDates);
+
+    const dates = Array.from({ length: 5 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() + (newGapDate + i));
+      return date;
+    });
+
     setBoxDates(dates);
+  };
+
+  const handlePeriodDate = (gapDate, dates) => {
+    // check is holiday include.
+    let addonDay = 0;
+    let holidayCounter = 0;
+    let combineCounter = 0;
+    let disabledWeekDayCounter = 0;
+    let holidays = [];
+    let disabledWeekDays = [];
+
+    orderModeData?.time.map((timeItem) => {
+      if (timeItem.is_active !== "T" || timeItem.time_slot.length < 1) {
+        disabledWeekDays.push(parseInt(timeItem.week_day));
+      }
+    });
+
+    holidayConfig.map((holiday) => {
+      const date = new Date(holiday.date);
+
+      if (disabledWeekDays.includes(date.getDay())) {
+        combineCounter++;
+      }
+
+      holidays.push(format(date, "yyyy-MM-dd"));
+    });
+
+    dates.map((date) => {
+      const dateStr = format(date, "yyyy-MM-dd");
+      if (disabledWeekDays.includes(date.getDay())) {
+        disabledWeekDayCounter++;
+      }
+      if (holidays.includes(dateStr)) {
+        holidayCounter++;
+      }
+    });
+
+    addonDay = holidayCounter + disabledWeekDayCounter - combineCounter;
+    return gapDate + addonDay;
   };
 
   useEffect(() => {
