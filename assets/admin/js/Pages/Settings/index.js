@@ -101,7 +101,8 @@ const Settings = () => {
   const fetchHolidaySettings = async (store) => {
     try {
       const res = await Api.getHolidayConfig({ outlet_id: store.id });
-      const data = res?.data?.data;
+      const data = res?.data?.data.date;
+
       if (!Array.isArray(data)) return setHolidays([]);
       setHolidays(
         data.map((item) => ({

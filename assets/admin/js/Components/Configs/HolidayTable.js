@@ -64,57 +64,61 @@ const HolidayTable = ({
         </TableHead>
         <TableBody>
           {holidays && holidays.length > 0 ? (
-            holidays.map((holiday, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <TextField
-                    value={holiday.label}
-                    onChange={(e) =>
-                      handleHolidayChange(index, "label", e.target.value)
-                    }
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  <CustomeDatePicker
-                    startDate={holiday?.date ?? new Date()}
-                    handleDateChange={(date) =>
-                      handleHolidayChange(index, "date", date)
-                    }
-                    placeholderText="Select a date"
-                    isClearable={true}
-                    selectsRange={false}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    className="custom-switch"
-                
-                    checked={holiday.delivery}
-                    onChange={(e) => {
-                      handleDeliveryToggle(index, e.target.checked);
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    className="custom-switch"
-                    checked={holiday.takeaway}
-                    onChange={(e) =>
-                      handleTakeawayToggle(index, e.target.checked)
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleRemoveHoliday(index)}
-                  >
-                    <RemoveCircleOutlineIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))
+            holidays.map(
+              (holiday, index) => (
+                console.log(holiday),
+                (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <TextField
+                        value={holiday.label}
+                        onChange={(e) =>
+                          handleHolidayChange(index, "label", e.target.value)
+                        }
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CustomeDatePicker
+                        startDate={holiday?.date ?? new Date()}
+                        handleDateChange={(date) =>
+                          handleHolidayChange(index, "date", date)
+                        }
+                        placeholderText="Select a date"
+                        isClearable={true}
+                        selectsRange={false}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        className="custom-switch"
+                        checked={holiday.delivery}
+                        onChange={(e) => {
+                          handleDeliveryToggle(index, e.target.checked);
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        className="custom-switch"
+                        checked={holiday.takeaway}
+                        onChange={(e) =>
+                          handleTakeawayToggle(index, e.target.checked)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleRemoveHoliday(index)}
+                      >
+                        <RemoveCircleOutlineIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                )
+              )
+            )
           ) : (
             <TableRow>
               <TableCell colSpan={5} align="center">
