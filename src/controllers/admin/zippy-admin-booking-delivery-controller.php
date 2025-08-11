@@ -218,7 +218,7 @@ class Zippy_Admin_Booking_Delivery_Controller
         foreach ($delivery_times as $delivery_time) {
             $slots = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT id, `time_from`, `time_to`, delivery_slot FROM $time_slot_table WHERE delivery_time_id = %s",
+                    "SELECT id, `time_from`, `time_to`, delivery_slot FROM $time_slot_table WHERE delivery_time_id = %s ORDER BY created_at ASC",
                     $delivery_time['id']
                 ),
                 ARRAY_A
