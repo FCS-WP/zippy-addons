@@ -27,8 +27,9 @@ const ShippingConfigTable = ({
 }) => {
   const isExtraFee = type === "extra_fee";
   const isDeliveryOrFreeship =
-    type === "minimum_order_to_delivery" ||
-    type === "minimum_order_to_freeship";
+    type === "delivery_charge"
+      ? "delivery_charge"
+      : "minimum_order_to_delivery";
 
   return (
     <Paper style={{ padding: 20 }}>
@@ -46,8 +47,8 @@ const ShippingConfigTable = ({
           Example:{" "}
         </Typography>
         {isExtraFee
-          ? "Type: postal_code , From: 12345 , To: 67890 , Fee: 15"
-          : "From(M): 100 , To(M) : 500 , Fee: 15"}
+          ? "Type: postal_code , From: 12345 , To: 67890 , Fee: 15($)"
+          : "From(meter): 100 , To(meter) : 500 , Fee: 15($)"}
       </div>
 
       <div
@@ -98,13 +99,13 @@ const ShippingConfigTable = ({
                   <TableCell>
                     {" "}
                     <Typography fontWeight="bold" fontSize="14px">
-                      From (M)
+                      From (meter)
                     </Typography>
                   </TableCell>
                   <TableCell>
                     {" "}
                     <Typography fontWeight="bold" fontSize="14px">
-                      To (M)
+                      To (meter)
                     </Typography>
                   </TableCell>
                 </>
@@ -112,7 +113,9 @@ const ShippingConfigTable = ({
               <TableCell>
                 {" "}
                 <Typography fontWeight="bold" fontSize="14px">
-                  {type == "minimum_order_to_delivery"
+                  {isExtraFee
+                    ? "Extra Charges ($)"
+                    : isDeliveryOrFreeship === "delivery_charge"
                     ? "Delivery Charges ($)"
                     : "Min Purchase ($)"}
                 </Typography>

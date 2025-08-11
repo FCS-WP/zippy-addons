@@ -32,15 +32,12 @@ const Settings = () => {
   const [deliveryTimeSlots, setDeliveryTimeSlots] = useState(
     daysOfWeek.map((day) => ({ day, slots: [] }))
   );
-  const [duration, setDuration] = useState(15);
+  const duration = 30;
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
-  // const [dayLimited, setDayLimited] = useState(
-  //   window?.admin_data?.day_limited ?? ""
-  // );
   const [activeTab, setActiveTab] = useState("takeaway");
   const [deletedHolidays, setDeletedHolidays] = useState([]);
   const [deletedTakeawaySlots, setDeletedTakeawaySlots] = useState([]);
@@ -93,7 +90,6 @@ const Settings = () => {
       });
 
       setTarget(slots);
-      setDuration(data?.timeslot_duration || 15);
     } catch (e) {
       console.error(`Failed to fetch ${type} config`, e);
     }
@@ -174,7 +170,7 @@ const Settings = () => {
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
-     setLoading(true);
+    setLoading(true);
     const hasEmptySlots = (
       activeTab === "delivery" ? deliveryTimeSlots : schedule
     ).some((day) =>
@@ -225,7 +221,7 @@ const Settings = () => {
           toast.error("Unexpected error");
         } finally {
           setIsSaving(false);
-           setLoading(false);
+          setLoading(false);
         }
 
         return;
@@ -286,7 +282,7 @@ const Settings = () => {
       toast.error("Unexpected error");
     } finally {
       setIsSaving(false);
-       setLoading(false);
+      setLoading(false);
     }
   };
 
