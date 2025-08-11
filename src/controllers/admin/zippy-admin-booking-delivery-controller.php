@@ -63,6 +63,7 @@ class Zippy_Admin_Booking_Delivery_Controller
                 ARRAY_A
             );
 
+
             if ($delivery_time_row) {
                 // Update is_active
                 $wpdb->update(
@@ -158,6 +159,7 @@ class Zippy_Admin_Booking_Delivery_Controller
                     'delivery_time' => $delivery_time_id
                 ];
             }
+
             $response_data['time'][] = $day_response;
         }
         return Zippy_Response_Handler::success($response_data, "Delivery time slots updated.");
@@ -181,6 +183,7 @@ class Zippy_Admin_Booking_Delivery_Controller
         global $wpdb;
         $delivery_time_table = $wpdb->prefix . 'zippy_addons_delivery_times';
         $time_slot_table = $wpdb->prefix . 'zippy_addons_delivery_time_slots';
+        $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
 
         // Get all delivery_time rows for this outlet and delivery_type
         $delivery_times = $wpdb->get_results(
@@ -196,16 +199,26 @@ class Zippy_Admin_Booking_Delivery_Controller
             return Zippy_Response_Handler::success([], 'No config found');
         }
 
+
+        $day_limited = $slots = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT day_limited FROM $outlet_table_name WHERE id = %s",
+                $outlet_id
+            ),
+            ARRAY_A
+        );
+
         $result = [
             'outlet_id' => $outlet_id,
             'delivery_type' => $delivery_type,
+            'day_limited' => $day_limited["day_limited"],
             'time' => [],
         ];
 
         foreach ($delivery_times as $delivery_time) {
             $slots = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT id, `time_from`, `time_to`, delivery_slot FROM $time_slot_table WHERE delivery_time_id = %s",
+                    "SELECT id, `time_from`, `time_to`, delivery_slot FROM $time_slot_table WHERE delivery_time_id = %s ORDER BY created_at ASC",
                     $delivery_time['id']
                 ),
                 ARRAY_A
@@ -218,6 +231,7 @@ class Zippy_Admin_Booking_Delivery_Controller
                 'time_slot' => $slots
             ];
         }
+
 
         return Zippy_Response_Handler::success($result, 'Success');
     }

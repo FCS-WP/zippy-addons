@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -6,28 +6,38 @@ import {
   MenuItem,
   Paper,
   Button,
-  TextField,
 } from "@mui/material";
 import theme from "../../../theme/theme";
 
 const BookingSettings = (props) => {
-  const {
-    loading,
-    handleSaveChanges,
-    stores,
-    selectedStore,
-    setSelectedStore,
-    disabled,
-    dayLimited,
-    onChangeDayLimited,
-  } = props;
+  const { loading, handleSaveChanges, stores, disabled } = props;
+
+  const [selectedStore, setSelectedStore] = useState("");
+
+  useEffect(() => {
+    const savedStore = localStorage.getItem("selectedStore");
+
+    if (savedStore) {
+      setSelectedStore(savedStore);
+    } else if (stores && stores.length > 0) {
+      const firstStoreId = stores[0].id;
+      setSelectedStore(firstStoreId);
+      localStorage.setItem("selectedStore", firstStoreId);
+    }
+  }, [stores]);
+
+  const handleChangeStore = (value) => {
+    setSelectedStore(value);
+    localStorage.setItem("selectedStore", value);
+  };
+
   return (
     <Box component={Paper}>
       <Box mb={2}>
         <Typography variant="body1">Select Store</Typography>
         <Select
           value={selectedStore}
-          onChange={(e) => setSelectedStore(e.target.value)}
+          onChange={(e) => handleChangeStore(e.target.value)}
           fullWidth
           size="small"
           displayEmpty
@@ -51,19 +61,6 @@ const BookingSettings = (props) => {
         </Select>
       </Box>
 
-      {/* Config time revert */}
-
-      <Box mb={2}>
-        <Typography variant="body1">Pre-order window period</Typography>
-        <TextField
-          value={dayLimited}
-          type="number"
-          fullWidth
-          onChange={(e) => onChangeDayLimited(e.target.value)}
-        />
-      </Box>
-
-      {/* Save Button */}
       <Box mt={2}>
         <Button
           variant="contained"

@@ -60,7 +60,7 @@ const TabPanelWrapper = ({
           label={
             <Box display="flex" alignItems="center" gap={1}>
               <LocalShippingIcon fontSize="small" />
-              <Typography variant="body2" fontWeight="600">Extra Fee</Typography>
+              <Typography variant="body2" fontWeight="600">Delivery Fee</Typography>
             </Box>
           }
         />

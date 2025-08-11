@@ -166,6 +166,8 @@ class Zippy_Admin_Booking_Store_Config_Controller
 
         $response_data = [];
 
+        // do update/create
+
         foreach ($dates as $date) {
             $action = $date["action"];
             $id = sanitize_text_field($date["id"]);
@@ -200,7 +202,7 @@ class Zippy_Admin_Booking_Store_Config_Controller
                 ];
                 $wpdb->insert($table, $data);
                 $data["action"] = $action;
-                $response_data[] = $data;
+                $response_data = $data;
             }
         }
 
@@ -234,6 +236,8 @@ class Zippy_Admin_Booking_Store_Config_Controller
 
         $outlet_id = sanitize_text_field($request->get_param('outlet_id'));
 
+        $response = [];
+
         $results = $wpdb->get_results(
             $wpdb->prepare("SELECT * FROM $table WHERE outlet_id = %s ORDER BY date ASC", $outlet_id),
             ARRAY_A
@@ -243,6 +247,8 @@ class Zippy_Admin_Booking_Store_Config_Controller
             return Zippy_Response_Handler::success([], "No Holiday Found!");
         }
 
-        return Zippy_Response_Handler::success($results);
+        $response["date"] = $results;
+
+        return Zippy_Response_Handler::success($response);
     }
 }
