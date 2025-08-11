@@ -125,6 +125,12 @@ const Store = () => {
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2" fontWeight="600">
+                    Pre-order window period
+                  </Typography>
+                </TableCell>
+
+                <TableCell>
+                  <Typography variant="body2" fontWeight="600">
                     Actions
                   </Typography>
                 </TableCell>
@@ -133,7 +139,7 @@ const Store = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
@@ -146,6 +152,8 @@ const Store = () => {
                       {s.outlet_address?.postal_code || "N/A"}
                     </TableCell>
                     <TableCell>{s.outlet_address?.address || "N/A"}</TableCell>
+                    <TableCell>{s.day_limited ?? "N/A"}</TableCell>
+
                     <TableCell>
                       <Button
                         onClick={() => handleEditClick(s)}
@@ -171,7 +179,7 @@ const Store = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     No stores found.
                   </TableCell>
                 </TableRow>

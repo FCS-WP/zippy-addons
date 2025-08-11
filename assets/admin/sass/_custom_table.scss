@@ -2,7 +2,7 @@ table {
   tbody {
     tr {
       td {
-        border-bottom: 1px solid #BFD3FE !important;
+        border-bottom: 1px solid #bfd3fe !important;
       }
 
       &.has-subrow {
@@ -10,19 +10,20 @@ table {
           border-bottom: 0 !important;
         }
       }
-      &.delivery-sub-row {
+      &.sub-row {
         td {
           border-bottom: 0 !important;
+          background-color: #f9f9f9;
         }
-        &.delivery-sub-row--last {
+        &.sub-row--last {
           td {
-            border-bottom: 1px solid #BFD3FE !important;
+            border-bottom: 1px solid #bfd3fe !important;
           }
         }
       }
     }
   }
 }
-.delivery-slot-input {
+.slot-input {
   max-width: 80px !important;
 }

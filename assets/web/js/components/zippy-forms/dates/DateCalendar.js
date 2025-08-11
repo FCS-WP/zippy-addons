@@ -7,15 +7,13 @@ import {
   isCloseDate,
   isDisabledDate,
 } from "../../../helper/datetime";
+import { useOutletProvider } from "../../../providers/OutletProvider";
 
-const DateCalendar = ({
-  onSelectDate,
-  defaultDate,
-  menusConfig,
-  selectedOutlet,
-  type,
-}) => {
-  const closedDays = getDisabledDays(selectedOutlet, type);
+const DateCalendar = (props) => {
+  const { onSelectDate, defaultDate, currentMenu, selectedOutlet, type } =
+    props;
+  const { orderModeData, holidayConfig, menusConfig, periodWindow } =
+    useOutletProvider();
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const handleClick = (date) => {
     setSelectedDate(date);
@@ -23,11 +21,11 @@ const DateCalendar = ({
   };
 
   let minDate = new Date();
-  minDate.setDate(minDate.getDate() + 2);
+  minDate.setDate(minDate.getDate() + periodWindow);
 
-  let maxDate = menusConfig ? new Date(menusConfig.end_date) : new Date();
-  let day_limited = parseInt(window.admin_data.day_limited) || 30;
-  menusConfig ? null : maxDate.setDate(maxDate.getDate() + day_limited);
+  let maxDate = currentMenu ? new Date(currentMenu.end_date) : new Date();
+  let day_limited = parseInt(orderModeData?.day_limited) || 30;
+  currentMenu ? null : maxDate.setDate(maxDate.getDate() + day_limited);
 
   return (
     <Box className="date-box">
@@ -37,7 +35,14 @@ const DateCalendar = ({
         selected={selectedDate}
         onChange={(date) => handleClick(date)}
         filterDate={(date) =>
-          !isDisabledDate(date, selectedOutlet, menusConfig, type)
+          !isDisabledDate(
+            date,
+            orderModeData,
+            currentMenu,
+            type,
+            holidayConfig,
+            menusConfig
+          )
         }
         inline
       />

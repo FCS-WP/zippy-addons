@@ -1,21 +1,15 @@
+import { Box, Button, Grid2 as Grid, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
 import {
-  Box,
-  Button,
-  Grid2 as Grid,
-  Typography,
-} from "@mui/material";
-import React, { useContext, useEffect, useState } from "react";
-import { getActiveMenuByDate, getDisabledDays, isCloseDate, isDisabledDate } from "../../helper/datetime";
+  getActiveMenuByDate,
+  getDisabledDays,
+  isCloseDate,
+  isDisabledDate,
+} from "../../helper/datetime";
 import { format } from "date-fns";
 import DateBoxed from "./dates/DateBoxed";
 import DateCalendar from "./dates/DateCalendar";
-import OutletContext from "../../contexts/OutletContext";
-
-const dates = Array.from({ length: 5 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() + (2 + i));
-  return date;
-});
+import { useOutletProvider } from "../../providers/OutletProvider";
 
 const OutletDate = ({ onChangeDate, type }) => {
   /**
@@ -23,9 +17,16 @@ const OutletDate = ({ onChangeDate, type }) => {
    */
   const [mode, setMode] = useState("boxed");
   const [selectedDate, setSelectedDate] = useState(null);
-  const { selectedOutlet, menusConfig } = useContext(OutletContext);
+  const {
+    selectedOutlet,
+    menusConfig,
+    orderModeData,
+    holidayConfig,
+    periodWindow,
+  } = useOutletProvider();
 
   const currentMenu = getActiveMenuByDate(new Date(), menusConfig);
+  const [boxDates, setBoxDates] = useState([]);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -37,8 +38,69 @@ const OutletDate = ({ onChangeDate, type }) => {
     setMode(newMode);
   };
 
-  useEffect(()=>{
-    handleSelectDate(null)
+  const handleGetBoxDates = (gapDate) => {
+    const checkDates = Array.from({ length: gapDate }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      return date;
+    });
+
+    const newGapDate = handlePeriodDate(gapDate, checkDates);
+
+    const dates = Array.from({ length: 5 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() + (newGapDate + i));
+      return date;
+    });
+
+    setBoxDates(dates);
+  };
+
+  const handlePeriodDate = (gapDate, dates) => {
+    // check is holiday include.
+    let addonDay = 0;
+    let holidayCounter = 0;
+    let combineCounter = 0;
+    let disabledWeekDayCounter = 0;
+    let holidays = [];
+    let disabledWeekDays = [];
+
+    orderModeData?.time.map((timeItem) => {
+      if (timeItem.is_active !== "T" || timeItem.time_slot.length < 1) {
+        disabledWeekDays.push(parseInt(timeItem.week_day));
+      }
+    });
+
+    holidayConfig.map((holiday) => {
+      const date = new Date(holiday.date);
+
+      if (disabledWeekDays.includes(date.getDay())) {
+        combineCounter++;
+      }
+
+      holidays.push(format(date, "yyyy-MM-dd"));
+    });
+
+    dates.map((date) => {
+      const dateStr = format(date, "yyyy-MM-dd");
+      if (disabledWeekDays.includes(date.getDay())) {
+        disabledWeekDayCounter++;
+      }
+      if (holidays.includes(dateStr)) {
+        holidayCounter++;
+      }
+    });
+
+    addonDay = holidayCounter + disabledWeekDayCounter - combineCounter;
+    return gapDate + addonDay;
+  };
+
+  useEffect(() => {
+    handleGetBoxDates(periodWindow);
+  }, [periodWindow]);
+
+  useEffect(() => {
+    handleSelectDate(null);
   }, [selectedOutlet]);
 
   return (
@@ -87,16 +149,26 @@ const OutletDate = ({ onChangeDate, type }) => {
           justifyContent={"space-between"}
           spacing={{ xs: 1, sm: 2 }}
         >
-          {dates.map((date, index) => (
-            <Grid key={index} size={2.4}>
-              <DateBoxed
-                date={date}
-                selected={selectedDate?.toDateString() === date.toDateString()}
-                onClick={handleSelectDate}
-                disabled={isDisabledDate(date, selectedOutlet, currentMenu, type)}
-              />
-            </Grid>
-          ))}
+          {boxDates.length > 0 &&
+            boxDates.map((date, index) => (
+              <Grid key={index} size={2.4}>
+                <DateBoxed
+                  date={date}
+                  selected={
+                    selectedDate?.toDateString() === date.toDateString()
+                  }
+                  onClick={handleSelectDate}
+                  disabled={isDisabledDate(
+                    date,
+                    orderModeData,
+                    currentMenu,
+                    type,
+                    holidayConfig,
+                    menusConfig
+                  )}
+                />
+              </Grid>
+            ))}
         </Grid>
       ) : (
         <div>
@@ -104,7 +176,7 @@ const OutletDate = ({ onChangeDate, type }) => {
             defaultDate={selectedDate}
             onSelectDate={handleSelectDate}
             selectedOutlet={selectedOutlet}
-            menusConfig={currentMenu}
+            currentMenu={currentMenu}
             type={type}
           />
         </div>

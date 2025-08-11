@@ -21,6 +21,7 @@ class Zippy_Admin_Booking_Store_Controller
             "outlet_name" => ["required" => true, "data_type" => "string"],
             "outlet_phone" => ["required" => false, "data_type" => "string"],
             "outlet_address" => ["required" => true],
+            "day_limited" => ["required" => true, "data_type" => "number"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -41,6 +42,7 @@ class Zippy_Admin_Booking_Store_Controller
                 "outlet_name" => sanitize_text_field($request["outlet_name"]),
                 "outlet_phone" => sanitize_text_field($request["outlet_phone"]),
                 "outlet_address" => maybe_serialize($request["outlet_address"]),
+                "day_limited" => sanitize_text_field($request["day_limited"]),
             ];
 
             $insert_data["created_at"] = current_time('mysql');
@@ -90,9 +92,6 @@ class Zippy_Admin_Booking_Store_Controller
             foreach ($outlets as $key => $value) {
                 $unserialze_fields = [
                     "outlet_address",
-                    "operating_hours",
-                    "closed_dates",
-                    "takeaway",
                 ];
                 foreach ($unserialze_fields as $field) {
                     $outlets[$key]->{$field} = maybe_unserialize($outlets[$key]->{$field});
@@ -113,6 +112,7 @@ class Zippy_Admin_Booking_Store_Controller
             "display" =>  ["required" => true, "data_type" => "boolean"],
             "outlet_name" => ["required" => true, "data_type" => "string"],
             "outlet_phone" => ["required" => false, "data_type" => "string"],
+            "day_limited" => ["required" => true, "data_type" => "number"],
             "outlet_address" => ["required" => true],
         ];
 
@@ -139,6 +139,7 @@ class Zippy_Admin_Booking_Store_Controller
                 "display",
                 "outlet_name",
                 "outlet_phone",
+                "day_limited",
             ];
 
             $update_data = [];
