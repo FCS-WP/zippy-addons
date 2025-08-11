@@ -34,6 +34,7 @@ const Settings = () => {
   );
   const [duration, setDuration] = useState(15);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
@@ -172,7 +173,8 @@ const Settings = () => {
   };
 
   const handleSaveChanges = async () => {
-    setLoading(true);
+    setIsSaving(true);
+     setLoading(true);
     const hasEmptySlots = (
       activeTab === "delivery" ? deliveryTimeSlots : schedule
     ).some((day) =>
@@ -184,9 +186,11 @@ const Settings = () => {
 
     if (hasEmptySlots) {
       toast.error("Please complete all time slots before saving.");
+      setIsSaving(false);
       setLoading(false);
       return;
     }
+
     try {
       if (activeTab === "holiday") {
         const payload = {
@@ -220,7 +224,8 @@ const Settings = () => {
           console.error("Update error", e);
           toast.error("Unexpected error");
         } finally {
-          setLoading(false);
+          setIsSaving(false);
+           setLoading(false);
         }
 
         return;
@@ -280,7 +285,8 @@ const Settings = () => {
       console.error("Save error", e);
       toast.error("Unexpected error");
     } finally {
-      setLoading(false);
+      setIsSaving(false);
+       setLoading(false);
     }
   };
 
@@ -432,6 +438,7 @@ const Settings = () => {
       <Grid container spacing={4}>
         <Grid item xs={12} md={4}>
           <BookingSettings
+            isSaving={isSaving}
             loading={loading}
             handleSaveChanges={handleSaveChanges}
             stores={stores}
