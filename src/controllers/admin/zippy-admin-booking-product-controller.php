@@ -59,10 +59,10 @@ class Zippy_Admin_Booking_Product_Controller
 
             self::store_to_session($session_data);
             $cart = new Zippy_Cart_Handler;
-            $min_qty = get_post_meta($_product->get_id(), '_custom_minimum_order_qty', true) ?? 1;
-
-            if ($_product->get_price() > 0) {
-                $cart->add_to_cart($_product->get_id(), $min_qty);
+            $min_qty = get_post_meta($_product->get_id(), '_custom_minimum_order_qty', true);
+            $min_qty = $min_qty ? intval($min_qty) : 1;
+            if (floatval($_product->get_price()) > 0) {
+                $cart_item_key = $cart->add_to_cart($_product->get_id(), $min_qty);
                 return Zippy_Response_Handler::success($session_data, "Product added to cart");
             }
             return Zippy_Response_Handler::success($session_data, "Create Cart Successfully!");
