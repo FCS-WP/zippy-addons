@@ -256,9 +256,8 @@ class Zippy_Admin_Booking_Shipping_Controller
             foreach ($orders as $order) {
                 $order_id = $order->ID;
                 $order_billing_date = get_post_meta($order_id, "_billing_date", true);
-                
+
                 $order_billing_time = get_post_meta($order_id, "_billing_time", true);
-var_dump($order_billing_date);
                 if ($order_billing_time !== "" && $order_billing_date == $billing_date) {
                     preg_match_all($billing_time_regex, $order_billing_time, $matches);
                     $from = $matches[0][0];
@@ -267,7 +266,7 @@ var_dump($order_billing_date);
                         if ($slot["time_from"] == $from && $slot["time_to"] == $to) {
                             $current_slot = $slots[$key]["delivery_slot"];
                             $slots[$key]["delivery_slot"] = (string) ($current_slot - 1);
-                        }       
+                        }
                     }
                 }
             }
@@ -278,4 +277,3 @@ var_dump($order_billing_date);
         }
     }
 }
-
