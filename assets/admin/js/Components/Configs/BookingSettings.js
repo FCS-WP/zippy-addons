@@ -9,14 +9,11 @@ import {
 } from "@mui/material";
 import theme from "../../../theme/theme";
 
-const BookingSettings = (props) => {
-  const { loading, handleSaveChanges, stores, disabled } = props;
-
+const BookingSettings = ({ stores, isSaving, isFetching, handleSaveChanges }) => {
   const [selectedStore, setSelectedStore] = useState("");
 
   useEffect(() => {
     const savedStore = localStorage.getItem("selectedStore");
-
     if (savedStore) {
       setSelectedStore(savedStore);
     } else if (stores && stores.length > 0) {
@@ -32,7 +29,7 @@ const BookingSettings = (props) => {
   };
 
   return (
-    <Box component={Paper}>
+    <Box component={Paper} p={2}>
       <Box mb={2}>
         <Typography variant="body1">Select Store</Typography>
         <Select
@@ -48,7 +45,7 @@ const BookingSettings = (props) => {
               borderColor: theme.palette.primary.main,
             },
           }}
-          disabled={disabled}
+          disabled={isFetching}
         >
           <MenuItem value="" disabled>
             Please select a store
@@ -66,14 +63,14 @@ const BookingSettings = (props) => {
           variant="contained"
           color="primary"
           onClick={handleSaveChanges}
-          disabled={loading || disabled}
+          disabled={isSaving || isFetching}
           style={{
             borderRadius: "8px",
             padding: "13px 20px",
             textTransform: "none",
           }}
         >
-          {loading ? "Saving..." : "Save Changes"}
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </Box>
     </Box>

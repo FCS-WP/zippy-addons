@@ -198,7 +198,7 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
               </FormControl>
             </Box>
             <Box mb={2}>
-              <Typography variant="body1">Day Limited</Typography>
+              <Typography variant="body1">Pre-order window period</Typography>
               <TextField
                 name="day_limited"
                 type="number"
