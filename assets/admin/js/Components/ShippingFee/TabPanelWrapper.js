@@ -47,7 +47,7 @@ const TabPanelWrapper = ({
             <Box display="flex" alignItems="center" gap={1}>
               <LocalShippingIcon fontSize="small" />
               <Typography variant="body2" fontWeight="600">
-                Minimum Order to Delivery
+               Delivery Fee
               </Typography>
             </Box>
           }
@@ -67,7 +67,7 @@ const TabPanelWrapper = ({
             <Box display="flex" alignItems="center" gap={1}>
               <LocalShippingIcon fontSize="small" />
               <Typography variant="body2" fontWeight="600">
-                Delivery Fee
+                Delivery Extra Fee
               </Typography>
             </Box>
           }
@@ -89,7 +89,7 @@ const TabPanelWrapper = ({
           rows={minimumOrderToDelivery}
           setRows={setMinimumOrderToDelivery}
           disabled={!selectedStore}
-          type="minimum_order_to_delivery"
+          type="delivery_charge"
           onAddNewRow={() =>
             handleAddNewRow(setMinimumOrderToDelivery, {
               greater_than: "",
