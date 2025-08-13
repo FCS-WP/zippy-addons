@@ -5,11 +5,11 @@ import DetailHeader from "../../Components/menus/layouts/DetailHeader";
 import { Api } from "../../api";
 import BoxEditMenu from "../../Components/menus/layouts/BoxEditMenu";
 import { ToastContainer } from "react-toastify";
-import MenuContext from "../../contexts/MenuContext";
+import { useMenuProvider } from "../../providers/MenuProvider";
 
 const MenuDetail = ({ menuId }) => {
   const [menu, setMenu] = useState();
-  const { setSelectedMenu } = useContext(MenuContext);
+  const { setSelectedMenu } = useMenuProvider();
 
   const fetchMenuData = async () => {
     const response = await Api.getMenus({ id: menuId });

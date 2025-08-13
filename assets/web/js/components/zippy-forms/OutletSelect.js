@@ -45,6 +45,7 @@ const OutletSelect = ({
   onChangeData,
   selectedLocation = null,
   onChangeDistance,
+  isFetching = true,
 }) => {
   const {
     outlets,
@@ -281,75 +282,83 @@ const OutletSelect = ({
       {selectedOutlet && (
         <Box>
           {/* Select Date */}
-          <Box my={3}>
-            <OutletDate onChangeDate={handleChangeDate} type={type} />
-          </Box>
+          {isFetching ? (
+            <Box my={4} display={"flex"} justifyContent={"center"}>
+              <CircularProgress color="primary" />
+            </Box>
+          ) : (
+            <>
+              <Box my={3}>
+                <OutletDate onChangeDate={handleChangeDate} type={type} />
+              </Box>
 
-          {/* Select Time */}
-          <FormControl variant="outlined" fullWidth>
-            <h5>
-              Select time: <span style={{ color: "red" }}>(*)</span>{" "}
-              {selectedTime
-                ? convertTime24to12(selectedTime.from) +
-                  " to " +
-                  convertTime24to12(selectedTime.to)
-                : ""}
-            </h5>
-            {!isLoading ? (
-              <>
-                {times.length > 0 ? (
-                  <CustomSelect
-                    id="delivery-time"
-                    size="small"
-                    value={selectedTime}
-                    onChange={handleChangeTime}
-                    displayEmpty
-                    startAdornment={
-                      <InputAdornment
-                        position="start"
-                        sx={{ paddingLeft: "11px" }}
-                      >
-                        <WatchLaterIcon sx={{ color: "#ec7265" }} />
-                      </InputAdornment>
-                    }
-                  >
-                    <MenuItem value="" disabled>
-                      <Typography fontSize={14} color="#ccc">
-                        SELECT TIME
-                      </Typography>
-                    </MenuItem>
-                    {times &&
-                      times.map((time, index) => (
-                        <MenuItem key={index} value={time}>
-                          <RenderTimeSlot time={time} type={type} />
-                        </MenuItem>
-                      ))}
-                  </CustomSelect>
-                ) : (
+              {/* Select Time */}
+              <FormControl variant="outlined" fullWidth>
+                <h5>
+                  Select time: <span style={{ color: "red" }}>(*)</span>{" "}
+                  {selectedTime
+                    ? convertTime24to12(selectedTime.from) +
+                      " to " +
+                      convertTime24to12(selectedTime.to)
+                    : ""}
+                </h5>
+                {!isLoading ? (
                   <>
-                    {selectedDate && (
-                      <Box
-                        display={"flex"}
-                        my={2}
-                        alignItems={"center"}
-                        justifyContent={"center"}
+                    {times.length > 0 ? (
+                      <CustomSelect
+                        id="delivery-time"
+                        size="small"
+                        value={selectedTime}
+                        onChange={handleChangeTime}
+                        displayEmpty
+                        startAdornment={
+                          <InputAdornment
+                            position="start"
+                            sx={{ paddingLeft: "11px" }}
+                          >
+                            <WatchLaterIcon sx={{ color: "#ec7265" }} />
+                          </InputAdornment>
+                        }
                       >
-                        <WarningAmberIcon color="warning" />
-                        <Typography fontWeight={600} fontSize={14}>
-                          Selected date is fully booked. Please select another
-                          date.
-                        </Typography>
-                      </Box>
+                        <MenuItem value="" disabled>
+                          <Typography fontSize={14} color="#ccc">
+                            SELECT TIME
+                          </Typography>
+                        </MenuItem>
+                        {times &&
+                          times.map((time, index) => (
+                            <MenuItem key={index} value={time}>
+                              <RenderTimeSlot time={time} type={type} />
+                            </MenuItem>
+                          ))}
+                      </CustomSelect>
+                    ) : (
+                      <>
+                        {selectedDate && (
+                          <Box
+                            display={"flex"}
+                            my={2}
+                            alignItems={"center"}
+                            justifyContent={"center"}
+                          >
+                            <WarningAmberIcon color="warning" />
+                            <Typography fontWeight={600} fontSize={14}>
+                              Selected date is fully booked. Please select
+                              another date.
+                            </Typography>
+                          </Box>
+                        )}
+                      </>
                     )}
                   </>
+                ) : (
+                  <Box mb={2} display={"flex"} justifyContent={"center"}>
+                    <CircularProgress color="primary" />
+                  </Box>
                 )}
-              </>
-            ) : (
-              <Box mb={2} display={"flex"} justifyContent={"center"}>
-                <CircularProgress color="primary" />
-              </Box>
-            )}
-          </FormControl>
+              </FormControl>
+            </>
+          )}
         </Box>
       )}
     </Box>

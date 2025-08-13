@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MenuContext from "../contexts/MenuContext";
 import { Api } from "../api";
 import { handleDateData } from "../utils/dateHelper";
@@ -54,3 +54,5 @@ const MenuProvider = ({ children }) => {
 };
 
 export default MenuProvider;
+
+export const useMenuProvider = useContext(MenuContext);

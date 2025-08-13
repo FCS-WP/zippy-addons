@@ -11,6 +11,7 @@ import { useOutletProvider } from "../../../providers/OutletProvider";
 const TakeAwayForm = ({ onChangeMode }) => {
   const [takeawayData, setTakeawayData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [isDisabled, setIsDisabled] = useState(true);
   const { selectedOutlet, orderModeData, setOrderModeData } =
     useOutletProvider();
@@ -19,6 +20,7 @@ const TakeAwayForm = ({ onChangeMode }) => {
   };
 
   const handleGetTakeAwayConfig = async () => {
+    setIsFetching(true);
     const params = {
       outlet_id: selectedOutlet.id,
       delivery_type: "takeaway",
@@ -29,6 +31,9 @@ const TakeAwayForm = ({ onChangeMode }) => {
       return;
     }
     setOrderModeData(response.data);
+    setTimeout(() => {
+      setIsFetching(false);
+    }, 1000);
   };
 
   const handleConfirm = async () => {
@@ -86,7 +91,11 @@ const TakeAwayForm = ({ onChangeMode }) => {
 
         <Box p={2}>
           <Box>
-            <OutletSelect type="takeaway" onChangeData={handletakeawayData} />
+            <OutletSelect
+              type="takeaway"
+              onChangeData={handletakeawayData}
+              isFetching={isFetching}
+            />
           </Box>
         </Box>
 

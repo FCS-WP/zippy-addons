@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import MenuContext from "../../contexts/MenuContext";
 import TableView from "../TableView";
 import TablePaginationCustom from "../TablePagination";
 import { menuListColumns } from "../../utils/tableHelper";
@@ -12,9 +11,10 @@ import { callToDeleteItems } from "../../utils/bookingHelper";
 import { getDateExpired } from "../../utils/dateHelper";
 import { Typography } from "@mui/material";
 import theme from "../../../theme/theme";
+import { useMenuProvider } from "../../providers/MenuProvider";
 
 const MenuList = () => {
-  const { menus, refetchMenus } = useContext(MenuContext);
+  const { menus, refetchMenus } = useMenuProvider();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState([]);
