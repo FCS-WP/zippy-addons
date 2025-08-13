@@ -40,9 +40,6 @@ class Zippy_Woo_Booking
 
     /* Update Checkout After Applied Coupon */
     add_action('woocommerce_applied_coupon', array($this, 'after_apply_coupon_action'));
-    add_action('woocommerce_product_options_pricing', array($this, 'add_custom_price_field_to_product'));
-
-    
   }
 
   function after_apply_coupon_action($coupon_code)
@@ -92,19 +89,5 @@ class Zippy_Woo_Booking
     // echo 'template: ' . $path . '<br/>';
 
     return file_exists($path) ? $path : $template;
-  }
-  public function add_custom_price_field_to_product()
-  {
-    woocommerce_wp_text_input(array(
-      'id' => '_extra_price',
-      'label' => __('Extra price ($)', 'woocommerce'),
-      'description' => __('Enter an price by hour for this product.', 'woocommerce'),
-      'desc_tip' => 'true',
-      'type' => 'number',
-      'custom_attributes' => array(
-        'step' => '0.1',
-        'min' => '0'
-      )
-    ));
   }
 }
