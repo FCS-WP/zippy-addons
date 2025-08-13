@@ -25,7 +25,7 @@ const DateCalendar = (props) => {
 
   let maxDate = currentMenu ? new Date(currentMenu.end_date) : new Date();
   let day_limited = parseInt(orderModeData?.day_limited) || 30;
-  currentMenu ? null : maxDate.setDate(maxDate.getDate() + day_limited);
+  currentMenu ? null : maxDate.setDate(maxDate.getDate() + day_limited - 1);
 
   return (
     <Box className="date-box">
