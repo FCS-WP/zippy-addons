@@ -1,93 +1,106 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import OutletContext from "../contexts/OutletContext";
 import { webApi } from "../api";
-import { showAlert } from "../helper/showAlert";
 import { getSelectProductId } from "../helper/booking";
 import { format } from "date-fns";
 
 const OutletProvider = ({ children }) => {
-  const [outlets, setOutlets] = useState([]);
-  const [selectedOutlet, setSelectedOutlet] = useState();
-  const [menusConfig, setMenusConfig] = useState([]);
-  const [orderModeData, setOrderModeData] = useState();
-  const [holidayConfig, setHolidayConfig] = useState([]);
-  const [periodWindow, setPeriodWindow] = useState(0);
+  const [state, setState] = useState({
+    outlets: [],
+    selectedOutlet: null,
+    menusConfig: [],
+    orderModeData: null,
+    holidayConfig: [],
+    periodWindow: 0,
+  });
 
-  const getConfigOutlet = async () => {
+  const { outlets, selectedOutlet, menusConfig, orderModeData, holidayConfig, periodWindow } = state;
+
+  const updateState = (updates) =>
+    setState((prev) => ({ ...prev, ...updates }));
+
+  const getConfigOutlet = useCallback(async () => {
     try {
       const { data: response } = await webApi.getStores();
-      if (response) {
-        setOutlets(response.data);
+      if (response?.data) {
+        updateState({ outlets: response.data });
       }
-    } catch (error) {
+    } catch {
       console.warn("Missing outlets");
     }
-  };
+  }, []);
 
-  const getHolidayConfig = async () => {
+  const getHolidayConfig = useCallback(async () => {
     if (!selectedOutlet) {
-      setHolidayConfig([]);
+      updateState({ holidayConfig: [] });
       return;
     }
-    const params = {
-      outlet_id: selectedOutlet.id,
-    };
-
-    const { data: response } = await webApi.getHolidayConfig(params);
-    if (!response) {
-      return;
+    try {
+      const { data: response } = await webApi.getHolidayConfig({
+        outlet_id: selectedOutlet.id,
+      });
+      if (response?.status === "success" && response.data?.date?.length) {
+        updateState({ holidayConfig: response.data.date });
+      }
+    } catch {
+      console.warn("Failed to load holiday config");
     }
-    if (response?.status === "success" && response.data.date.length > 0) {
-      setHolidayConfig(response.data.date);
+  }, [selectedOutlet]);
+
+  const handleChangeOutlet = useCallback(async () => {
+    if (!selectedOutlet) return;
+
+    try {
+      const { id: outletId } = selectedOutlet;
+      const productId = getSelectProductId();
+      const currentDate = format(new Date(), "yyyy-MM-dd");
+
+      const { data: response } = await webApi.checkProduct({
+        outlet_id: outletId,
+        product_id: productId,
+        current_date: currentDate,
+      });
+
+      if (response?.status !== "success") {
+        console.warn(response?.message ?? "Can not check product!");
+        return;
+      }
+
+      updateState({
+        periodWindow: response.data?.period_window ?? 0,
+        menusConfig: response.data?.menus_operation ?? [],
+      });
+    } catch {
+      console.warn("Failed to check product");
     }
-  };
-
-  const handleChangeOutlet = async () => {
-    if (!selectedOutlet) {
-      return;
-    }
-
-    const productId = getSelectProductId();
-    const outletId = selectedOutlet.id;
-    const currentDate = new Date();
-
-    const params = {
-      outlet_id: outletId,
-      product_id: productId,
-      current_date: format(currentDate, "yyyy-MM-dd"),
-    };
-
-    const { data: response } = await webApi.checkProduct(params);
-    if (!response || response.status !== "success") {
-      console.warn(response?.message ?? "Can not check product!");
-    }
-    setPeriodWindow(response.data?.period_window);
-    setMenusConfig(response.data.menus_operation);
-  };
-
-  useEffect(() => {
-    handleChangeOutlet();
-    getHolidayConfig();
   }, [selectedOutlet]);
 
   useEffect(() => {
-    getConfigOutlet();
+    if (selectedOutlet) {
+      handleChangeOutlet();
+      getHolidayConfig();
+    }
+  }, [selectedOutlet, handleChangeOutlet, getHolidayConfig]);
 
-    return () => {};
-  }, []);
+  useEffect(() => {
+    getConfigOutlet();
+  }, [getConfigOutlet]);
 
   const value = {
     outlets,
     holidayConfig,
     orderModeData,
     selectedOutlet,
-    setSelectedOutlet,
+    setSelectedOutlet: (outlet) => updateState({ selectedOutlet: outlet }),
     menusConfig,
-    setOrderModeData,
+    setOrderModeData: (data) => updateState({ orderModeData: data }),
     periodWindow,
   };
+
   return (
-    <OutletContext.Provider value={value}>{children}</OutletContext.Provider>
+    <OutletContext.Provider value={value}>
+      {children}
+    </OutletContext.Provider>
   );
 };
 

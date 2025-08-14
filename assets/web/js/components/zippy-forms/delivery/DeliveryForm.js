@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import LocationSearch from "../LocationSearch";
 import OutletSelect from "../OutletSelect";
 import FormHeading from "../FormHeading";
@@ -13,27 +13,32 @@ const DeliveryForm = ({ onChangeMode }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [deliveryData, setDeliveryData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [isDisabled, setIsDisabled] = useState(true);
   const [isCalcDistance, setIsCalcDistance] = useState(false);
-  const { selectedOutlet, orderModeData, setOrderModeData } = useOutletProvider();
-  
+  const { selectedOutlet, orderModeData, setOrderModeData } =
+    useOutletProvider();
+
   const handleSelectLocation = (location) => {
     setSelectedLocation(location);
   };
 
   const handleGetDeliveryConfig = async () => {
-
+    setIsFetching(true);
     const params = {
       outlet_id: selectedOutlet.id,
-      delivery_type: 'delivery'
-    }
-    const {data: response} = await webApi.getDeliveryConfig(params);
+      delivery_type: "delivery",
+    };
+    const { data: response } = await webApi.getDeliveryConfig(params);
     if (!response) {
       console.log("Error get config from BE");
       return;
     }
     setOrderModeData(response.data);
-  }
+    setTimeout(() => {
+      setIsFetching(false);
+    }, 1000);
+  };
 
   const handleDeliveryData = (data) => {
     setDeliveryData(data);
@@ -59,14 +64,14 @@ const DeliveryForm = ({ onChangeMode }) => {
       time: deliveryData.time,
     };
 
-    const {data: response} = await webApi.addToCart(params);
+    const { data: response } = await webApi.addToCart(params);
 
     if (!response?.data || response.status !== "success") {
       showAlert("error", "Failed!", "Can not add product. Please try again!");
       setIsLoading(false);
       return false;
     }
-    
+
     showAlert("success", "Success", response?.message, 2000);
 
     setTimeout(() => {
@@ -87,7 +92,7 @@ const DeliveryForm = ({ onChangeMode }) => {
     }
   }, [selectedLocation, deliveryData, isCalcDistance]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (selectedOutlet) {
       handleGetDeliveryConfig();
     }
@@ -112,6 +117,7 @@ const DeliveryForm = ({ onChangeMode }) => {
             onChangeDistance={onChangeDistance}
             onChangeData={handleDeliveryData}
             selectedLocation={selectedLocation}
+            isFetching={isFetching}
           />
         </Box>
       </Box>

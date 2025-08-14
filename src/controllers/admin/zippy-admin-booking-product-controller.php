@@ -137,7 +137,7 @@ class Zippy_Admin_Booking_Product_Controller
             "total_distance" => $total_distance,
             "shipping_fee" => $delivery_fee,
             "minimum_order_to_freeship" => $freeship_fee,
-            "minimum_order_to_delivery" => $delivery_fee,
+            // "minimum_order_to_delivery" => $delivery_fee,
             "extra_fee" => $extra_fee,
             "address_name" => $delivery_address["address_name"] ?? null,
             "delivery_address" => $delivery_address["address_name"] ?? null

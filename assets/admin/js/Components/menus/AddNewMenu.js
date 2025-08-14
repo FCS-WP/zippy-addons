@@ -15,9 +15,10 @@ import { AlertStatus, showAlert } from "../../utils/alertHelper";
 import MenuContext from "../../contexts/MenuContext";
 import { Api } from "../../api";
 import theme from "../../../theme/theme";
+import { useMenuProvider } from "../../providers/MenuProvider";
 
 const AddNewMenu = () => {
-  const { refetchMenus } = useContext(MenuContext);
+  const { refetchMenus } = useMenuProvider();
   const [isLoading, setIsLoading] = useState(false);
   const [menuName, setMenuName] = useState("");
 

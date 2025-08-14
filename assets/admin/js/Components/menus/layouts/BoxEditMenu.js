@@ -12,15 +12,15 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import DateTimeInput from "../inputs/DateTimeInput";
-import { format, parse, isValid as isDateValid } from "date-fns";
+import { format, isValid as isDateValid } from "date-fns";
 import { Api } from "../../../api";
 import { toast } from "react-toastify";
-import MenuContext from "../../../contexts/MenuContext";
 import {
   createDateWithHourStr,
   handleDateData,
 } from "../../../utils/dateHelper";
 import BoxEditHappyHours from "./BoxEditHappyHours";
+import { useMenuProvider } from "../../../providers/MenuProvider";
 
 const BoxEditMenu = ({ menu }) => {
   const [daysOfWeek, setDaysOfWeek] = useState(menu.days_of_week ?? []);
@@ -28,7 +28,7 @@ const BoxEditMenu = ({ menu }) => {
   const [endDate, setEndDate] = useState(menu.end_date);
   const [menuName, setMenuName] = useState(menu.name);
   const [happyHours, setHappyHours] = useState(menu.happy_hours ?? []);
-  const { disabledRanges, refetchMenus } = useContext(MenuContext);
+  const { disabledRanges, refetchMenus } = useMenuProvider();
   const [isValidHappyHours, setIsValidHappyHours] = useState(false);
 
   const handleChangeMenuDate = (date, type) => {
