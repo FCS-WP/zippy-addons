@@ -37,7 +37,7 @@ class Zippy_Products_Controller
   private static function check_outlet_exists($outlet_id)
   {
     global $wpdb;
-    return (bool) $wpdb->get_var($wpdb->prepare("SELECT COUNT(ID) FROM {$wpdb->prefix}zippy_addons_outlet WHERE id = %d", $outlet_id));
+    return (bool) $wpdb->get_var($wpdb->prepare("SELECT COUNT(ID) FROM {$wpdb->prefix}zippy_addons_outlet WHERE id = %s", $outlet_id));
   }
 
 
@@ -198,7 +198,6 @@ class Zippy_Products_Controller
 
     // Sanitize Input
     $data = self::sanitize_product_checking($request);
-
     if (!self::check_outlet_exists($data['outlet_id'])) {
       return Zippy_Response_Handler::error("Outlet not found.", 404);
     }

@@ -55,4 +55,4 @@ const MenuProvider = ({ children }) => {
 
 export default MenuProvider;
 
-export const useMenuProvider = useContext(MenuContext);
+export const useMenuProvider = () => useContext(MenuContext);

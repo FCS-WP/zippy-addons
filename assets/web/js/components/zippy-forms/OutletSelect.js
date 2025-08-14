@@ -59,6 +59,7 @@ const OutletSelect = ({
   const [mapRoute, setMapRoute] = useState(null);
   const [times, setTimes] = useState();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGetDistance, setIsGetDistance] = useState(false);
 
   const handleTimes = async () => {
     setIsLoading(true);
@@ -135,6 +136,7 @@ const OutletSelect = ({
       const { data: response } = await webApi.searchRoute(params);
       setMapRoute(response.data);
       onChangeDistance(true);
+      setIsGetDistance(false);
     } catch (error) {
       onChangeDistance(false);
       toast.error("Failed to get distance!");
@@ -169,6 +171,8 @@ const OutletSelect = ({
 
   useEffect(() => {
     if (selectedLocation && selectedOutlet) {
+      setIsGetDistance(true);
+      setMapRoute(null);
       handleDistance();
     }
   }, [selectedLocation, selectedOutlet]);
@@ -272,6 +276,14 @@ const OutletSelect = ({
               </MenuItem>
             ))}
         </CustomSelect>
+        {selectedLocation && isGetDistance && (
+          <Box display={"flex"} alignItems={"center"} gap={2}>
+            <Typography fontWeight={600} fontSize={13}>
+              Getting distance
+            </Typography>
+            <CircularProgress size={12} />
+          </Box>
+        )}
         {mapRoute && (
           <Typography fontWeight={600} fontSize={13}>
             Distance: {formatMetersToKm(mapRoute.total_distance)}
