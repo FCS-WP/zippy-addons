@@ -60,7 +60,7 @@ class Zippy_Admin_Booking_Product_Controller
             self::store_to_session($session_data);
             $cart = new Zippy_Cart_Handler;
             $min_qty = get_post_meta($_product->get_id(), '_custom_minimum_order_qty', true);
-       
+
             $min_qty = $min_qty ? intval($min_qty) : 1;
             $stock_quantity = $_product->get_stock_quantity();
             $qty_add_to_cart = $stock_quantity < $min_qty ? $stock_quantity : $min_qty;
@@ -131,6 +131,7 @@ class Zippy_Admin_Booking_Product_Controller
         $query = $wpdb->prepare("SELECT * FROM $config_table WHERE outlet_id = %d", $outlet_id);
         $config = $wpdb->get_row($query);
 
+
         if (!$config) {
             return ['error' => "Shipping config for outlet: $outlet_id does not exist!"];
         }
@@ -138,7 +139,6 @@ class Zippy_Admin_Booking_Product_Controller
         $delivery_fee = self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_delivery), $total_distance);
         $freeship_fee = self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_freeship), $total_distance);
         $extra_fee = self::calculate_extra_fee(maybe_unserialize($config->extra_fee), $delivery_address);
-
         return [
             "total_distance" => $total_distance,
             "shipping_fee" => $delivery_fee,
@@ -161,15 +161,24 @@ class Zippy_Admin_Booking_Product_Controller
         return 0;
     }
 
+    private static function get_portal_code_from_address($address)
+    {
+        $array_string  = explode(" ", $address);
+        $address = end($array_string);
+        return $address;
+    }
+
     private static function calculate_extra_fee($config_data, $delivery_address)
     {
+
+        $address = self::get_portal_code_from_address($delivery_address["address_name"]);
         foreach ($config_data as $rule) {
             if (
                 $rule["type"] === "postal_code" &&
-                $delivery_address["postal_code"] >= $rule["from"] &&
-                $delivery_address["postal_code"] <= $rule["to"]
+                $address >= $rule["from"] &&
+                $address <= $rule["to"]
             ) {
-                return 10;
+                return $rule['fee'];
             }
         }
         return 0;
