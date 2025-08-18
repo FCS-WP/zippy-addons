@@ -73,7 +73,7 @@ class Zippy_Orders_Controller
 
             $order_data[] = array(
                 'order_date' => $formatted_date ?: 'N/A',
-                'transaction_id' => $order->get_transaction_id(),
+                'order_id' => $order->get_id(),
                 'payment_method' => $order->get_payment_method_title(),
                 'amount' => "$" . $order->get_total(),
                 'payment_status' => $payment_status,
@@ -94,7 +94,7 @@ class Zippy_Orders_Controller
         // File Columns
         $columns = [
             'Order Date',
-            'Transaction ID',
+            'Ỏrder ID',
             'Payment Method',
             'Amount',
             'Payment Status'
@@ -115,7 +115,7 @@ class Zippy_Orders_Controller
             foreach ($order_data as $data) {
                 $html .= '<tr>';
                 $html .= '<td style="padding: 5px">' . $data['order_date'] . '</td>';
-                $html .= '<td style="padding: 5px">' . $data['transaction_id'] . '</td>';
+                $html .= '<td style="padding: 5px">' . $data['order_id'] . '</td>';
                 $html .= '<td style="padding: 5px">' . $data['payment_method'] . '</td>';
                 $html .= '<td style="padding: 5px">' . $data['amount'] . '</td>';
                 $html .= '<td style="padding: 5px">' . $data['payment_status'] . '</td>';
@@ -143,7 +143,7 @@ class Zippy_Orders_Controller
             foreach ($order_data as $data) {
                 fputcsv($output, [
                     $data['order_date'],
-                    $data['transaction_id'],
+                    $data['order_id'],
                     $data['payment_method'],
                     $data['amount'],
                     $data['payment_status'],
