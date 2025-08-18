@@ -94,7 +94,7 @@ class Zippy_Orders_Controller
         // File Columns
         $columns = [
             'Order Date',
-            'Ỏrder ID',
+            'Order ID',
             'Payment Method',
             'Amount',
             'Payment Status'
