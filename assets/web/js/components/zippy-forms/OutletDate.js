@@ -1,9 +1,6 @@
 import { Box, Button, Grid2 as Grid, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import {
-  getActiveMenuByDate,
-  isDisabledDate,
-} from "../../helper/datetime";
+import { getActiveMenuByDate, isDisabledDate } from "../../helper/datetime";
 import { format } from "date-fns";
 import DateBoxed from "./dates/DateBoxed";
 import DateCalendar from "./dates/DateCalendar";
@@ -25,6 +22,7 @@ const OutletDate = ({ onChangeDate, type }) => {
 
   const currentMenu = getActiveMenuByDate(new Date(), menusConfig);
   const [boxDates, setBoxDates] = useState([]);
+  const [periodGapDays, setPeriodGapDays] = useState(0);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -55,13 +53,9 @@ const OutletDate = ({ onChangeDate, type }) => {
   };
 
   const handlePeriodDate = (gapDate, dates) => {
-    // check is holiday include.
-    let addonDay = 0;
-    let holidayCounter = 0;
-    let combineCounter = 0;
-    let disabledWeekDayCounter = 0;
     let holidays = [];
     let disabledWeekDays = [];
+    let periodCounter = 0;
 
     orderModeData?.time.map((timeItem) => {
       if (timeItem.is_active !== "T" || timeItem.time_slot.length < 1) {
@@ -71,26 +65,32 @@ const OutletDate = ({ onChangeDate, type }) => {
 
     holidayConfig.map((holiday) => {
       const date = new Date(holiday.date);
+      let holidayCondition1 =
+        type == "takeaway" && holiday.is_active_take_away == "F";
+      let holidayCondition2 =
+        type == "delivery" && holiday.is_active_delivery == "F";
 
-      if (disabledWeekDays.includes(date.getDay())) {
-        combineCounter++;
-      }
-
-      holidays.push(format(date, "yyyy-MM-dd"));
-    });
-
-    dates.map((date) => {
-      const dateStr = format(date, "yyyy-MM-dd");
-      if (disabledWeekDays.includes(date.getDay())) {
-        disabledWeekDayCounter++;
-      }
-      if (holidays.includes(dateStr)) {
-        holidayCounter++;
+      if (holidayCondition1 || holidayCondition2) {
+        holidays.push(format(date, "yyyy-MM-dd"));
       }
     });
 
-    addonDay = holidayCounter + disabledWeekDayCounter - combineCounter;
-    return gapDate + addonDay;
+    let startDate = new Date();
+    let loopIndex = 0;
+
+    while (periodCounter < gapDate) {
+      startDate.setDate(startDate.getDate() + 1);
+      loopIndex++;
+      if (
+        !holidays.includes(format(startDate, "yyyy-MM-dd")) &&
+        !disabledWeekDays.includes(startDate.getDay())
+      ) {
+        periodCounter++;
+      }
+    }
+
+    setPeriodGapDays(loopIndex);
+    return loopIndex;
   };
 
   useEffect(() => {
@@ -175,6 +175,7 @@ const OutletDate = ({ onChangeDate, type }) => {
             onSelectDate={handleSelectDate}
             selectedOutlet={selectedOutlet}
             currentMenu={currentMenu}
+            periodGapDays={periodGapDays}
             type={type}
           />
         </div>
