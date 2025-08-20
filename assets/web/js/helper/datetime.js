@@ -335,9 +335,15 @@ export const isDisabledDate = (
   const checkDate = new Date(date);
   const checkDay = checkDate.getDay();
   const disabledDays = getDisabledDays(orderModeData);
+  // Check limited date
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + parseInt(orderModeData.day_limited) - 1);
+  if (checkDate > maxDate) {
+    return true;
+  }
 
+  // Check holidays
   const holidayCloseDates = getHolidayCloseDates(holidays, type);
-
   const checkCloseDate = isCloseDate(date, disabledDays, holidayCloseDates);
 
   if (checkCloseDate) {
