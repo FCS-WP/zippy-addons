@@ -30,11 +30,11 @@ class Zippy_Orders_Controller
         $to_date = sanitize_text_field($request->get_param('to_date'));
 
         $args = array(
-            'status' => 'completed',
+            'status' => array('completed', 'processing'),
             'limit' => -1,
             'customer_id' => $customer_id
         );
-        
+
         if (!empty($from_date) && !empty($to_date)) {
             $from_timestamp = strtotime($from_date);
             $to_timestamp = strtotime($to_date);
@@ -60,7 +60,7 @@ class Zippy_Orders_Controller
 
             $payment_status = $order->is_paid() ? 'Paid' : 'Unpaid';
 
-            $billing_date = get_post_meta($order->get_id(), '_billing_date', true);
+            $billing_date = $order->get_meta('_billing_date');
 
             //  billing_date to M d, Y
             $formatted_date = '';
