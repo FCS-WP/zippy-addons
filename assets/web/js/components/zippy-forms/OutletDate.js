@@ -79,16 +79,17 @@ const OutletDate = ({ onChangeDate, type }) => {
     let loopIndex = 0;
 
     while (periodCounter < gapDate) {
-      startDate.setDate(startDate.getDate() + 1);
-      loopIndex++;
       if (
         !holidays.includes(format(startDate, "yyyy-MM-dd")) &&
         !disabledWeekDays.includes(startDate.getDay())
       ) {
         periodCounter++;
-      }
-    }
+      } 
 
+      startDate.setDate(startDate.getDate() + 1);
+      loopIndex++;
+    }
+    
     setPeriodGapDays(loopIndex);
     return loopIndex;
   };
