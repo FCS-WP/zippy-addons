@@ -16,6 +16,13 @@ const theme = createTheme({
       secondary: "#666",
     },
   },
+  typography: {
+    fontFamily: 'var(--oworganic-main-font), Helvetica, Arial, sans-serif',
+    body1: {
+      fontSize: "15px",
+      lineHeight: 1.5,
+    },
+  },
 });
 
 export default theme;
