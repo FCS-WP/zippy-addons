@@ -138,6 +138,15 @@ const CustomShippingTime = () => {
           </Box>
         )}
       </Box>
+      <p>
+        <i>
+          *On the eve of and on PH, deliveries will be scheduled between{" "}
+          <b>1PM – 8PM</b> due to expected traffic conditions.
+          <br />
+          *For specific delivery timing requests, please contact us directly via
+          WhatsApp or phone to make arrangements.
+        </i>
+      </p>
     </div>
   );
 };
