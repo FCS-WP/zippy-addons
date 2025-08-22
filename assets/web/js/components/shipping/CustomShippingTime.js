@@ -5,8 +5,14 @@ import { format } from "date-fns";
 
 const CustomShippingTime = () => {
   let today = new Date();
-  const minDate = new Date(today); // Tạo một đối tượng Date mới từ today
-  minDate.setDate(today.getDate() + 2); // Cập nhật ngày cho minDate
+  const minDate = new Date(today);
+  minDate.setDate(today.getDate() + 2);
+
+
+  // if minDate = Sunday => +1 to be Monday
+  if (minDate.getDay() === 0) {
+    minDate.setDate(minDate.getDate() + 1);
+  }
 
   const [selectedDate, setSelectedDate] = useState(minDate);
   const [selectedBtn, setSelectedBtn] = useState("");
