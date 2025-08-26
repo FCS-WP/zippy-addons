@@ -27,7 +27,7 @@ class One_Map_Api
 		$response = self::sendRequest($method, $url, $params, $access_token);
 
 		// Check if token is expired
-		if ((isset($response['status']) && $response['status'] == 401) || $response['message'] == "Unauthorized") {
+		if ((isset($response['status']) && $response['status'] == 401) || $response['message'] == "Unauthorized" || (isset($response['error']) && $response['error'] == 'Authentication token expired. Token are valid for 3 days. Please implement automatic renewal to ensure your token remains valid.')) {
 			$new_token = self::refreshAccessToken();
 
 			if (isset($new_token['error'])) {
