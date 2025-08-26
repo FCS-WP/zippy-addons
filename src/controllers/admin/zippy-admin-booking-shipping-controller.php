@@ -254,10 +254,8 @@ class Zippy_Admin_Booking_Shipping_Controller
 
             // Calculate delivery_slot
             foreach ($orders as $order) {
-                $order_id = $order->ID;
-                $order_billing_date = get_post_meta($order_id, "_billing_date", true);
-
-                $order_billing_time = get_post_meta($order_id, "_billing_time", true);
+                $order_billing_date = $order->get_meta('_billing_date');
+                $order_billing_time = $order->get_meta('_billing_time');
                 if ($order_billing_time !== "" && $order_billing_date == $billing_date) {
                     preg_match_all($billing_time_regex, $order_billing_time, $matches);
                     $from = $matches[0][0];

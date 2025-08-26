@@ -49,15 +49,17 @@ const MinimumOrderConfig = ({ currentTab, minimumOrder }) => {
             Loading
           </Button>
         ) : (
-          <Box display="flex" alignItems="center" gap={4}>
-            <Typography variant="body2" fontWeight="600">
-              Minimum Order
-            </Typography>
-            <TextField
-              name="munimumOrder"
-              value={minimum}
-              onChange={(e) => handleConfigMinimumOrder(e.target.value)}
-            />
+          <Box display="flex" flexDirection="column" gap={4}>
+            <Box display="flex" alignItems="center" gap={4}>
+              <Typography variant="body2" fontWeight="600" width="200px">
+                Minimum Delivery Order($)
+              </Typography>
+              <TextField
+                name="munimumOrder"
+                value={minimum}
+                onChange={(e) => handleConfigMinimumOrder(e.target.value)}
+              />
+            </Box>
           </Box>
         )}
       </Card>
