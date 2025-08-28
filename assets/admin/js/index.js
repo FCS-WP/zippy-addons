@@ -82,7 +82,6 @@ function initializeApp() {
   if (zippyOrderFilter) {
     const currentValue = zippyOrderFilter?.dataset?.value || "";
     const filtername = zippyOrderFilter?.dataset?.name || "";
-    console.log(filtername, currentValue);
     const root = ReactDOM.createRoot(zippyOrderFilter);
     root.render(
       <ThemeProvider theme={theme}>

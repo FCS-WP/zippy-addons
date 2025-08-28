@@ -41,6 +41,9 @@ class Zippy_Woo_Orders
     add_filter('woocommerce_order_query_args', array($this, 'add_meta_billing_date_query'));
 
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_date_order_items_column'), 25, 2);
+
+    //add customer parameter for API Report
+    add_filter('woocommerce_order_data_store_cpt_get_orders_query', array($this, 'handle_fulfilment_query_var'), 10, 2);
   }
 
   public function show_filter_by_billing_date()
@@ -48,8 +51,8 @@ class Zippy_Woo_Orders
     $billing_date = isset($_GET[BILLING_DATE]) ? esc_attr($_GET[BILLING_DATE]) : '';
 
     $date = $this->format_date_billing($billing_date);
+
     echo '<div style="display:inline-flex" id="zippy_order_filter" data-name=' . BILLING_DATE . ' data-value=' . $date . '></div>';
-    // echo 'Fulfilment Date: <input type="date" name="' . BILLING_DATE . '" value="' . esc_attr($billing_date) . '"/>';
   }
 
 
@@ -140,5 +143,18 @@ class Zippy_Woo_Orders
     $date = date('Y-m-d', strtotime($date_str));
 
     return $date;
+  }
+
+  private function handle_fulfilment_query_var($query, $query_vars)
+  {
+    if (! empty($query_vars[BILLING_DATE])) {
+      $query['meta_query'][] = array(
+        'key' => BILLING_DATE,
+        'value' => esc_attr($query_vars[BILLING_DATE]),
+        'compare' => '='
+      );
+    }
+
+    return $query;
   }
 }

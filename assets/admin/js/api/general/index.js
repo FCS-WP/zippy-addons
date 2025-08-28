@@ -7,4 +7,7 @@ export const generalAPI = {
   async updateZippOptions(params) {
     return await makeRequest("/zippy-options", params, "POST");
   },
+  async fulfilmentReport(params) {
+    return await makeRequest("/fulfilment-report", params, "GET");
+  },
 };
