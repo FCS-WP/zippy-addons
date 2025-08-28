@@ -27,3 +27,27 @@ table {
 .slot-input {
   max-width: 80px !important;
 }
+//Orders Page
+
+#zippy_order_filter {
+  .zippy-date-picker,
+  .react-datepicker-wrapper {
+    height: 30px;
+    overflow: hidden;
+  }
+}
+
+.post-type-shop_order .wp-list-table .column-_billing_date {
+  .sorting-indicators {
+    float: left;
+  }
+  span.billing_date {
+    float: left;
+  }
+  a.sorted.asc .sorting-indicator.asc:before {
+    color: #1d2327;
+  }
+  a.sorted.desc .sorting-indicator.desc:before {
+    color: #1d2327;
+  }
+}

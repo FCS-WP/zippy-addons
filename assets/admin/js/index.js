@@ -7,6 +7,7 @@ import Settings from "./Pages/Settings";
 // import Calendar from "./Pages/Calendar";
 import Store from "./Pages/Store";
 import Shipping from "./Pages/Shipping";
+import FilterOrder from "./Pages/Orders";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../theme/theme";
@@ -20,6 +21,7 @@ function initializeApp() {
   const zippyStore = document.getElementById("zippy_store_booking");
   const zippyShipping = document.getElementById("zippy_shipping");
   const zippyMenus = document.getElementById("zippy_menus");
+  const zippyOrderFilter = document.getElementById("zippy_order_filter");
 
   if (zippyMenus) {
     const root = ReactDOM.createRoot(zippyMenus);
@@ -74,6 +76,18 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Shipping />
+      </ThemeProvider>
+    );
+  }
+  if (zippyOrderFilter) {
+    const currentValue = zippyOrderFilter?.dataset?.value || "";
+    const filtername = zippyOrderFilter?.dataset?.name || "";
+    console.log(filtername, currentValue);
+    const root = ReactDOM.createRoot(zippyOrderFilter);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <FilterOrder filterName={filtername} filterValue={currentValue} />
       </ThemeProvider>
     );
   }

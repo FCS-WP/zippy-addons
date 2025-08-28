@@ -8,9 +8,11 @@
 
 namespace Zippy_Booking\Src\Woocommerce;
 
+
 defined('ABSPATH') or die();
 
 use Zippy_Booking\Utils\Zippy_Utils_Core;
+use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Orders;
 
 class Zippy_Woo_Booking
 {
@@ -40,6 +42,7 @@ class Zippy_Woo_Booking
 
     /* Update Checkout After Applied Coupon */
     add_action('woocommerce_applied_coupon', array($this, 'after_apply_coupon_action'));
+    Zippy_Woo_Orders::get_instance();
   }
 
   function after_apply_coupon_action($coupon_code)
