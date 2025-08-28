@@ -65,6 +65,8 @@ class Zippy_Reports_Controller
       'meta_key'      => BILLING_DATE,
       'meta_value'    => $date,
       'meta_compare'  => '=',
+      'orderby' => 'meta_value',
+      'order'      => 'ASC'
     ];
     return wc_get_orders($args);
   }
@@ -119,7 +121,7 @@ class Zippy_Reports_Controller
       'order_number'   => '#' . $order->get_id(),
       'phone'          => $phone,
       'mode'           => $mode,
-      'time'           => $order->get_date_created()->date("H:i"),
+      'time'           => $order->get_meta(BILLING_TIME),
       'item'           => $name,
       'quantity'       => $qty,
       'total_quantity' => $qty,
