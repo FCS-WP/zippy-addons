@@ -25,13 +25,14 @@ class Zippy_Reports_Controller
     if (empty($orders)) {
       return Zippy_Response_Handler::success([], 'No completed orders found');
     }
+    $fulfilment_date = date("M j, Y", strtotime($date));
 
     [$order_rows, $product_summary] = self::process_orders($orders);
 
-    $file_content = self::generate_csv($order_rows, $product_summary, $date);
+    $file_content = self::generate_csv($order_rows, $product_summary, $fulfilment_date);
     $file_base64  = base64_encode($file_content);
 
-    $filename = 'orders_with_transaction_' . time() . '.' . $file_type;
+    $filename = 'fulfilment_' . $fulfilment_date . time() . '.' . $file_type;
 
     return Zippy_Response_Handler::success([
       'file_base64' => $file_base64,
@@ -173,9 +174,8 @@ class Zippy_Reports_Controller
   /**
    * Generate CSV output
    */
-  private static function generate_csv($order_rows, $product_summary, $date)
+  private static function generate_csv($order_rows, $product_summary, $fulfilment_date)
   {
-    $fulfilment_date = date("M j, Y", strtotime($date));
     $output = fopen('php://memory', 'w');
     fwrite($output, "\xEF\xBB\xBF"); // UTF-8 BOM
 
