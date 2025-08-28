@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DatePicker from "react-datepicker";
 
@@ -6,10 +6,12 @@ const CustomeDatePicker = ({
   isClearable = true,
   startDate,
   handleDateChange,
+  name = "",
   endDate,
   selectsRange = true,
   placeholderText = "Select date",
 }) => {
+  const ref = useRef();
   return (
     <div className={`zippy-date-picker ${selectsRange ? "range-picker" : ""}`}>
       <CalendarMonthIcon color="secondary" />
@@ -24,6 +26,8 @@ const CustomeDatePicker = ({
         dateFormat="MMMM d, yyyy"
         isClearable={isClearable}
         placeholderText={placeholderText}
+        name={name}
+        ref={ref}
       />
     </div>
   );

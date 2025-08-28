@@ -54,79 +54,8 @@ if (!defined('ZIPPY_ADDONS_URL')) {
   define('ZIPPY_ADDONS_URL', plugin_dir_url(__FILE__));
 }
 
-/* Set constant enpoint to the plugin directory. */
-if (!defined('ZIPPY_BOOKING_API_NAMESPACE')) {
-  define('ZIPPY_BOOKING_API_NAMESPACE', 'zippy-addons/v1');
-}
-
-/* Booking Product Mapping table name */
-if (!defined('OUTLET_CONFIG_TABLE_NAME')) {
-  define('OUTLET_CONFIG_TABLE_NAME', 'fcs_data_zippy_addons_outlet');
-}
-
-/* Booking Shipping Config table name */
-if (!defined('OUTLET_SHIPPING_CONFIG_TABLE_NAME')) {
-  define('OUTLET_SHIPPING_CONFIG_TABLE_NAME', 'fcs_data_zippy_addons_shipping_config');
-}
-
-/* Booking Product Mapping table name */
-if (!defined('ZIPPY_LOG_TABLE_NAME')) {
-  define('ZIPPY_LOG_TABLE_NAME', 'fcs_data_zippy_log');
-}
-
-
-/* Booking Product Mapping table name */
-if (!defined('DELIVERY_TABLE')) {
-  define('DELIVERY_TABLE', $wpdb->prefix . 'zippy_addons_delivery');
-}
-
-// Booking type
-if (!defined('ZIPPY_BOOKING_BOOKING_TYPE_SINGLE')) {
-  define('ZIPPY_BOOKING_BOOKING_TYPE_SINGLE', 'single');
-}
-if (!defined('ZIPPY_BOOKING_BOOKING_TYPE_MULTIPLE')) {
-  define('ZIPPY_BOOKING_BOOKING_TYPE_MULTIPLE', 'multiple');
-}
-
-
-// API Response Message
-if (!defined('ZIPPY_BOOKING_SUCCESS')) {
-  define('ZIPPY_BOOKING_SUCCESS', 'Operation Successful!');
-}
-if (!defined('ZIPPY_BOOKING_NOT_FOUND')) {
-  define('ZIPPY_BOOKING_NOT_FOUND', 'Nothing Found!');
-}
-if (!defined('ZIPPY_BOOKING_ERROR')) {
-  define('ZIPPY_BOOKING_ERROR', 'An Error Occurred!');
-}
-
-
-if (!defined('ZIPPY_BOOKING_API_TOKEN_NAME')) {
-  define('ZIPPY_BOOKING_API_TOKEN_NAME', 'zippy_booking_api_token');
-}
-
-if (!defined('ZIPPY_BOOKING_API_TOKEN')) {
-  define('ZIPPY_BOOKING_API_TOKEN', 'FEhI30q7ySHtMfzvSDo6RkxZUDVaQ1BBU3lBcGhYS3BrQStIUT09');
-}
-
-if (!defined('SHIPPING_CONFIG_META_KEY')) {
-  define('SHIPPING_CONFIG_META_KEY', '_zippy_addons_shipping_fee_config');
-}
-
-if (!defined('ONEMAP_API_URL')) {
-  define('ONEMAP_API_URL', 'https://www.onemap.gov.sg');
-}
-
-if (!defined('ONEMAP_ACCESS_TOKEN_KEY')) {
-  define('ONEMAP_ACCESS_TOKEN_KEY', "onemap_access_token");
-}
-
-if (!defined('ONEMAP_META_KEY')) {
-  define('ONEMAP_META_KEY', "one_map_credentials");
-}
-
 /* Default Timezone */
-date_default_timezone_set("Asia/Singapore");
+// date_default_timezone_set("Asia/Singapore");
 
 
 
@@ -139,6 +68,8 @@ date_default_timezone_set("Asia/Singapore");
  --------------------------- --------------------------------------------- */
 require ZIPPY_ADDONS_DIR_PATH . '/includes/autoload.php';
 require ZIPPY_ADDONS_DIR_PATH . 'vendor/autoload.php';
+require_once ZIPPY_ADDONS_DIR_PATH . 'includes/constances.php';
+
 
 use  Zippy_Booking\Src\Admin\Zippy_Admin_Settings;
 
