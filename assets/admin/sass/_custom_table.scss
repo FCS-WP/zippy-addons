@@ -37,7 +37,7 @@ table {
   }
 }
 
-.post-type-shop_order .wp-list-table .column-_billing_date {
+.post-type-shop_order .wp-list-table .column-_billing_date, .post-type-shop_order .wp-list-table .column-_billing_time {
   .sorting-indicators {
     float: left;
   }
