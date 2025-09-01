@@ -61,12 +61,19 @@ class Zippy_Reports_Controller
   {
     $args = [
       'limit' => -1,
-      BILLING_DATE => $date,
-      'meta_key'      => BILLING_DATE,
-      'meta_value'    => $date,
-      'meta_compare'  => '=',
-      'orderby' => 'meta_value',
-      'order'      => 'ASC'
+      'meta_query'   => [
+        [
+          'key'     => BILLING_DATE,
+          'value'   => $date,
+          'compare' => '=',
+        ],
+        [
+          'key'     => BILLING_TIME,
+        ],
+      ],
+      'orderby'      => 'meta_value',
+      'meta_key'     => BILLING_TIME,
+      'order'        => 'ASC',
     ];
     return wc_get_orders($args);
   }
