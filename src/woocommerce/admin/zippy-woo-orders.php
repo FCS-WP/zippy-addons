@@ -40,7 +40,6 @@ class Zippy_Woo_Orders
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_billing_time_col'));
 
     add_filter('woocommerce_order_query_args', array($this, 'add_meta_billing_date_query'));
-    add_filter('woocommerce_order_query_args', array($this, 'add_meta_billing_time_query'));
 
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_date_order_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_time_order_items_column'), 25, 2);
@@ -116,13 +115,10 @@ class Zippy_Woo_Orders
       $args['meta_key']  = BILLING_TIME;
       $args['orderby']   = 'meta_value';
 
-      $args['meta_type'] = 'TEXT';
+      $args['meta_type'] = 'CHAR';
       $args['order']     = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
     }
-    if (isset($_GET[BILLING_TIME])) {
-      $date = $_GET[BILLING_TIME];
-      $args['meta_value']   = sanitize_text_field($date);
-    }
+
     return $args;
   }
 
@@ -191,16 +187,28 @@ class Zippy_Woo_Orders
   public function add_meta_billing_date_query($args)
   {
     if (isset($_GET['orderby']) && $_GET['orderby'] === BILLING_DATE) {
-      $args['meta_key']  = BILLING_DATE;
-      $args['orderby']   = 'meta_value';
-
-      $args['meta_type'] = 'DATE';
-      $args['order']     = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
+      $args['meta_key']   = BILLING_DATE;
+      $args['orderby']    = 'meta_value';
+      $args['meta_type']  = 'DATE';
+      $args['order']      = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
     }
+
+    if (isset($_GET['orderby']) && $_GET['orderby'] === BILLING_TIME) {
+      $args['meta_key']   = BILLING_TIME;
+
+      $args['orderby']    = 'meta_value';
+      $args['meta_type']  = 'CHAR';
+
+      $args['order']      = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
+    }
+
     if (isset($_GET[BILLING_DATE])) {
       $date = $this->format_date_billing($_GET[BILLING_DATE]);
-      $args['meta_value']   = sanitize_text_field($date);
+      $args['meta_key']    = BILLING_DATE;
+      $args['meta_value']  = sanitize_text_field($date);
+      $args['meta_compare'] = '=';
     }
+
     return $args;
   }
 
