@@ -5,6 +5,8 @@ namespace Zippy_Booking\Src\Controllers\Reports;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 defined('ABSPATH') or die();
 
@@ -28,8 +30,12 @@ class Zippy_Reports_Controller
     $fulfilment_date = date("M j, Y", strtotime($date));
 
     [$order_rows, $product_summary] = self::process_orders($orders);
+    if ($file_type == 'csv') {
+      $file_content = self::generate_csv($order_rows, $product_summary, $fulfilment_date);
+    } else {
+      $file_content = self::generate_pdf($order_rows, $product_summary, $fulfilment_date);
+    }
 
-    $file_content = self::generate_csv($order_rows, $product_summary, $fulfilment_date);
     $file_base64  = base64_encode($file_content);
 
     $filename = 'fulfilment_' . $fulfilment_date . time() . '.' . $file_type;
@@ -216,5 +222,102 @@ class Zippy_Reports_Controller
     fclose($output);
 
     return $content;
+  }
+
+
+  private static function generate_pdf($order_rows, $product_summary, $fulfilment_date)
+  {
+
+    $options = new Options();
+    $options->set('isHtml5ParserEnabled', true);
+    $options->set('isRemoteEnabled', true);
+    $dompdf = new Dompdf($options);
+
+    // Start building HTML content
+    $html = '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+        h2 { margin-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+        th { background-color: #f2f2f2; }
+      </style>
+    </head>
+    <body>';
+
+    // Table 1: Orders
+    $html .= '<h2>Fulfilment Date: ' . esc_html($fulfilment_date) . '</h2>';
+    $html .= '<table>
+                <thead>
+                  <tr>
+                    <th>Order Number</th>
+                    <th>Phone</th>
+                    <th>Mode</th>
+                    <th>Time</th>
+                    <th>Items</th>
+                    <th>Quantity</th>
+                    <th>Total Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>';
+
+    $current_order_id = null;
+    foreach ($order_rows as $row) {
+      if ($row['order_number'] !== $current_order_id) {
+        $html .= '<tr>
+                        <td>' . esc_html($row['order_number']) . '</td>
+                        <td>' . esc_html($row['phone']) . '</td>
+                        <td>' . esc_html($row['mode']) . '</td>
+                        <td>' . esc_html($row['time']) . '</td>
+                        <td>' . esc_html($row['item']) . '</td>
+                        <td>' . esc_html($row['quantity']) . '</td>
+                        <td>' . esc_html($row['total_quantity']) . '</td>
+                      </tr>';
+        $current_order_id = $row['order_number'];
+      } else {
+        $html .= '<tr>
+                        <td></td><td></td><td></td><td></td>
+                        <td>' . esc_html($row['item']) . '</td>
+                        <td>' . esc_html($row['quantity']) . '</td>
+                        <td>' . esc_html($row['total_quantity']) . '</td>
+                      </tr>';
+      }
+    }
+
+    $html .= '</tbody></table>';
+
+    // Table 2: Product Summary
+    $html .= '<h2>Summary</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>';
+
+    foreach ($product_summary as $product => $qty) {
+      $html .= '<tr>
+                    <td>' . esc_html($product) . '</td>
+                    <td>' . esc_html($qty) . '</td>
+                  </tr>';
+    }
+
+    $html .= '</tbody></table>';
+
+    $html .= '</body></html>';
+
+    $dompdf->loadHtml($html);
+
+    $dompdf->setPaper('A4', 'portrait');
+
+    // Render PDF
+    $dompdf->render();
+
+    return $dompdf->output();
   }
 }
