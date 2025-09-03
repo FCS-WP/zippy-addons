@@ -104,4 +104,10 @@ export const Api = {
   async removeProductsFromMenu(params) {
     return await makeRequest("/products-menu", params, "DELETE");
   },
+  async searchLocation(params) {
+    return await makeRequest("/location", params);
+  },
+  async checkSlotDelivery(params) {
+    return await makeRequest('/slot', params);
+  },
 };

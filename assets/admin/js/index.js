@@ -13,6 +13,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../theme/theme";
 import AdminMenus from "./Pages/Menus/AdminMenus";
 import { BrowserRouter } from "react-router";
+import NewOrder from "./Pages/Orders/NewOrder";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -22,7 +23,17 @@ function initializeApp() {
   const zippyShipping = document.getElementById("zippy_shipping");
   const zippyMenus = document.getElementById("zippy_menus");
   const zippyOrderFilter = document.getElementById("zippy_order_filter");
+  const zippyCreateOrder = document.getElementById("admin_create_order");
 
+  if (zippyCreateOrder) {
+    const root = ReactDOM.createRoot(zippyCreateOrder);
+    root.render(
+      <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <NewOrder />
+      </ThemeProvider>
+    );
+  }
   if (zippyMenus) {
     const root = ReactDOM.createRoot(zippyMenus);
     root.render(
