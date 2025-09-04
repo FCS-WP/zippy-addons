@@ -109,19 +109,6 @@ class Zippy_Woo_Orders
     return $columns;
   }
 
-  public function add_meta_billing_time_query($args)
-  {
-    if (isset($_GET['orderby']) && $_GET['orderby'] === BILLING_TIME) {
-      $args['meta_key']  = BILLING_TIME;
-      $args['orderby']   = 'meta_value';
-
-      $args['meta_type'] = 'CHAR';
-      $args['order']     = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
-    }
-
-    return $args;
-  }
-
   public function billing_time_order_items_column($column_name, $order_or_order_id)
   {
 
@@ -184,33 +171,37 @@ class Zippy_Woo_Orders
     return $columns;
   }
 
+
   public function add_meta_billing_date_query($args)
   {
+    // Handle orderby BILLING_DATE
     if (isset($_GET['orderby']) && $_GET['orderby'] === BILLING_DATE) {
-      $args['meta_key']   = BILLING_DATE;
-      $args['orderby']    = 'meta_value';
-      $args['meta_type']  = 'DATE';
-      $args['order']      = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
+      $args['meta_key']  = BILLING_DATE;
+      $args['orderby']   = 'meta_value';
+      $args['meta_type'] = 'DATE';
+      $args['order']     = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
     }
 
+    // Handle orderby BILLING_TIME
     if (isset($_GET['orderby']) && $_GET['orderby'] === BILLING_TIME) {
-      $args['meta_key']   = BILLING_TIME;
-
-      $args['orderby']    = 'meta_value';
-      $args['meta_type']  = 'CHAR';
-
-      $args['order']      = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
+      $args['meta_key']  = BILLING_TIME;
+      $args['orderby']   = 'meta_value';
+      $args['order']     = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'DESC';
     }
 
-    if (isset($_GET[BILLING_DATE])) {
+    // Handle filter by BILLING_DATE
+    if (!empty($_GET[BILLING_DATE])) {
       $date = $this->format_date_billing($_GET[BILLING_DATE]);
-      $args['meta_key']    = BILLING_DATE;
-      $args['meta_value']  = sanitize_text_field($date);
-      $args['meta_compare'] = '=';
+      $args['meta_query'][] = [
+        'key'     => BILLING_DATE,
+        'value'   => sanitize_text_field($date),
+        'compare' => '='
+      ];
     }
 
     return $args;
   }
+
 
   public function billing_date_order_items_column($column_name, $order_or_order_id)
   {
