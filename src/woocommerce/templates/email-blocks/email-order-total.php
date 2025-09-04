@@ -15,6 +15,32 @@ $item_totals       = $order->get_order_item_totals();
 				<?php echo $item_totals['cart_subtotal']['value']; ?>
 			</td>
 		</tr>
+		<?php if ($order->get_meta(BILLING_METHOD) == 'delivery'): ?>
+			<tr>
+				<td align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px"></td>
+				<td width="180" align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
+					<strong>
+						Shipping Fee:
+					</strong>
+				</td>
+				<td width="200" align="right" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
+					<?php echo wc_price($order->get_shipping_total()); ?>
+				</td>
+			</tr>
+			<?php if ($order->get_total_fees() > 0): ?>
+				<tr>
+					<td align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px"></td>
+					<td width="180" align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
+						<strong>
+							Extra Fee:
+						</strong>
+					</td>
+					<td width="200" align="right" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
+						<?php echo wc_price($order->get_total_fees()); ?>
+					</td>
+				</tr>
+			<?php endif; ?>
+		<?php endif; ?>
 		<tr>
 			<td align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px"></td>
 			<td width="180" align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
@@ -26,29 +52,6 @@ $item_totals       = $order->get_order_item_totals();
 				<?php echo wc_price($order->get_total() - ($order->get_total() / 1.09)); ?>
 			</td>
 		</tr>
-		<tr>
-			<td align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px"></td>
-			<td width="180" align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
-				<strong>
-					Shipping Fee:
-				</strong>
-			</td>
-			<td width="200" align="right" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
-				<?php echo wc_price($order->get_shipping_total()); ?>
-			</td>
-		</tr>
-		<tr>
-			<td align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px"></td>
-			<td width="180" align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
-				<strong>
-					Extra Fee:
-				</strong>
-			</td>
-			<td width="200" align="right" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
-				<?php echo wc_price($order->get_total_fees()); ?>
-			</td>
-		</tr>
-
 		<tr>
 			<td align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px"></td>
 			<td width="180" align="left" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
