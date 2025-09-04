@@ -122,6 +122,8 @@ class Zippy_Reports_Controller
   {
     $name = $item->get_name();
     $qty  = $item->get_quantity();
+    $total  = $item->get_total();
+    $tax_total  = $item->get_total_tax();
 
     // Update product summary
     if (!isset($product_summary[$name])) {
@@ -134,10 +136,11 @@ class Zippy_Reports_Controller
       'order_number'   => '#' . $order->get_id(),
       'phone'          => $phone,
       'mode'           => $mode,
-      'time'           => $order->get_meta(BILLING_TIME),
+      'time'           => self::format_time_slot($order->get_meta(BILLING_TIME)),
       'item'           => $name,
       'quantity'       => $qty,
-      'total_quantity' => $qty,
+      'total_price' => html_entity_decode(strip_tags(wc_price($total + $tax_total))),
+      'payment_status' =>  $order->get_transaction_id() ? 'Paid' : 'Pending Payment'
     ];
 
     return [$row, $product_summary];
@@ -163,6 +166,7 @@ class Zippy_Reports_Controller
         }
 
         $add_on_name = $add_on_product->get_name();
+        $total_addon  =  html_entity_decode(strip_tags(wc_price($add_on_product->get_price())));
 
         // Update product summary
         if (!isset($product_summary[$add_on_name])) {
@@ -178,7 +182,7 @@ class Zippy_Reports_Controller
           'time'           => $order->get_date_created()->date("H:i"),
           'item'           => $add_on_name,
           'quantity'       => $add_on_qty,
-          'total_quantity' => $add_on_qty,
+          'total_price' => $total_addon,
         ];
       }
     }
@@ -196,15 +200,15 @@ class Zippy_Reports_Controller
 
     // Table 1: Orders
     fputcsv($output, ['Fulfilment Date :' . $fulfilment_date], ',');
-    fputcsv($output, ['Order Number', 'Phone', 'Mode', 'Time', 'Items', 'Quantity', 'Total Quantity'], ',');
+    fputcsv($output, ['Order Number', 'Phone', 'Mode', 'Time', 'Items', 'Quantity', 'Total $','Payment Status'], ',');
 
     $current_order_id = null;
     foreach ($order_rows as $row) {
       if ($row['order_number'] !== $current_order_id) {
-        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_quantity']], ',');
+        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], $row['payment_status']], ',');
         $current_order_id = $row['order_number'];
       } else {
-        fputcsv($output, ['', '', '', '', $row['item'], $row['quantity'], $row['total_quantity']], ',');
+        fputcsv($output, ['', '', '', '', $row['item'], $row['quantity'], $row['total_price']], ',');
       }
     }
 
@@ -259,7 +263,8 @@ class Zippy_Reports_Controller
                     <th>Time</th>
                     <th>Items</th>
                     <th>Quantity</th>
-                    <th>Total Quantity</th>
+                    <th>Total $</th>
+                    <th>Payment Status</th>
                   </tr>
                 </thead>
                 <tbody>';
@@ -274,7 +279,8 @@ class Zippy_Reports_Controller
                         <td>' . esc_html($row['time']) . '</td>
                         <td>' . esc_html($row['item']) . '</td>
                         <td>' . esc_html($row['quantity']) . '</td>
-                        <td>' . esc_html($row['total_quantity']) . '</td>
+                        <td>' . esc_html($row['total_price']) . '</td>
+                        <td>' . esc_html($row['payment_status']) . '</td>
                       </tr>';
         $current_order_id = $row['order_number'];
       } else {
@@ -282,7 +288,8 @@ class Zippy_Reports_Controller
                         <td></td><td></td><td></td><td></td>
                         <td>' . esc_html($row['item']) . '</td>
                         <td>' . esc_html($row['quantity']) . '</td>
-                        <td>' . esc_html($row['total_quantity']) . '</td>
+                        <td>' . esc_html($row['total_price']) . '</td>
+                        <td></td>
                       </tr>';
       }
     }
@@ -319,5 +326,10 @@ class Zippy_Reports_Controller
     $dompdf->render();
 
     return $dompdf->output();
+  }
+
+  private static function format_time_slot($slot)
+  {
+    return  preg_replace('/^From\s+/i', '', $slot);
   }
 }
