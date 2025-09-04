@@ -95,3 +95,10 @@ export const getForgotPasswordUrl = () =>{
   const loginForm = document.getElementById("custom-login-form");
   return loginForm.dataset.forgot_url;
 }
+
+export const formatMetersToKm = (meters) => {
+  const value = parseFloat(meters);
+  if (isNaN(value)) return "Invalid input";
+
+  return value >= 1000 ? (value / 1000).toFixed(2) + " km" : value + " m";
+};
