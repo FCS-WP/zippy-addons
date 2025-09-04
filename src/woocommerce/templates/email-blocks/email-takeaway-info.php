@@ -5,7 +5,7 @@
 	    </tr>
 	    <tr>
 	    <tr>
-	      <td align="right" valign="top"><strong>Order Date:</strong> <?php echo $order->get_date_created(); ?></td>
+	      <td align="right" valign="top"><strong>Order Date:</strong> <?php echo $order->get_date_created()->date( 'Y-m-d' ); ?></td>
 	    </tr>
 	    <tr>
 	      <td align="right" valign="top"><strong>Takeaway Date: </strong> <?php echo $order->get_meta('_billing_date'); ?></td>
