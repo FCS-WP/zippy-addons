@@ -110,4 +110,7 @@ export const Api = {
   async checkSlotDelivery(params) {
     return await makeRequest('/slot', params);
   },
+  async searchRoute(params) {
+    return await makeRequest("/distance", params);
+  },
 };

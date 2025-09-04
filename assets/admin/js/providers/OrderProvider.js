@@ -3,6 +3,7 @@ import MenuContext from "../contexts/MenuContext";
 import { Api } from "../api";
 import { handleDateData } from "../utils/dateHelper";
 import OrderContext from "../contexts/OrderContext";
+import { toast } from "react-toastify";
 
 const OrderProvider = ({ children }) => {
   const [isFetching, setIsFetching] = useState(true);
@@ -17,6 +18,7 @@ const OrderProvider = ({ children }) => {
     selectedTime: null,
     selectedLocation: null,
     selectedMode: "takeaway",
+    deliveryDistance: null,
   });
   const updateState = (updates) =>
     setState((prev) => ({ ...prev, ...updates }));
@@ -30,6 +32,7 @@ const OrderProvider = ({ children }) => {
     selectedMode,
     selectedTime,
     selectedDate,
+    deliveryDistance,
   } = state;
 
   const refetchOutlet = async () => {
@@ -62,22 +65,48 @@ const OrderProvider = ({ children }) => {
     }, 1000);
   };
 
-    const getHolidayConfig = useCallback(async () => {
-      if (!selectedOutlet) {
-        updateState({ holidayConfig: [] });
-        return;
+  const getHolidayConfig = useCallback(async () => {
+    if (!selectedOutlet) {
+      updateState({ holidayConfig: [] });
+      return;
+    }
+    try {
+      const { data: response } = await Api.getHolidayConfig({
+        outlet_id: selectedOutlet.id,
+      });
+      if (response?.status === "success" && response.data?.date?.length) {
+        updateState({ holidayConfig: response.data.date });
       }
-      try {
-        const { data: response } = await Api.getHolidayConfig({
-          outlet_id: selectedOutlet.id,
-        });
-        if (response?.status === "success" && response.data?.date?.length) {
-          updateState({ holidayConfig: response.data.date });
-        }
-      } catch {
-        console.warn("Failed to load holiday config");
-      }
-    }, [selectedOutlet]);
+    } catch {
+      console.warn("Failed to load holiday config");
+    }
+  }, [selectedOutlet]);
+
+  const handleDistance = async () => {
+    if (!selectedOutlet || !selectedLocation || selectedMode !== 'delivery') {
+         updateState({ deliveryDistance: null });
+      return;
+    }
+    try {
+      const params = {
+        from: {
+          lat: selectedOutlet.outlet_address.coordinates.lat,
+          lng: selectedOutlet.outlet_address.coordinates.lng,
+        },
+        to: {
+          lat: selectedLocation.LATITUDE,
+          lng: selectedLocation.LONGITUDE,
+        },
+      };
+
+      const { data: response } = await Api.searchRoute(params);
+      updateState({ deliveryDistance: response.data.total_distance });
+      console.log("response.data.total_distance", response.data.total_distance)
+
+    } catch (error) {
+      toast.error("Failed to get distance!");
+    }
+  };
 
   const value = {
     outlets,
@@ -89,9 +118,9 @@ const OrderProvider = ({ children }) => {
     selectedMode,
     selectedDate,
     isFetching,
+    deliveryDistance,
     selectedTime,
   };
-  
 
   useEffect(() => {
     refetchOutlet();
@@ -103,6 +132,12 @@ const OrderProvider = ({ children }) => {
   useEffect(() => {
     handleGetConfig();
   }, [selectedMode, selectedOutlet]);
+
+  useEffect(()=>{
+    if (selectedOutlet && selectedLocation && selectedMode == 'delivery') {
+      handleDistance();
+    }
+  }, [selectedOutlet, selectedLocation])
 
   return (
     <OrderContext.Provider value={value}>{children}</OrderContext.Provider>
