@@ -188,6 +188,7 @@ class Zippy_Admin_Booking_Shipping_Controller
         }
 
         $outlet_id = $request["outlet_id"];
+        $product_id = $request["product_id"];
         $billing_date = $request->get_param('billing_date');
         $delivery_type = $request->get_param("delivery_type");
         $date_obj = DateTime::createFromFormat('Y-m-d', $billing_date);
@@ -242,6 +243,8 @@ class Zippy_Admin_Booking_Shipping_Controller
                 ARRAY_A
             );
 
+            $pricing_rule = self::product_checking_pricing_rule($product_id, $billing_date);
+
             $response_data = [
                 "outlet_id" => $outlet_id,
                 "delivery_type" => $delivery_type,
@@ -249,7 +252,8 @@ class Zippy_Admin_Booking_Shipping_Controller
                     "id" => $delivery_time[0]["id"],
                     "week_day" => $week_day,
                     "time_slot" => []
-                ]
+                ],
+                "pricing_rule" => $pricing_rule
             ];
 
             // Calculate delivery_slot
@@ -273,5 +277,58 @@ class Zippy_Admin_Booking_Shipping_Controller
         } catch (\Throwable $th) {
             return Zippy_Response_Handler::error("An error occurred: " . $th->getMessage());
         }
+    }
+
+    /**
+     *  PRODUCTS PRICING CHECKING
+     */
+
+    private static function product_checking_pricing_rule($product_id, $billing_date)
+    {
+        global $wpdb;
+
+        $checking_date = $billing_date;
+
+        // Fetch rules
+        $query = $wpdb->prepare("
+        SELECT additional ,product_adjustments, filters
+        FROM {$wpdb->prefix}wdp_rules
+        WHERE deleted = 0 AND enabled = 1
+    ");
+        $results = $wpdb->get_results($query);
+
+        if (empty($results)) {
+            return Zippy_Response_Handler::error([], 404, "No pricing rules found.");
+        }
+
+        // Decode and filter rules
+        $valid_rules = [];
+        foreach ($results as $row) {
+            $rule = maybe_unserialize($row->additional);
+            $product_adjustments = maybe_unserialize($row->product_adjustments);
+            $product = maybe_unserialize($row->filters);
+
+            if (!empty($rule['date_from']) && !empty($rule['date_to'])) {
+                $dateFrom = strtotime($rule['date_from']);
+                $dateTo   = strtotime($rule['date_to']);
+                $check    = strtotime($checking_date);
+
+                if ($check >= $dateFrom && $check <= $dateTo) {
+                    $product_matched = $product[0]['value'];
+
+                    if (!empty($product_matched) && in_array($product_id, $product_matched)) {
+                        $valid_rules['data'] = $product_adjustments;
+                        $valid_rules['from'] = $rule['date_from'];
+                        $valid_rules['to'] = $rule['date_to'];
+                    }
+                }
+            }
+        }
+
+        if (empty($valid_rules)) {
+            return '';
+        }
+
+        return $valid_rules;
     }
 }

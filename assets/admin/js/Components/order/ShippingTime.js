@@ -31,7 +31,13 @@ const CustomSelect = styled(Select)({
 });
 
 const ShippingTime = ({ type }) => {
-  const { selectedDate, selectedOutlet, orderModeData, selectedTime, updateState } = useOrderProvider();
+  const {
+    selectedDate,
+    selectedOutlet,
+    orderModeData,
+    selectedTime,
+    updateState,
+  } = useOrderProvider();
   const [isLoading, setIsLoading] = useState(false);
   const [times, setTimes] = useState([]);
 
@@ -57,8 +63,8 @@ const ShippingTime = ({ type }) => {
   };
 
   const setSelectedTime = (value) => {
-    updateState({ selectedTime: value })
-  }
+    updateState({ selectedTime: value });
+  };
 
   const handleCheckSlot = async () => {
     const params = {
@@ -71,6 +77,7 @@ const ShippingTime = ({ type }) => {
     if (!response || response.status !== "success") {
       return [];
     }
+
     return response.data.time.time_slot;
   };
 
@@ -103,45 +110,45 @@ const ShippingTime = ({ type }) => {
   };
 
   const handleChangeTime = (e) => {
-    updateState({ selectedTime: e.target.value })
-  }
+    updateState({ selectedTime: e.target.value });
+  };
 
-    const RenderTimeSlot = ({ time, type }) => {
-      return (
-        <>
-          {type == "delivery" ? (
-            <>
-              <Box
-                display={"flex"}
-                width={"100%"}
-                justifyContent={"space-between"}
-              >
-                <Typography fontSize={14}>
-                  {convertTime24to12(time.from) +
-                    " to " +
-                    convertTime24to12(time.to)}
-                </Typography>
-                {/* {time.remaining_slot && (
+  const RenderTimeSlot = ({ time, type }) => {
+    return (
+      <>
+        {type == "delivery" ? (
+          <>
+            <Box
+              display={"flex"}
+              width={"100%"}
+              justifyContent={"space-between"}
+            >
+              <Typography fontSize={14}>
+                {convertTime24to12(time.from) +
+                  " to " +
+                  convertTime24to12(time.to)}
+              </Typography>
+              {/* {time.remaining_slot && (
                   <Typography fontSize={14} color="warning">
                     {time.remaining_slot} slots remaining
                   </Typography>
                 )} */}
-              </Box>
-            </>
-          ) : (
-            <Typography fontSize={14}>
-              {convertTime24to12(time.from) + " to " + convertTime24to12(time.to)}
-            </Typography>
-          )}
-        </>
-      );
-    };
+            </Box>
+          </>
+        ) : (
+          <Typography fontSize={14}>
+            {convertTime24to12(time.from) + " to " + convertTime24to12(time.to)}
+          </Typography>
+        )}
+      </>
+    );
+  };
 
   useEffect(() => {
     handleTimes();
     return () => {};
   }, [selectedDate, orderModeData, selectedOutlet]);
-  
+
   return (
     <div>
       {!isLoading ? (
@@ -181,7 +188,7 @@ const ShippingTime = ({ type }) => {
                   alignItems={"center"}
                   justifyContent={"center"}
                 >
-                  <WarningAmberIcon color="warning" sx={{ mr: 2 }}/>
+                  <WarningAmberIcon color="warning" sx={{ mr: 2 }} />
                   <Typography fontWeight={600} fontSize={14}>
                     Selected date is fully booked. Please select another date.
                   </Typography>

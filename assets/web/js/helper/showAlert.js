@@ -12,7 +12,7 @@ export const showAlert = async (status, title, text, timer = 3000) => {
 
 export const bookingSuccessfully = (handleConfirm) => {
   Swal.fire({
-    customClass:"booking_success",
+    customClass: "booking_success",
     title: "Booking Successful",
     text: "Your booking has been created successfully!",
     icon: "success",
@@ -49,3 +49,24 @@ export const alertInputEmail = async () => {
   }
   return null;
 };
+
+// Helper
+export const productPricingRule = async ({ handleConfirm, date, price }) => {
+  const result = await Swal.fire({
+    customClass: "product_pricing",
+    title: `Price adjustment to $${price}`,
+    text: `Applicable for ${date.from} → ${date.to}. Continue to order?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Back to Menu",
+    timer: 0,
+  });
+
+  if (handleConfirm) {
+    handleConfirm(result);
+  }
+
+  return result;
+};
+
