@@ -14,7 +14,14 @@ const OutletProvider = ({ children }) => {
     periodWindow: 0,
   });
 
-  const { outlets, selectedOutlet, menusConfig, orderModeData, holidayConfig, periodWindow } = state;
+  const {
+    outlets,
+    selectedOutlet,
+    menusConfig,
+    orderModeData,
+    holidayConfig,
+    periodWindow,
+  } = state;
 
   const updateState = (updates) =>
     setState((prev) => ({ ...prev, ...updates }));
@@ -85,7 +92,7 @@ const OutletProvider = ({ children }) => {
   useEffect(() => {
     getConfigOutlet();
   }, [getConfigOutlet]);
-
+  const productId = getSelectProductId();
   const value = {
     outlets,
     holidayConfig,
@@ -95,12 +102,11 @@ const OutletProvider = ({ children }) => {
     menusConfig,
     setOrderModeData: (data) => updateState({ orderModeData: data }),
     periodWindow,
+    productId,
   };
 
   return (
-    <OutletContext.Provider value={value}>
-      {children}
-    </OutletContext.Provider>
+    <OutletContext.Provider value={value}>{children}</OutletContext.Provider>
   );
 };
 

@@ -12,7 +12,7 @@ import React, { useContext, useEffect, useState } from "react";
 import OutletDate from "./OutletDate";
 import StoreIcon from "@mui/icons-material/Store";
 import WatchLaterIcon from "@mui/icons-material/WatchLater";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { webApi } from "../../api";
 import { toast } from "react-toastify";
 import {
@@ -24,6 +24,7 @@ import OutletContext from "../../contexts/OutletContext";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { getSelectProductId } from "../../helper/booking";
 import { useOutletProvider } from "../../providers/OutletProvider";
+import { productPricingRule } from "../../helper/showAlert";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -53,6 +54,7 @@ const OutletSelect = ({
     setSelectedOutlet,
     menusConfig,
     orderModeData,
+    productId,
   } = useOutletProvider();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -182,13 +184,33 @@ const OutletSelect = ({
       billing_date: format(selectedDate, "yyyy-MM-dd"),
       outlet_id: selectedOutlet.id,
       delivery_type: type,
+      product_id: productId,
     };
 
     const { data: response } = await webApi.checkSlotDelivery(params);
     if (!response || response.status !== "success") {
       return [];
     }
+    if (response.data?.pricing_rule) {
+      const confirm = await productPricingRule({
+        handleConfirm: handleConfirmPricingRule,
+        date: {
+          from: format(parseISO(response.data?.pricing_rule.from), "dd-MMM-yyyy"),
+          to: format(parseISO(response.data?.pricing_rule.to), "dd-MMM-yyyy"),
+        },
+        price: response.data?.pricing_rule.data.total.value,
+      });
+    }
+
     return response.data.time.time_slot;
+  };
+
+  const handleConfirmPricingRule = (result) => {
+    if (result.isConfirmed) {
+      return true;
+    } else {
+      return window.location.reload(true);
+    }
   };
 
   useEffect(() => {
