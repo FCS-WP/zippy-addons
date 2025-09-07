@@ -55,7 +55,7 @@ export const productPricingRule = async ({ handleConfirm, date, price }) => {
   const result = await Swal.fire({
     customClass: "product_pricing",
     title: `Price adjustment to $${price}`,
-    text: `Applicable for ${date.from} → ${date.to}. Continue to order?`,
+    html: `From ${date.from} to ${date.to} <br />Continue to order?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Yes",
@@ -69,4 +69,3 @@ export const productPricingRule = async ({ handleConfirm, date, price }) => {
 
   return result;
 };
-
