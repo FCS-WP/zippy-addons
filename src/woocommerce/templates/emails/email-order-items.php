@@ -30,7 +30,7 @@ foreach ($items as $item_id => $item) :
 	$sku           = '';
 	$purchase_note = '';
 	$image         = '';
-
+	$sub_price = empty($product->get_price()) ? $order->get_formatted_line_subtotal($item) : $product->get_price_html();
 	if (! apply_filters('woocommerce_order_item_visible', true, $item)) {
 		continue;
 	}
@@ -198,7 +198,8 @@ foreach ($items as $item_id => $item) :
 			?>
 		</td>
 		<td align="center">
-			<?php echo wp_kses_post($product->get_price_html()); ?>
+
+			<?php echo wp_kses_post($sub_price); ?>
 		</td>
 		<td align="right">
 			<?php echo wp_kses_post($order->get_formatted_line_subtotal($item)); ?>
