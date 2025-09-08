@@ -156,6 +156,7 @@ class Zippy_Reports_Controller
 
     if (!empty($akk_selected) && is_array($akk_selected)) {
       foreach ($akk_selected as $add_on_id => $add_on_qty) {
+        if (is_array($add_on_qty)) $add_on_qty = $add_on_qty[0];
         if ($add_on_qty <= 0) {
           continue;
         }
@@ -166,7 +167,7 @@ class Zippy_Reports_Controller
         }
 
         $add_on_name = $add_on_product->get_name();
-        $total_addon  =  html_entity_decode(strip_tags(wc_price($add_on_product->get_price())));
+        $total_addon  =  !is_array($add_on_qty) ? html_entity_decode(strip_tags(wc_price($add_on_product->get_price()))) : wc_price($add_on_qty[1]);
 
         // Update product summary
         if (!isset($product_summary[$add_on_name])) {
@@ -200,7 +201,7 @@ class Zippy_Reports_Controller
 
     // Table 1: Orders
     fputcsv($output, ['Fulfilment Date :' . $fulfilment_date], ',');
-    fputcsv($output, ['Order Number', 'Phone', 'Mode', 'Time', 'Items', 'Quantity', 'Total $','Payment Status'], ',');
+    fputcsv($output, ['Order Number', 'Phone', 'Mode', 'Time', 'Items', 'Quantity', 'Total $', 'Payment Status'], ',');
 
     $current_order_id = null;
     foreach ($order_rows as $row) {
