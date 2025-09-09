@@ -10,4 +10,7 @@ export const generalAPI = {
   async fulfilmentReport(params) {
     return await makeRequest("/fulfilment-report", params, "GET");
   },
+   async products(params) {
+    return await makeRequest("/products", params, "GET");
+  },
 };

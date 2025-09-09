@@ -79,3 +79,20 @@
     }
   }
 }
+
+#wc-backbone-modal-dialog {
+  .wc-backbone-modal-content {
+    min-height: 65vh;
+    width: 65%;
+  }
+  .custom-modal_table {
+    border: none !important;
+    .widefat tbody td {
+      text-align: center;
+    }
+    .widefat thead th {
+      text-align: center;
+      padding: 1rem;
+    }
+  }
+}
