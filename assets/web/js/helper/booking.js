@@ -38,8 +38,8 @@ export const dataRetailStore = [
 
 export const dataPopupReservation = [
   {
-    name: "Chinatown Point (1-7 Sep)",
-    start_date: "2025-09-01",
-    end_date: "2025-09-07",
+    name: "White Sands(8-14 Sep)",
+    start_date: "2025-09-08",
+    end_date: "2025-09-14",
   },
 ];
