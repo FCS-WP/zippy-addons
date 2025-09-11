@@ -26,6 +26,12 @@ export const productListColumns = [
   "NAME",
   "ACTIONS"
 ]
+export const productListOrder = [
+  "ID",
+  "NAME",
+  "QUANTITY",
+  "INVENTORY"
+]
 
 export const happyHoursColumns = [
   "START TIME",

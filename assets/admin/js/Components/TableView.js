@@ -32,6 +32,7 @@ const TableView = (props) => {
     onChangeList = () => {},
     headerElement,
     addonsBox,
+    className = {},
   } = props;
   const [selectedRows, setSelectedRows] = useState({});
 
@@ -89,8 +90,16 @@ const TableView = (props) => {
           {canBeDeleted ? renderDeleteButton() : ""}
         </Grid2>
       </Grid2>
-      <Box sx={{ border: '1px solid', borderBottom: 'none' ,borderColor: theme.palette.info.main, boxSizing: 'border-box'}}>
-        <Table>
+      <Box
+        sx={{
+          border: "1px solid",
+          borderBottom: "none",
+          borderColor: theme.palette.info.main,
+          boxSizing: "border-box",
+        }}
+        className="custom-modal_table"
+      >
+        <Table className={className}>
           <TableHead sx={{ backgroundColor: theme.palette.info.main }}>
             <TableRow sx={{ borderColor: theme.palette.primary.main }}>
               {!hideCheckbox && (
@@ -118,7 +127,7 @@ const TableView = (props) => {
                     style={{
                       width: columnWidths[col] || "auto",
                       fontWeight: 600,
-                      color: theme.palette.text.primary
+                      color: theme.palette.text.primary,
                     }}
                   >
                     {col}
@@ -143,7 +152,7 @@ const TableView = (props) => {
           </TableBody>
         </Table>
       </Box>
-      {addonsBox && (addonsBox)}
+      {addonsBox && addonsBox}
     </TableContainer>
   );
 };

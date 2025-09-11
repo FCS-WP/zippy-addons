@@ -225,4 +225,96 @@ class Zippy_Products_Controller
       ? Zippy_Response_Handler::error($response, 500)
       : Zippy_Response_Handler::success($response, "Products retrieved successfully.");
   }
+
+  /**
+   *  PRODUCTS
+   */
+
+  public static function get_products(WP_REST_Request $request)
+  {
+    try {
+      // Validate Request
+      if ($error = self::validate_request([
+        "page" => ["data_type" => "number", "required" => true],
+        "items" => ["data_type" => "number", "required" => true],
+        "category_id" => ["data_type" => "number", "required" => false],
+      ], $request)) {
+        return $error;
+      }
+
+      $args = self::sanitize_products($request);
+
+      // var_dump($args);
+
+      $results = wc_get_products($args);
+
+      if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
+
+      $data = array();
+
+      foreach ($results->products as $product) {
+        // pr($product);
+        $product_data = array(
+          'id'    => $product->get_id(),
+          'name'  => $product->get_name(),
+          'stock'  => $product->get_stock_quantity(),
+          'type'  => $product->get_type(),
+        );
+
+        if ($product->is_type('variable')) {
+          $variations = array();
+          foreach ($product->get_children() as $child_id) {
+            $variation = wc_get_product($child_id);
+            if ($variation) {
+              $variations[] = array(
+                'id'       => $variation->get_id(),
+                'sku'      => $variation->get_sku(),
+                'price'    => $variation->get_price(),
+                'regular'  => $variation->get_regular_price(),
+                'sale'     => $variation->get_sale_price(),
+                'stock'    => $variation->get_stock_quantity(),
+                'attrs'    => $variation->get_attributes(), // size, color, etc
+                'image'    => wp_get_attachment_url($variation->get_image_id()),
+              );
+            }
+          }
+          $product_data['variations'] = $variations;
+        }
+
+        $data[] = $product_data;
+      }
+
+      $response = [
+        'data' => $data,
+        'pagination' => [
+          'total' => $results->total,
+          'max_num_pages' => $results->max_num_pages
+        ]
+      ];
+
+      return empty($data)
+        ? Zippy_Response_Handler::error($data, 500)
+        : Zippy_Response_Handler::success($response, "Products retrieved successfully.");
+    } catch (\Exception $e) {
+      return Zippy_Response_Handler::error('Empty products', 500);
+    }
+  }
+
+
+  private static function sanitize_products($request)
+  {
+    $userID = intval($request['userID']);
+
+    $items = get_user_meta($userID, 'edit_shop_order_per_page');
+// var_dump($items);
+    return [
+      'offset' => (intval($request['page'])) * intval($items[0]),
+      'limit' => intval($items[0]) ?? 10,
+      'category' => intval($request['category_id']),
+      'status'   => 'publish',
+      'paginate' => true,
+      'order' => sanitize_text_field($request['order']) ?? 'ESC',
+      'orderby' => 'ID',
+    ];
+  }
 }

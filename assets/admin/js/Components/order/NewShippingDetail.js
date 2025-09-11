@@ -50,13 +50,13 @@ const NewShippingDetail = () => {
   return (
     <Box className="testing" width={'100%'}>
       <h3>Shipping Details</h3>
-      <Grid2 width={'100%'} container spacing={2} alignItems={"center"} mb={3}>
-        <Grid2 size={4}>
-          <Typography fontWeight={600} fontSize={14}>
+      <Grid2 width={'100%'} container spacing={2} alignItems={"center"} my={3}>
+        <Grid2 size={12}>
+          <Typography fontWeight={600} fontSize={12}>
             Shipping Method:
           </Typography>
         </Grid2>
-        <Grid2 size={8}>
+        <Grid2 size={12}>
           <FormControl fullWidth>
             <Select
               id="custom-shipping-method"
@@ -73,24 +73,24 @@ const NewShippingDetail = () => {
 
       {selectedMode == "delivery" && (
         <Grid2 container spacing={2} alignItems={"center"} mb={3}>
-          <Grid2 size={4}>
-            <Typography fontWeight={600} fontSize={14}>
+          <Grid2 size={12}>
+            <Typography fontWeight={600} fontSize={12}>
               Delivery To:
             </Typography>
           </Grid2>
-          <Grid2 size={8}>
+          <Grid2 size={12}>
             <LocationSearch onSelectLocation={handleSelectLocation} />
           </Grid2>
         </Grid2>
       )}
 
       <Grid2 container spacing={2} alignItems={"center"} mb={3}>
-        <Grid2 size={4}>
-          <Typography fontWeight={600} fontSize={14}>
+        <Grid2 size={12}>
+          <Typography fontWeight={600} fontSize={12}>
             Outlet:
           </Typography>
         </Grid2>
-        <Grid2 size={8}>
+        <Grid2 size={12}>
           <CustomSelect
             sx={{ mb: 1 }}
             fullWidth
@@ -107,7 +107,7 @@ const NewShippingDetail = () => {
             }
           >
             <MenuItem value={""} disabled>
-              <Typography sx={{ textWrap: "wrap" }} color="#ccc" fontSize={14}>
+              <Typography sx={{ textWrap: "wrap" }} color="#ccc" fontSize={12}>
                 SELECT AN OUTLET
               </Typography>
             </MenuItem>
@@ -115,7 +115,7 @@ const NewShippingDetail = () => {
             {outlets.length > 0 &&
               outlets.map((outlet, index) => (
                 <MenuItem key={index} value={outlet}>
-                  <Typography sx={{ textWrap: "wrap" }} fontSize={14}>
+                  <Typography sx={{ textWrap: "wrap" }} fontSize={12}>
                     {outlet.outlet_address.address}
                   </Typography>
                 </MenuItem>
@@ -126,37 +126,37 @@ const NewShippingDetail = () => {
 
       {/* Outlet DateTime */}
       <Grid2 container spacing={2} alignItems={"center"} mb={3}>
-        <Grid2 size={4}>
+        <Grid2 size={12}>
           {selectedMode == "takeaway" && (
-            <Typography fontWeight={600} fontSize={14}>
+            <Typography fontWeight={600} fontSize={12}>
               Takeaway Date:
             </Typography>
           )}
           {selectedMode == "delivery" && (
-            <Typography fontWeight={600} fontSize={14}>
+            <Typography fontWeight={600} fontSize={12}>
               Delivery Date:
             </Typography>
           )}
         </Grid2>
-        <Grid2 size={8}>
+        <Grid2 size={12}>
           <ShippingDate />
         </Grid2>
       </Grid2>
 
       <Grid2 container spacing={2} alignItems={"center"} mb={3}>
-        <Grid2 size={4}>
+        <Grid2 size={12}>
           {selectedMode == "takeaway" && (
-            <Typography fontWeight={600} fontSize={14}>
+            <Typography fontWeight={600} fontSize={12}>
               Takeaway Time:
             </Typography>
           )}
           {selectedMode == "delivery" && (
-            <Typography fontWeight={600} fontSize={14}>
+            <Typography fontWeight={600} fontSize={12}>
               Delivery Time:
             </Typography>
           )}
         </Grid2>
-        <Grid2 size={8}>
+        <Grid2 size={12}>
           <ShippingTime type={selectedMode} />
         </Grid2>
       </Grid2>

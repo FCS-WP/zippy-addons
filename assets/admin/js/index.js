@@ -14,6 +14,7 @@ import theme from "../theme/theme";
 import AdminMenus from "./Pages/Menus/AdminMenus";
 import { BrowserRouter } from "react-router";
 import NewOrder from "./Pages/Orders/NewOrder";
+import ProductItems from "./Pages/Orders/ProductItems";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -29,8 +30,8 @@ function initializeApp() {
     const root = ReactDOM.createRoot(zippyCreateOrder);
     root.render(
       <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <NewOrder />
+        <CssBaseline />
+        <NewOrder />
       </ThemeProvider>
     );
   }
@@ -98,6 +99,54 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <FilterOrder filterName={filtername} filterValue={currentValue} />
+      </ThemeProvider>
+    );
+  }
+
+  const body = document.body;
+
+  // Create a MutationObserver
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      // Check if new nodes were added
+      mutation.addedNodes.forEach((node) => {
+        // Check if the added node is an Elementor popup modal
+        if (node.id == "wc-backbone-modal-dialog") {
+          renderReactApp(node);
+        }
+      });
+    });
+  });
+
+  // Configure the observer to monitor the <body>
+  observer.observe(body, { childList: true });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const zippyLoginForm = document.getElementById("custom-login-form");
+
+    if (typeof zippyLoginForm != "undefined" && zippyLoginForm != null) {
+      const root = ReactDOM.createRoot(zippyLoginForm);
+      root.render(
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <LoginForm />
+          <ToastContainer />
+        </ThemeProvider>
+      );
+    }
+  });
+}
+
+function renderReactApp(node) {
+  const form = node.querySelector("form");
+
+  const root = ReactDOM.createRoot(form);
+
+  if (form) {
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ProductItems />
       </ThemeProvider>
     );
   }
