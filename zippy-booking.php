@@ -81,6 +81,7 @@ use Zippy_Booking\Src\Web\Zippy_Booking_Web;
 
 use Zippy_Booking\Src\Woocommerce\Zippy_Woo_Booking;
 
+
 /**
  *
  * Init Zippy Booking
@@ -95,3 +96,4 @@ Zippy_Woo_Booking::get_instance();
 Zippy_Booking_Web::get_instance();
 
 Zippy_Booking_Routers::get_instance();
+

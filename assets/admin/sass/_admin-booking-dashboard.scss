@@ -82,6 +82,7 @@
 
 #wc-backbone-modal-dialog {
   .wc-backbone-modal-content {
+    height: 735px;
     min-height: 65vh;
     width: 65%;
   }
@@ -95,4 +96,16 @@
       padding: 1rem;
     }
   }
+  .search-products {
+    label {
+      background: #fff;
+    }
+    input {
+      min-height: 56px;
+    }
+  }
+}
+
+#menu-category {
+  z-index: 9999999999;
 }

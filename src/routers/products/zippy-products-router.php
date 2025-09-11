@@ -59,6 +59,12 @@ class Zippy_Products_Router
       'args' => Zippy_Products_Model::get_products(),
       'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
     ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/categories', array(
+      'methods' => 'GET',
+      'callback' => [Zippy_Products_Controller::class, 'get_categories'],
+      'args' => Zippy_Products_Model::get_categories(),
+      'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+    ));
 
   }
 }
