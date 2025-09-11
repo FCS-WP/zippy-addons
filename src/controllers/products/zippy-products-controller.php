@@ -237,7 +237,8 @@ class Zippy_Products_Controller
       if ($error = self::validate_request([
         "page" => ["data_type" => "number", "required" => true],
         "items" => ["data_type" => "number", "required" => true],
-        "category_id" => ["data_type" => "number", "required" => false],
+        "search" => ["data_type" => "string", "required" => false],
+        "category" => ["data_type" => "number", "required" => false],
       ], $request)) {
         return $error;
       }
@@ -256,9 +257,11 @@ class Zippy_Products_Controller
         // pr($product);
         $product_data = array(
           'id'    => $product->get_id(),
+          'sku'    => $product->get_sku(),
           'name'  => $product->get_name(),
           'stock'  => $product->get_stock_quantity(),
           'type'  => $product->get_type(),
+          'link'  => admin_url('post.php?post=' . $product->get_id() . '&action=edit'),
         );
 
         if ($product->is_type('variable')) {
@@ -289,7 +292,8 @@ class Zippy_Products_Controller
         'pagination' => [
           'total' => $results->total,
           'max_num_pages' => $results->max_num_pages
-        ]
+        ],
+        'arg' => $args,
       ];
 
       return empty($data)
@@ -299,6 +303,41 @@ class Zippy_Products_Controller
       return Zippy_Response_Handler::error('Empty products', 500);
     }
   }
+  /**
+   *  CATEGORIES
+   */
+
+  public static function get_categories(WP_REST_Request $request)
+  {
+    try {
+      // Validate Request
+      if ($error = self::validate_request([
+        "category_id" => ["data_type" => "number", "required" => false],
+      ], $request)) {
+        return $error;
+      }
+
+      $args = self::sanitize_categories($request);
+
+
+      $results = get_categories($args);
+
+      if (empty($results)) return Zippy_Response_Handler::error('No categories found. ', 500);
+
+      $data = array();
+
+      foreach ($results as $key => $category) {
+
+        $data[] = $category;
+      }
+
+      return empty($data)
+        ? Zippy_Response_Handler::error($data, 500)
+        : Zippy_Response_Handler::success($data, "Products categories retrieved successfully.");
+    } catch (\Exception $e) {
+      return Zippy_Response_Handler::error('Empty categories', 500);
+    }
+  }
 
 
   private static function sanitize_products($request)
@@ -306,15 +345,32 @@ class Zippy_Products_Controller
     $userID = intval($request['userID']);
 
     $items = get_user_meta($userID, 'edit_shop_order_per_page');
-// var_dump($items);
-    return [
-      'offset' => (intval($request['page'])) * intval($items[0]),
-      'limit' => intval($items[0]) ?? 10,
-      'category' => intval($request['category_id']),
+
+    $args = [
+      'offset' => (intval($request['page']) - 1) * intval($items[0]),
+      'limit' => intval($items[0]) ?? 5,
+      'product_category_id' => intval($request['category']),
       'status'   => 'publish',
       'paginate' => true,
-      'order' => sanitize_text_field($request['order']) ?? 'ESC',
+      'order' => 'DESC',
       'orderby' => 'ID',
+    ];
+    if (!empty($request['search'])) $args['s'] = sanitize_text_field($request['search']);
+    return $args;
+  }
+
+  private static function sanitize_categories($request)
+  {
+
+    return [
+      'taxonomy'     => 'product_cat',
+      'category' => intval($request['category']) ?? [],
+      'status'   => 'publish',
+      "limit" => -1,
+      'orderby' => 'ID',
+      'hide_empty'   => true,
+      'show_count'   => 1, // 1 for yes, 0 for no
+      'hierarchical' => 1,
     ];
   }
 }
