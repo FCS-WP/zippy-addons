@@ -114,6 +114,7 @@ const ProductItems = () => {
         <TextField
           type="number"
           size="small"
+          name="item_qty"
           value={row.QUANTITY}
           onChange={(e) => handleQuantityChange(row.ID, e.target.value)}
           inputProps={{ min: 0 }}
