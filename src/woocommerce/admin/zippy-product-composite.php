@@ -49,7 +49,6 @@ class Zippy_Product_Composite extends WC_Product
     if (isset($tabs['inventory']['class'])) {
       $tabs['inventory']['class'][] = 'show_if_composite';
     }
-    // pr($tabs);
 
     return $tabs;
   }
@@ -73,7 +72,7 @@ class Zippy_Product_Composite extends WC_Product
     echo '<div class="options_group pricing show_if_composite hidden">';
     woocommerce_wp_text_input(
       array(
-        'id'        => '_regular_price',
+        'id'        => '_composite_regular_price',
         'value'     => $product_object->get_regular_price('edit'),
         'label'     => __('Regular price', 'woocommerce') . ' (' . get_woocommerce_currency_symbol() . ')',
         'data_type' => 'price',
@@ -82,7 +81,7 @@ class Zippy_Product_Composite extends WC_Product
 
     woocommerce_wp_text_input(
       array(
-        'id'          => '_sale_price',
+        'id'          => '_composite_sale_price',
         'value'       => $product_object->get_sale_price('edit'),
         'data_type'   => 'price',
         'label'       => __('Sale price', 'woocommerce') . ' (' . get_woocommerce_currency_symbol() . ')',
@@ -113,7 +112,7 @@ class Zippy_Product_Composite extends WC_Product
         <?php
         woocommerce_wp_select(
           array(
-            'id'          => '_tax_status',
+            'id'          => '_composite_tax_status',
             'value'       => $product_object->get_tax_status('edit'),
             'label'       => __('Tax status', 'woocommerce'),
             'options'     => array(
@@ -128,7 +127,7 @@ class Zippy_Product_Composite extends WC_Product
 
         woocommerce_wp_select(
           array(
-            'id'          => '_tax_class',
+            'id'          => '_composite_tax_class',
             'value'       => $product_object->get_tax_class('edit'),
             'label'       => __('Tax class', 'woocommerce'),
             'options'     => wc_get_product_tax_class_options(),
@@ -151,11 +150,11 @@ class Zippy_Product_Composite extends WC_Product
   public static function save_pricing_fields($product)
   {
     if ($product->get_type() === 'composite') {
-      if (isset($_POST['_regular_price'])) {
-        $product->set_regular_price(wc_clean(wp_unslash($_POST['_regular_price'])));
+      if (isset($_POST['_composite_regular_price'])) {
+        $product->set_regular_price(wc_clean(wp_unslash($_POST['_composite_regular_price'])));
       }
-      if (isset($_POST['_sale_price'])) {
-        $product->set_sale_price(wc_clean(wp_unslash($_POST['_sale_price'])));
+      if (isset($_POST['_composite_sale_price'])) {
+        $product->set_sale_price(wc_clean(wp_unslash($_POST['_composite_sale_price'])));
       }
     }
   }
@@ -163,3 +162,4 @@ class Zippy_Product_Composite extends WC_Product
 
 add_action('woocommerce_composite_add_to_cart',  [Zippy_Product_Composite::class, 'woocommerce_composite_add_to_cart'], 30);
 add_action('woocommerce_product_options_general_product_data', [Zippy_Product_Composite::class, 'add_pricing_fields']);
+add_action('woocommerce_admin_process_product_object', [Zippy_Product_Composite::class, 'save_pricing_fields']);

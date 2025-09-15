@@ -64,7 +64,7 @@ class Zippy_Admin_Booking_Product_Controller
             $min_qty = $min_qty ? intval($min_qty) : 1;
             $stock_quantity = $_product->get_stock_quantity();
             $qty_add_to_cart = $stock_quantity < $min_qty ? $stock_quantity : $min_qty;
-            if (floatval($_product->get_price()) > 0) {
+            if (floatval($_product->get_price()) > 0 && $_product->get_type() !=  'composite') {
                 $cart_item_key = $cart->add_to_cart($_product->get_id(), $qty_add_to_cart);
                 if ($cart_item_key) {
                     return Zippy_Response_Handler::success($session_data, "Product added to cart");
