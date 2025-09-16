@@ -38,9 +38,11 @@ class Zippy_Woo_Orders
 
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_billing_date_col'));
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_billing_time_col'));
+    add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_phone_col'));
 
     add_filter('woocommerce_order_query_args', array($this, 'add_meta_billing_date_query'));
 
+    add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'phone_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_date_order_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_time_order_items_column'), 25, 2);
 
@@ -58,6 +60,24 @@ class Zippy_Woo_Orders
   }
 
 
+  public function add_phone_col($columns)
+  {
+
+
+    $before  = array_slice($columns, 0, array_search('order_date', array_keys($columns)) + 1, true);
+    $after   = array_slice($columns, array_search('order_date', array_keys($columns)) + 1, null, true);
+
+
+
+    $new['phone'] = sprintf(
+      '<span class="billing_date">%s</span>',
+      __('Phone', 'woocommerce'),
+    );
+
+    $columns = $before + $new + $after;
+
+    return $columns;
+  }
   public function add_billing_time_col($columns)
   {
     // Current sort
@@ -203,6 +223,16 @@ class Zippy_Woo_Orders
   }
 
 
+  public function phone_items_column($column_name, $order_or_order_id)
+  {
+
+    $order = $order_or_order_id instanceof WC_Order ? $order_or_order_id : wc_get_order($order_or_order_id);
+
+    if ('phone' === $column_name) {
+      $phone = $order->get_billing_phone() ?? '';
+      echo  '<span>'  . $phone . '</span>';
+    }
+  }
   public function billing_date_order_items_column($column_name, $order_or_order_id)
   {
 
