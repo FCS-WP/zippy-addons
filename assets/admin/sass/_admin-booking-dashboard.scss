@@ -85,6 +85,7 @@
     height: 735px;
     min-height: 65vh;
     width: 65%;
+    overflow: hidden;
   }
   .custom-modal_table {
     border: none !important;
@@ -108,4 +109,22 @@
 
 #menu-category {
   z-index: 9999999999;
+}
+
+.order-status {
+  &.status-pending {
+    background: #ff0000;
+    color: #fff;
+  }
+  &.status-completed {
+    background: #ffa500 !important;
+  }
+  &.status-cancelled {
+    background: #ffc0cb !important;
+  }
+}
+.wc-order-add-item {
+  .button.add-order-tax {
+    display: none !important;
+  }
 }
