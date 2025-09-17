@@ -9,7 +9,7 @@ import {
   styled,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useOrderProvider } from "../../providers/OrderProvider";
 import StoreIcon from "@mui/icons-material/Store";
 import LocationSearch from "../../../../web/js/components/zippy-forms/LocationSearch";
@@ -32,11 +32,24 @@ const CustomSelect = styled(Select)({
 });
 
 const NewShippingDetail = () => {
-  const { outlets, selectedOutlet, updateState, selectedMode } =
-    useOrderProvider();
+  const {
+    outlets,
+    selectedOutlet,
+    updateState,
+    selectedMode,
+    deliveryDistance,
+  } = useOrderProvider();
 
   const handleChangeOutlet = (e) => {
+    console.log(e.target.value);
     updateState({ selectedOutlet: e.target.value });
+  };
+
+  const formatMetersToKm = (meters) => {
+    const value = parseFloat(meters);
+    if (isNaN(value)) return "Invalid input";
+
+    return value >= 1000 ? (value / 1000).toFixed(2) + " km" : value + " m";
   };
 
   const handleSelectLocation = (location) => {
@@ -47,10 +60,16 @@ const NewShippingDetail = () => {
     updateState({ selectedMode: e.target.value });
   };
 
+  useEffect(() => {
+    if (outlets.length > 0){
+      updateState({ selectedOutlet: outlets[0] });
+    } 
+  }, [outlets, deliveryDistance]);
+
   return (
-    <Box className="testing" width={'100%'}>
+    <Box className="testing" width={"100%"}>
       <h3>Shipping Details</h3>
-      <Grid2 width={'100%'} container spacing={2} alignItems={"center"} my={3}>
+      <Grid2 width={"100%"} container spacing={2} alignItems={"center"} my={3}>
         <Grid2 size={12}>
           <Typography fontWeight={600} fontSize={12}>
             Shipping Method:
@@ -121,6 +140,12 @@ const NewShippingDetail = () => {
                 </MenuItem>
               ))}
           </CustomSelect>
+
+          {deliveryDistance && (
+            <Typography fontWeight={600} fontSize={13}>
+              Distance: {formatMetersToKm(deliveryDistance)}
+            </Typography>
+          )}
         </Grid2>
       </Grid2>
 

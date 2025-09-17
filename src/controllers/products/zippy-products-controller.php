@@ -352,8 +352,8 @@ class Zippy_Products_Controller
       'product_category_id' => intval($request['category']),
       'status'   => 'publish',
       'paginate' => true,
-      'order' => 'DESC',
-      'orderby' => 'ID',
+      'order' => 'asc',
+      'orderby' => 'name',
     ];
     if (!empty($request['search'])) $args['s'] = sanitize_text_field($request['search']);
     return $args;
@@ -367,7 +367,7 @@ class Zippy_Products_Controller
       'category' => intval($request['category']) ?? [],
       'status'   => 'publish',
       "limit" => -1,
-      'orderby' => 'ID',
+      'orderby' => 'name',
       'hide_empty'   => true,
       'show_count'   => 1, // 1 for yes, 0 for no
       'hierarchical' => 1,
