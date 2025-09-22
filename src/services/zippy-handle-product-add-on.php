@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * Handle data for controllers
+ *
+ *
+ */
+
+namespace Zippy_Booking\Src\Services;
+
+class Zippy_Handle_Product_Add_On
+{
+  /**
+   * Build addon rules (min/max for each sub product)
+   */
+  public static function get_list_addons($list_sub_products, $is_composite_product = false, $grouped_addons = [])
+  {
+    $addons = [];
+
+    if (!empty($list_sub_products)) {
+      foreach ($list_sub_products as $sub_product) {
+        if (empty($sub_product) || !is_array($sub_product) || empty($sub_product['product'])) {
+          continue;
+        }
+
+        $sub_product_id = $sub_product['product']->ID;
+        $min_qty        = intval($sub_product['minimum_quantity'] ?? 0);
+
+        $prod    = wc_get_product($sub_product_id);
+        $image_url = wp_get_attachment_image_url($prod->get_image_id(), 'thumbnail');
+
+        $max_qty = $prod ? intval($prod->get_stock_quantity()) : 0;
+        if ($is_composite_product) {
+          $max_qty = intval($grouped_addons['quantity_products_group'] ?? 0);
+          if (!in_array($sub_product_id, $grouped_addons['product_ids'] ?? [])) {
+            $max_qty = $min_qty;
+          }
+        }
+
+        $addons[$sub_product_id] = [
+          'name' => get_the_title($sub_product_id),
+          'sku'  => $prod ? $prod->get_sku() : '',
+          'image' => $image_url,
+          'min' => $min_qty,
+          'max' => $max_qty,
+        ];
+      }
+    }
+
+    return $addons;
+  }
+
+
+
+  /**
+   * Get grouped addon rules
+   */
+  public static function get_grouped_addons($groups)
+  {
+    $grouped_addons = [
+      'product_ids'             => [],
+      'quantity_products_group' => 0,
+    ];
+
+    if (!empty($groups)) {
+      $grouped_addons['quantity_products_group'] = intval($groups['quantity_products_group'] ?? 0);
+
+      if (!empty($groups['product_group']) && is_array($groups['product_group'])) {
+        foreach ($groups['product_group'] as $group) {
+          $grouped_addons['product_ids'][] = $group->ID;
+        }
+      }
+    }
+
+    return $grouped_addons;
+  }
+
+
+  public static function build_addon_data($addons = [])
+  {
+    $data = [];
+    if (!empty($addons) && is_array($addons)) {
+      foreach ($addons as $key => $addon) {
+        if (empty($addon) || !is_array($addon)) {
+          continue;
+        }
+        $addon_id = intval($addon['item_id']);
+        $qty = intval($addon['quantity'] ?? 0);
+
+        if ($qty > 0) {
+          $product = wc_get_product($addon_id);
+
+          $data[$addon_id] = [$qty, get_pricing_price_in_cart($product, 1)]; // [0 -> quantity , 1 -> price]
+        }
+      }
+    }
+
+    return $data;
+  }
+}

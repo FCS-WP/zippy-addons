@@ -18,23 +18,10 @@ export const detailMenuColumn = [
   "Start Date",
   "End Date",
   "ACTIONS",
-]
+];
 
+export const productListColumns = ["ID", "NAME", "ACTIONS"];
+export const productListOrder = ["IMAGE", "ID", "NAME", "INVENTORY", "ACTIONS"];
 
-export const productListColumns = [
-  "ID",
-  "NAME",
-  "ACTIONS"
-]
-export const productListOrder = [
-  "ID",
-  "NAME",
-  "QUANTITY",
-  "INVENTORY"
-]
-
-export const happyHoursColumns = [
-  "START TIME",
-  "END TIME",
-  "ACTIONS",
-]
+export const happyHoursColumns = ["START TIME", "END TIME", "ACTIONS"];
+export const addProducts = ["IMAGE", "NAME", "ADDON ACTIONS"];

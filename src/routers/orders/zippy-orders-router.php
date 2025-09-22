@@ -43,5 +43,17 @@ class Zippy_Orders_Router
       'methods' => 'GET',
       'callback' => [Zippy_Orders_Controller::class, 'export_orders'],
     ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/get-items-order', array(
+      'methods' => 'GET',
+      'callback' => [Zippy_Orders_Controller::class, 'get_items_order'],
+    ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/save-items-order', array(
+      'methods' => 'POST',
+      'callback' => [Zippy_Orders_Controller::class, 'update_items_order'],
+    ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/add-items-order', array(
+      'methods' => 'POST',
+      'callback' => [Zippy_Orders_Controller::class, 'add_product_to_order'],
+    ));
   }
 }
