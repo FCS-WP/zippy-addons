@@ -313,16 +313,14 @@ class Zippy_Products_Controller
 
       $results = wc_get_product(intval($request['productID']));
 
-      if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
 
-      $data = array();
+      if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
 
       $is_composite_product = is_composite_product($results);
 
       $list_sub_products = get_field('product_combo', $results->get_id());
       $min_addons         = get_field('min_order', $results->get_id()) ?: 0;
-      $min_addons         = get_post_meta($results->get_id(), '_custom_minimum_order_qty', true) ?: 0;
-      $min_order         = get_post_meta('_custom_minimum_order_qty', $results->get_id()) ?: 0;
+      $min_order         = get_post_meta($results->get_id(), '_custom_minimum_order_qty', true) ?: 0;
       $groups            = get_field('products_group', $results->get_id()) ?: [];
       $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
       $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons);

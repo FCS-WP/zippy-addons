@@ -122,6 +122,8 @@ const CustomTableRow = ({
                 <ProductDetails
                   productID={row.productID}
                   orderID={row.orderID}
+                  quantity={quantity}
+                  addonMinOrder={row.MinAddons}
                 />
               </Box>
             </Collapse>

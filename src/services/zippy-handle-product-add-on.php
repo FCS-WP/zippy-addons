@@ -76,7 +76,7 @@ class Zippy_Handle_Product_Add_On
   }
 
 
-  public static function build_addon_data($addons = [])
+  public static function build_addon_data($addons = [], $quantity = 1)
   {
     $data = [];
     if (!empty($addons) && is_array($addons)) {
@@ -85,7 +85,7 @@ class Zippy_Handle_Product_Add_On
           continue;
         }
         $addon_id = intval($addon['item_id']);
-        $qty = intval($addon['quantity'] ?? 0);
+        $qty = intval($addon['quantity'] * $quantity ?? 0);
 
         if ($qty > 0) {
           $product = wc_get_product($addon_id);
@@ -96,5 +96,24 @@ class Zippy_Handle_Product_Add_On
     }
 
     return $data;
+  }
+
+  public static function calculate_addon_total($addons = [])
+  {
+    $total = 0;
+    if (!empty($addons) && is_array($addons)) {
+      foreach ($addons as $key => $addon) {
+        if (empty($addon) || !is_array($addon) || count($addon) < 2) {
+          continue;
+        }
+
+        $quantity = intval($addon[0] ?? 0);
+        $price = floatval($addon[1] ?? 0);
+
+        $total += $quantity * $price;
+      }
+    }
+
+    return $total;
   }
 }

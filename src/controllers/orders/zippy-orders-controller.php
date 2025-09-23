@@ -7,6 +7,7 @@ use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Dompdf\Dompdf;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Add_On;
+use Zippy_Booking\Src\Services\Zippy_Handle_Product_Tax;
 
 
 defined('ABSPATH') or die();
@@ -341,6 +342,7 @@ class Zippy_Orders_Controller
     $required_fields = [
       "order_id" => ["required" => true, "data_type" => "integer"],
       "parent_product_id" => ["required" => true, "data_type" => "integer"],
+      "quantity" => ["required" => true, "data_type" => "integer"],
     ];
 
     $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -363,21 +365,37 @@ class Zippy_Orders_Controller
       $product_parent_id = intval($request->get_param('parent_product_id'));
       $quantity          = max(1, intval($request->get_param('quantity')));
       $product_parent    = wc_get_product($product_parent_id);
+
       if (!$product_parent) {
         return Zippy_Response_Handler::error('Parent product not found.');
       }
+
       $item_id = $order->add_product($product_parent, $quantity);
 
       $item = $order->get_item($item_id);
-      $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons);
+      $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
+
       if ($item && !is_wp_error($item) && !empty($addon_meta)) {
+
         $item->update_meta_data('akk_selected', $addon_meta);
+
         $added_items[] = [
           'product_id' => $product_parent_id,
           'quantity'   => $quantity,
           'item_id'    => $item_id,
           'addons'     => $addon_meta,
         ];
+
+        if (!is_composite_product($product_parent)) {
+
+          $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
+          $tax = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total, $quantity);
+
+          if ($tax == false) {
+            return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
+          }
+        }
+
         $item->save();
       }
     } else {
