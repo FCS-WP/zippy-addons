@@ -32,7 +32,9 @@ export const dataRetailStore = [
   {
     name: "Katong Shopping Centre",
     start_date: "2025-07-23",
-    end_date: "2025-08-23",
+    end_date: "2070-08-23",
+    disable_start: "2025-08-09",
+    disable_end: "2025-09-23",
   },
 ];
 

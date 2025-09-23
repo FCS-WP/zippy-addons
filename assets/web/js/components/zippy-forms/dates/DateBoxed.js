@@ -8,7 +8,7 @@ const DateBoxed = (props) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const disableDates = ["2025-08-09", "2025-08-12"];
+  const disableDates = ["2025-08-09", "2025-08-12", "2025-09-23"];
 
   const dateItem = date.toISOString().slice(0, 10);
 

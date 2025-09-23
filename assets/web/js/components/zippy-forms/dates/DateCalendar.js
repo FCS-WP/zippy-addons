@@ -8,6 +8,7 @@ const DateCalendar = ({ onSelectDate, defaultDate }) => {
   const { customOutletSelected } = useContext(OutletContext);
   const [minDate, setMinDate] = useState(new Date());
   const [maxDate, setMaxDate] = useState(null);
+  const [disabledRanges, setDisabledRanges] = useState([]);
 
   const handleClick = (date) => {
     setSelectedDate(date);
@@ -17,10 +18,11 @@ const DateCalendar = ({ onSelectDate, defaultDate }) => {
   useEffect(() => {
     if (customOutletSelected) {
       const now = new Date();
-      const nowformattedDate = now.toISOString().slice(0, 10);
-      const startDate = new Date(customOutletSelected.start_date);
-      if (customOutletSelected.start_date < nowformattedDate) {
-        setMinDate(nowformattedDate);
+      const nowFormatted = now.toISOString().slice(0, 10);
+
+      // Setup minDate
+      if (customOutletSelected.start_date < nowFormatted) {
+        setMinDate(now);
       } else {
         setMinDate(
           customOutletSelected.start_date
@@ -29,11 +31,24 @@ const DateCalendar = ({ onSelectDate, defaultDate }) => {
         );
       }
 
+      // Setup maxDate
       setMaxDate(
-        customOutletSelected.start_date
+        customOutletSelected.end_date
           ? new Date(customOutletSelected.end_date)
           : null
       );
+
+      if (
+        customOutletSelected.disable_start &&
+        customOutletSelected.disable_end
+      ) {
+        setDisabledRanges([
+          {
+            start: new Date(customOutletSelected.disable_start),
+            end: new Date(customOutletSelected.disable_end),
+          },
+        ]);
+      }
     }
   }, [customOutletSelected]);
 
@@ -45,6 +60,7 @@ const DateCalendar = ({ onSelectDate, defaultDate }) => {
         selected={selectedDate}
         onChange={handleClick}
         inline
+        excludeDateIntervals={disabledRanges}
       />
     </Box>
   );
