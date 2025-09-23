@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 
 import ProductFilterbyCategories from "../../../Components/Products/ProductFilterByCategories";
+import { toast } from "react-toastify";
 
 const AddProductsDialog = ({ onClose, open, orderID }) => {
   const [data, setData] = useState([]);
@@ -36,6 +37,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     search: "",
   });
 
+  const [simpleProduct, setSimpleProduct] = useState({});
   /**
    * Fetch products with API call
    */
@@ -62,6 +64,25 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
       setLoading(false);
     }
   }, [params]);
+
+  const addSimpleProduct = useCallback(async () => {
+    if (Object.keys(simpleProduct).length === 0) return;
+
+    try {
+      const { data } = await generalAPI.addProductsToOrder(simpleProduct);
+
+      if (data?.status === "success") {
+        toast.success("Product added to order successfully");
+      } else {
+        // Handle error case
+        console.error("Failed to add product to order:", data?.message);
+      }
+    } catch (error) {
+      console.error("Error adding product to order:", error);
+    } finally {
+      window.location.reload();
+    }
+  }, [simpleProduct, fetchProducts]);
 
   const convertRows = (rows) =>
     rows.map((item) => ({
@@ -140,19 +161,25 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     [data]
   );
 
-  const handleAddProduct = (productID, quantity) => {
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.ID === productID ? { ...item, QUANTITY: quantity } : item
-      )
-    );
+  const handleSubTableChangeQuantity = (row, value) => {
+    const params = {
+      order_id: orderID.orderID,
+      parent_product_id: row.productID,
+      quantity: value,
+    };
+    setSimpleProduct(params);
+  };
+  const handleSubTableAddProduct = (row) => {
+    console.log("Adding product to order:", simpleProduct);
+    addSimpleProduct();
+    setSimpleProduct({});
   };
 
   /**
    * Table column widths
    */
   const columnWidths = {
-    IMAGE:"10%",
+    IMAGE: "10%",
     ID: "20%",
     NAME: "auto",
     QUANTITY: "20%",
@@ -184,7 +211,8 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
                 columnWidths={columnWidths}
                 rows={rowsWithInputs}
                 className="table-products"
-                handleOnAddAddon={handleAddProduct}
+                handleSubTableAddProduct={handleSubTableAddProduct}
+                handleSubTableChangeQuantity={handleSubTableChangeQuantity}
               />
 
               <TablePaginationCustom

@@ -16,6 +16,7 @@ const EditAddonButton = ({ orderID }) => {
         color="error"
         size="small"
         onClick={handleOpen}
+        className="button edit_order_addon"
       >
         Edit Order Items
       </Button>

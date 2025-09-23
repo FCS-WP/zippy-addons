@@ -28,22 +28,30 @@ const CustomTableRow = ({
   onAddProduct, // callback for adding product
   onQuantityChange, // callback for updating quantity
 }) => {
+  const minOrder = row.MinOrder ?? 0;
+  const [disabled, setDisabled] = useState(true);
   const [showCollapse, setShowCollapse] = useState(showCollapseProp);
 
   const handleToggleCollapse = () => {
     setShowCollapse((prev) => !prev);
   };
+  const [quantity, setQuantity] = useState(minOrder);
 
   const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value, 10) || 0;
+    setDisabled(false);
+    const inputValue = parseInt(e.target.value, 10) || 0;
+    const clampedValue = inputValue < minOrder ? minOrder : inputValue;
+
+    setQuantity(clampedValue);
     if (onQuantityChange) {
-      onQuantityChange(row, value);
+      onQuantityChange(row, clampedValue);
     }
   };
 
   const handleAddProduct = () => {
     if (onAddProduct) {
       onAddProduct(row);
+      setDisabled(true);
     }
   };
 
@@ -56,7 +64,7 @@ const CustomTableRow = ({
     >
       <TextField
         type="number"
-        value={row.MinOrder ?? 0}
+        value={quantity}
         onChange={handleQuantityChange}
         size="small"
         sx={{ width: "70px" }}
@@ -67,6 +75,7 @@ const CustomTableRow = ({
           color="primary"
           size="small"
           onClick={handleAddProduct}
+          disabled={disabled}
         >
           Add Product
         </Button>

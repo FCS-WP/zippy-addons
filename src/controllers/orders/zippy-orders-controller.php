@@ -381,7 +381,7 @@ class Zippy_Orders_Controller
         $item->save();
       }
     } else {
-      $product_id = intval($request->get_param('product_id'));
+      $product_id = intval($request->get_param('parent_product_id'));
       $quantity   = max(1, intval($request->get_param('quantity')));
 
       if (!$product_id) {
