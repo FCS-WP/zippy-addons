@@ -95,6 +95,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
       NAME: item.name,
       INVENTORY: item.stock,
       SHOW_HIDDEN: false,
+      MinAddons: item.min_addons,
       MinOrder: item.min_order,
       ADDONS: item.addons || {},
     }));
@@ -170,7 +171,6 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     setSimpleProduct(params);
   };
   const handleSubTableAddProduct = (row) => {
-    console.log("Adding product to order:", simpleProduct);
     addSimpleProduct();
     setSimpleProduct({});
   };

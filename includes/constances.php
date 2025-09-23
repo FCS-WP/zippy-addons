@@ -10,6 +10,10 @@ if (!defined('BILLING_OUTLET'))
   define('BILLING_OUTLET', '_billing_outlet');
 if (!defined('BILLING_METHOD'))
   define('BILLING_METHOD', '_billing_method_shipping');
+if (!defined('BILLING_DISTANCE'))
+  define('BILLING_DISTANCE', '_billing_distance');
+if (!defined('BILLING_DELIVERY'))
+  define('BILLING_DELIVERY', '_billing_delivery_to');
 
 
 

@@ -13,6 +13,7 @@ defined('ABSPATH') or die();
 
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Orders;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Product_Composite;
+use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
 
 class Zippy_Woo_Booking
 {
@@ -44,6 +45,8 @@ class Zippy_Woo_Booking
     add_action('woocommerce_applied_coupon', array($this, 'after_apply_coupon_action'));
 
     Zippy_Woo_Orders::get_instance();
+
+    Zippy_Woo_Manual_Order::get_instance();
 
     new Zippy_Product_Composite;
   }

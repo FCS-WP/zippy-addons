@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 
-const ProductDetails = ({ productID, orderID }) => {
+const ProductDetails = ({ productID, orderID, quantity, addonMinOrder }) => {
   const orderIDParam = orderID.orderID;
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -133,6 +133,20 @@ const ProductDetails = ({ productID, orderID }) => {
       toast.warn("Please select at least one addon with quantity.");
       return;
     }
+    if (
+      addonMinOrder &&
+      selected.reduce((sum, r) => sum + r.quantity, 0) < addonMinOrder
+    ) {
+      toast.error(
+        `Minimum addons required: ${addonMinOrder}. Currently selected: ${selected.reduce(
+          (sum, r) => sum + r.quantity,
+          0
+        )}`
+      );
+      return;
+    }
+
+    // Validate grouped addons
 
     if (groupTotal > 0) {
       const groupSum = selected
@@ -149,17 +163,16 @@ const ProductDetails = ({ productID, orderID }) => {
       }
     }
 
-    console.log("Submitting add-ons:", selected);
-
-    handleAddProducts(selected, orderIDParam);
+    handleAddProducts(selected, orderIDParam, quantity);
   };
 
-  const handleAddProducts = async (selected, orderID) => {
+  const handleAddProducts = async (selected, orderID, quantity) => {
     try {
       const params = {
         order_id: orderID,
         addons: selected,
         parent_product_id: productID,
+        quantity: quantity,
       };
       const response = await generalAPI.addProductsToOrder(params);
       if (response.data.status === "success") {
@@ -171,7 +184,6 @@ const ProductDetails = ({ productID, orderID }) => {
       console.error("Error adding products to order:", error);
       toast.error("An error occurred while adding products to order.");
     } finally {
-      // Optionally refresh the page or data here
       window.location.reload();
     }
   };
