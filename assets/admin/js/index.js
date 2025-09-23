@@ -14,7 +14,6 @@ import theme from "../theme/theme";
 import AdminMenus from "./Pages/Menus/AdminMenus";
 import { BrowserRouter } from "react-router";
 import NewOrder from "./Pages/Orders/NewOrder";
-import EditAddonButton from "./Pages/Orders/EditAddonDialog/EditAddonButton";
 import ButtonAddProducts from "./Pages/Orders/AddProducts/ButtonAddProducts";
 
 function initializeApp() {
@@ -105,27 +104,6 @@ function initializeApp() {
     );
   }
 
-  const target = document.getElementById("woocommerce-order-items");
-
-  if (target) {
-    // Create a wrapper div
-    const wrapper = document.createElement("div");
-    wrapper.id = "edit_order_item";
-
-    const orderID = document.getElementById("post_ID").value;
-
-    target.parentNode.insertBefore(wrapper, target);
-
-    // Render React component into wrapper
-    const root = ReactDOM.createRoot(wrapper);
-    root.render(
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <EditAddonButton orderID={orderID} />
-      </ThemeProvider>
-    );
-  }
-
   document.addEventListener("DOMContentLoaded", function () {
     const zippyLoginForm = document.getElementById("custom-login-form");
 
@@ -164,20 +142,6 @@ if (buttonAddProducts.length > 0) {
     buttonAddProducts[0]
   );
   buttonAddProducts[0].remove();
-}
-function renderReactApp(node) {
-  const form = node.querySelector("form");
-
-  const root = ReactDOM.createRoot(form);
-
-  if (form) {
-    root.render(
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <ProductItems />
-      </ThemeProvider>
-    );
-  }
 }
 
 document.addEventListener("DOMContentLoaded", initializeApp);
