@@ -80,13 +80,7 @@
   }
 }
 
-#wc-backbone-modal-dialog {
-  .wc-backbone-modal-content {
-    height: 735px;
-    min-height: 65vh;
-    width: 65%;
-    overflow: hidden;
-  }
+.add_products_model {
   .custom-modal_table {
     border: none !important;
     .widefat tbody td {
@@ -102,7 +96,7 @@
       background: #fff;
     }
     input {
-      min-height: 56px;
+      min-height: 54px;
     }
   }
 }
@@ -126,5 +120,11 @@
 .wc-order-add-item {
   .button.add-order-tax {
     display: none !important;
+  }
+}
+#button_add_products {
+  display: inline-block;
+  .add_new_product {
+    box-shadow: none !important;
   }
 }

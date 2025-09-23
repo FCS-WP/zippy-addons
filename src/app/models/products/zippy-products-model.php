@@ -51,6 +51,18 @@ class Zippy_Products_Model
     );
   }
 
+  public static function get_product()
+  {
+    return array(
+      'productID' => array(
+        'required' => true,
+        'validate_callback' => function ($param, $request, $key) {
+          return is_numeric($param);
+        },
+      ),
+    );
+  }
+
   public static function get_products()
   {
     return array(

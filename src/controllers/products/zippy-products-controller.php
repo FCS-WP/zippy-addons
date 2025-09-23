@@ -5,6 +5,7 @@ namespace Zippy_Booking\Src\Controllers\Products;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
+use Zippy_Booking\Src\Services\Zippy_Handle_Product_Add_On;
 
 defined('ABSPATH') or die();
 
@@ -245,8 +246,6 @@ class Zippy_Products_Controller
 
       $args = self::sanitize_products($request);
 
-      // var_dump($args);
-
       $results = wc_get_products($args);
 
       if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
@@ -254,36 +253,32 @@ class Zippy_Products_Controller
       $data = array();
 
       foreach ($results->products as $product) {
-        // pr($product);
+
+
+        $is_composite_product = is_composite_product($product);
+
+        $list_sub_products = get_field('product_combo', $product->get_id());
+        $min_addons         = get_field('min_order', $product->get_id()) ?: 0;
+        $min_order         = get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0;
+        $groups            = get_field('products_group', $product->get_id()) ?: [];
+        $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
+
+        $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons);
+
         $product_data = array(
           'id'    => $product->get_id(),
           'sku'    => $product->get_sku(),
           'name'  => $product->get_name(),
           'stock'  => $product->get_stock_quantity(),
+          'img_url' => wp_get_attachment_image_url($product->get_image_id(), 'thumbnail'),
           'type'  => $product->get_type(),
           'link'  => admin_url('post.php?post=' . $product->get_id() . '&action=edit'),
+          'min_addons'    => $min_addons,
+          'min_order'    => $min_order,
+          'addons' => $addons_rules,
+          'grouped_addons' => $grouped_addons,
+          'is_composite_product' => $is_composite_product,
         );
-
-        if ($product->is_type('variable')) {
-          $variations = array();
-          foreach ($product->get_children() as $child_id) {
-            $variation = wc_get_product($child_id);
-            if ($variation) {
-              $variations[] = array(
-                'id'       => $variation->get_id(),
-                'sku'      => $variation->get_sku(),
-                'price'    => $variation->get_price(),
-                'regular'  => $variation->get_regular_price(),
-                'sale'     => $variation->get_sale_price(),
-                'stock'    => $variation->get_stock_quantity(),
-                'attrs'    => $variation->get_attributes(), // size, color, etc
-                'image'    => wp_get_attachment_url($variation->get_image_id()),
-              );
-            }
-          }
-          $product_data['variations'] = $variations;
-        }
-
         $data[] = $product_data;
       }
 
@@ -293,7 +288,6 @@ class Zippy_Products_Controller
           'total' => $results->total,
           'max_num_pages' => $results->max_num_pages
         ],
-        'arg' => $args,
       ];
 
       return empty($data)
@@ -303,6 +297,59 @@ class Zippy_Products_Controller
       return Zippy_Response_Handler::error('Empty products', 500);
     }
   }
+
+  public static function get_product(WP_REST_Request $request)
+  {
+
+
+    try {
+      // Validate Request
+      if ($error = self::validate_request([
+        "productID" => ["data_type" => "number", "required" => true],
+
+      ], $request)) {
+        return $error;
+      }
+
+      $results = wc_get_product(intval($request['productID']));
+
+      if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
+
+      $data = array();
+
+      $is_composite_product = is_composite_product($results);
+
+      $list_sub_products = get_field('product_combo', $results->get_id());
+      $min_addons         = get_field('min_order', $results->get_id()) ?: 0;
+      $min_addons         = get_post_meta($results->get_id(), '_custom_minimum_order_qty', true) ?: 0;
+      $min_order         = get_post_meta('_custom_minimum_order_qty', $results->get_id()) ?: 0;
+      $groups            = get_field('products_group', $results->get_id()) ?: [];
+      $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
+      $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons);
+
+      $product_data = array(
+        'id'    => $results->get_id(),
+        'sku'    => $results->get_sku(),
+        'name'  => $results->get_name(),
+        'stock'  => $results->get_stock_quantity(),
+        'type'  => $results->get_type(),
+        'link'  => admin_url('post.php?post=' . $results->get_id() . '&action=edit'),
+        'min_addons'    => $min_addons,
+        'min_order'    => $min_order,
+        'addons' => $addons_rules,
+        'grouped_addons' => $grouped_addons,
+        'is_composite_product' => $is_composite_product,
+      );
+
+
+      return empty($product_data)
+        ? Zippy_Response_Handler::error($product_data, 500)
+        : Zippy_Response_Handler::success($product_data, "Products retrieved successfully.");
+    } catch (\Exception $e) {
+      return Zippy_Response_Handler::error('Empty products', 500);
+    }
+  }
+
   /**
    *  CATEGORIES
    */

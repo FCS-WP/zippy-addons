@@ -28,6 +28,8 @@ const TableView = (props) => {
     columnWidths = {},
     canBeDeleted = false,
     onDeleteRows = () => {},
+    handleSubTableAddProduct = () => {},
+    handleSubTableChangeQuantity = () => {},
     showBookingFilter = false,
     onChangeList = () => {},
     headerElement,
@@ -147,6 +149,8 @@ const TableView = (props) => {
                 rowIndex={rowIndex}
                 onChangeList={onChangeList}
                 onChangeCheckbox={handleRowCheckboxChange}
+                onAddProduct={handleSubTableAddProduct}
+                onQuantityChange={handleSubTableChangeQuantity}
               />
             ))}
           </TableBody>

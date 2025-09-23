@@ -26,6 +26,12 @@ const HiddenData = () => {
       />
       <input
         type="hidden"
+        id="is_manual_order"
+        name="is_manual_order"
+        value="yes"
+      />
+      <input
+        type="hidden"
         id="_billing_date"
         name="_billing_date"
         value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
@@ -54,7 +60,7 @@ const HiddenData = () => {
             type="hidden"
             id="_billing_distance"
             name="_billing_distance"
-            value={!!deliveryDistance ? formatMetersToKm(deliveryDistance) : ""}
+            value={!!deliveryDistance ? deliveryDistance : ""}
           />
         </>
       )}

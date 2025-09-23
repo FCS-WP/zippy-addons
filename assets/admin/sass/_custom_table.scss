@@ -37,7 +37,8 @@ table {
   }
 }
 
-.post-type-shop_order .wp-list-table .column-_billing_date, .post-type-shop_order .wp-list-table .column-_billing_time {
+.post-type-shop_order .wp-list-table .column-_billing_date,
+.post-type-shop_order .wp-list-table .column-_billing_time {
   .sorting-indicators {
     float: left;
   }
@@ -50,4 +51,13 @@ table {
   a.sorted.desc .sorting-indicator.desc:before {
     color: #1d2327;
   }
+}
+#edit_order_item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+#edit_order_addon {
+  cursor: pointer;
 }

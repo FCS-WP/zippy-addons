@@ -14,7 +14,8 @@ import theme from "../theme/theme";
 import AdminMenus from "./Pages/Menus/AdminMenus";
 import { BrowserRouter } from "react-router";
 import NewOrder from "./Pages/Orders/NewOrder";
-import ProductItems from "./Pages/Orders/ProductItems";
+import EditAddonButton from "./Pages/Orders/EditAddonDialog/EditAddonButton";
+import ButtonAddProducts from "./Pages/Orders/AddProducts/ButtonAddProducts";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -35,6 +36,7 @@ function initializeApp() {
       </ThemeProvider>
     );
   }
+
   if (zippyMenus) {
     const root = ReactDOM.createRoot(zippyMenus);
     root.render(
@@ -103,23 +105,26 @@ function initializeApp() {
     );
   }
 
-  const body = document.body;
+  const target = document.getElementById("woocommerce-order-items");
 
-  // Create a MutationObserver
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      // Check if new nodes were added
-      mutation.addedNodes.forEach((node) => {
-        // Check if the added node is an Elementor popup modal
-        if (node.id == "wc-backbone-modal-dialog") {
-          renderReactApp(node);
-        }
-      });
-    });
-  });
+  if (target) {
+    // Create a wrapper div
+    const wrapper = document.createElement("div");
+    wrapper.id = "edit_order_item";
 
-  // Configure the observer to monitor the <body>
-  observer.observe(body, { childList: true });
+    const orderID = document.getElementById("post_ID").value;
+
+    target.parentNode.insertBefore(wrapper, target);
+
+    // Render React component into wrapper
+    const root = ReactDOM.createRoot(wrapper);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <EditAddonButton orderID={orderID} />
+      </ThemeProvider>
+    );
+  }
 
   document.addEventListener("DOMContentLoaded", function () {
     const zippyLoginForm = document.getElementById("custom-login-form");
@@ -137,6 +142,29 @@ function initializeApp() {
   });
 }
 
+const buttonAddProducts = document.getElementsByClassName("add-order-item");
+
+if (buttonAddProducts.length > 0) {
+  const AddProducts = document.createElement("div");
+  AddProducts.id = "button_add_products";
+  AddProducts.type = "button";
+  AddProducts.textContent = "button_add_products";
+  const orderID = document.getElementById("post_ID").value;
+
+  const root = ReactDOM.createRoot(AddProducts);
+  root.render(
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <ButtonAddProducts orderID={orderID} />
+    </ThemeProvider>
+  );
+
+  buttonAddProducts[0].parentNode.insertBefore(
+    AddProducts,
+    buttonAddProducts[0]
+  );
+  buttonAddProducts[0].remove();
+}
 function renderReactApp(node) {
   const form = node.querySelector("form");
 
