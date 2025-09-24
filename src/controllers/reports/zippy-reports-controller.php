@@ -120,18 +120,25 @@ class Zippy_Reports_Controller
    */
   private static function process_item($order, $item, $phone, $mode, $product_summary)
   {
-    $name = $item->get_name();
-    $qty  = $item->get_quantity();
-    $total  = $item->get_total();
-    $tax_total  = $item->get_total_tax();
+      $name = $item->get_name();
+      $qty  = $item->get_quantity();
+      $total  = $item->get_total();
+      $tax_total  = $item->get_total_tax();
 
-    // Update product summary
-    if (!isset($product_summary[$name])) {
-      $product_summary[$name] = 0;
-    }
-    $product_summary[$name] += $qty;
+      $product_id = $item->get_product_id();
+      $categories = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'names']);
+      $category   = !empty($categories) ? $categories[0] : 'Uncategorized';
 
-    // Build row
+      // Update product summary
+      if (!isset($product_summary[$category])) {
+          $product_summary[$category] = [];
+      }
+      if (!isset($product_summary[$category][$name])) {
+          $product_summary[$category][$name] = 0;
+      }
+      $product_summary[$category][$name] += $qty;
+
+      // Build row
     $row = [
       'order_number'   => '#' . $order->get_id(),
       'phone'          => $phone,
@@ -143,7 +150,7 @@ class Zippy_Reports_Controller
       'payment_status' =>  $order->get_transaction_id() ? 'Paid' : 'Pending Payment'
     ];
 
-    return [$row, $product_summary];
+      return [$row, $product_summary];
   }
 
   /**
@@ -169,11 +176,16 @@ class Zippy_Reports_Controller
         $add_on_name = $add_on_product->get_name();
         $total_addon  =  !is_array($add_on_qty) ? html_entity_decode(strip_tags(wc_price($add_on_product->get_price()))) : wc_price($add_on_qty[1]);
 
-        // Update product summary
-        if (!isset($product_summary[$add_on_name])) {
-          $product_summary[$add_on_name] = 0;
+        $categories = wp_get_post_terms($add_on_product->get_id(), 'product_cat', ['fields' => 'names']);
+        $category   = !empty($categories) ? $categories[0] : 'Uncategorized';
+
+        if (!isset($product_summary[$category])) {
+            $product_summary[$category] = [];
         }
-        $product_summary[$add_on_name] += $add_on_qty;
+        if (!isset($product_summary[$category][$add_on_name])) {
+            $product_summary[$category][$add_on_name] = 0;
+        }
+        $product_summary[$category][$add_on_name] += $add_on_qty;
 
         // Build row
         $rows[] = [
@@ -185,10 +197,10 @@ class Zippy_Reports_Controller
           'quantity'       => $add_on_qty,
           'total_price' => $total_addon,
         ];
+          }
       }
-    }
 
-    return [$rows, $product_summary];
+      return [$rows, $product_summary];
   }
 
   /**
@@ -308,11 +320,14 @@ class Zippy_Reports_Controller
                 </thead>
                 <tbody>';
 
-    foreach ($product_summary as $product => $qty) {
-      $html .= '<tr>
-                    <td>' . esc_html($product) . '</td>
-                    <td>' . esc_html($qty) . '</td>
-                  </tr>';
+    foreach ($product_summary as $category => $products) {
+        $html .= '<tr><td colspan="2" style="text-align:center;"><strong>' . esc_html($category) . '</strong></td></tr>';
+        foreach ($products as $product => $qty) {
+            $html .= '<tr>
+                        <td>' . esc_html($product) . '</td>
+                        <td>' . esc_html($qty) . '</td>
+                      </tr>';
+        }
     }
 
     $html .= '</tbody></table>';
