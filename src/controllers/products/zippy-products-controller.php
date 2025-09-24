@@ -250,6 +250,22 @@ class Zippy_Products_Controller
 
       if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
 
+      usort($results->products, function ($a, $b) {
+        $a_terms = wp_get_post_terms($a->get_id(), 'product_cat', ['orderby' => 'name']);
+        $b_terms = wp_get_post_terms($b->get_id(), 'product_cat', ['orderby' => 'name']);
+
+        $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
+        $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
+
+        $cmp = strcmp($a_cat, $b_cat);
+
+        if ($cmp === 0) {
+          return strcmp($a->get_name(), $b->get_name());
+        }
+        return $cmp;
+      });
+
+
       $data = array();
 
       foreach ($results->products as $product) {
@@ -313,6 +329,15 @@ class Zippy_Products_Controller
 
       $results = wc_get_product(intval($request['productID']));
 
+      usort($results->products, function ($a, $b) {
+        $a_terms = wp_get_post_terms($a->get_id(), 'product_cat', ['orderby' => 'name']);
+        $b_terms = wp_get_post_terms($b->get_id(), 'product_cat', ['orderby' => 'name']);
+
+        $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
+        $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
+
+        return strcmp($a_cat, $b_cat);
+      });
 
       if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
 
@@ -390,22 +415,37 @@ class Zippy_Products_Controller
     $userID = intval($request['userID']);
 
     $items = get_user_meta($userID, 'edit_shop_order_per_page');
-
+    $excluded = [15, 23]; // ['uncategorized', 'add-ons']
     $args = [
       'offset' => (intval($request['page']) - 1) * intval($items[0]),
       'limit' => intval($items[0]) ?? 5,
-      'product_category_id' => intval($request['category']),
       'status'   => 'publish',
       'paginate' => true,
       'order' => 'asc',
-      'orderby' => 'name',
+      'orderby' => 'title',
+      'tax_query' => [
+        [
+          'taxonomy' => 'product_cat',
+          'field'    => 'term_id',
+          'terms'    => $excluded,
+          'operator' => 'NOT IN',
+        ],
+      ],
     ];
-    if (!empty($request['search'])) $args['s'] = sanitize_text_field($request['search']);
+    if (!empty($request['category'])) {
+      $args['product_category_id'] = [intval($request['category'])];
+    }
+
+    if (!empty($request['search'])) {
+      $args['s'] = sanitize_text_field($request['search']);
+    }
     return $args;
   }
 
   private static function sanitize_categories($request)
   {
+
+    $excluded = [15, 23]; // ['uncategorized', 'add-ons']
 
     return [
       'taxonomy'     => 'product_cat',
@@ -416,6 +456,7 @@ class Zippy_Products_Controller
       'hide_empty'   => true,
       'show_count'   => 1, // 1 for yes, 0 for no
       'hierarchical' => 1,
+      'exclude' => $excluded
     ];
   }
 }
