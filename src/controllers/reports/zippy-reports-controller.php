@@ -229,9 +229,13 @@ class Zippy_Reports_Controller
 
     // Table 2: Product Summary
     fputcsv($output, ['Summary'], ',');
-    fputcsv($output, ['Product', 'Quantity'], ',');
-    foreach ($product_summary as $product => $qty) {
-      fputcsv($output, [$product, $qty], ',');
+    fputcsv($output, ['Category', 'Product', 'Quantity'], ',');
+
+    foreach ($product_summary as $category => $products) {
+        fputcsv($output, [$category, '', ''], ',');
+        foreach ($products as $product => $qty) {
+            fputcsv($output, ['', $product, $qty], ',');
+        }
     }
 
     fseek($output, 0);
