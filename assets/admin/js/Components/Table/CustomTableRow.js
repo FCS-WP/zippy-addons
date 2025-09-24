@@ -29,7 +29,7 @@ const CustomTableRow = ({
   onQuantityChange, // callback for updating quantity
 }) => {
   const minOrder = row.MinOrder ?? 0;
-  const [disabled, setDisabled] = useState(true);
+  const [disabled, setDisabled] = useState(true && minOrder <= 0);
   const [showCollapse, setShowCollapse] = useState(showCollapseProp);
 
   const handleToggleCollapse = () => {
