@@ -73,10 +73,10 @@ class Zippy_Admin_Settings
     // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
     // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
     add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
-    add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
+    // add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
     // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
     // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
-    add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
+    // add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
     add_submenu_page('zippy-bookings', 'Product Prices', 'Product Prices', 'manage_options', 'Product Prices', array($this, 'render_product_price'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
   }
