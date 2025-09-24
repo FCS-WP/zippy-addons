@@ -3,6 +3,7 @@ import OutletContext from "../../contexts/OutletContext";
 import { Box, Button, Icon, styled, Typography } from "@mui/material";
 import StoreIcon from "@mui/icons-material/Store";
 import BookOnlineIcon from "@mui/icons-material/BookOnline";
+import { SHOP_TYPE } from "../../consts/consts";
 
 const CustomButton = styled(Button)(({ theme }) => ({
   padding: "16px",
@@ -37,7 +38,7 @@ const SelectCartType = () => {
         <Box className="retail-store" textAlign={"center"}>
           <CustomButton
             className="method-icon"
-            onClick={() => onChangeCartType("retail-store")}
+            onClick={() => onChangeCartType(SHOP_TYPE.RETAIL)}
           >
             <StoreIcon color="secondary" sx={{ ":hover": { color: "#fff" } }} />
           </CustomButton>
@@ -54,7 +55,7 @@ const SelectCartType = () => {
         <Box className="pop-up-mt" textAlign={"center"}>
           <CustomButton
             className="method-icon"
-            onClick={() => onChangeCartType("popup-reservation")}
+            onClick={() => onChangeCartType(SHOP_TYPE.POPUP_RESERVATION)}
           >
             <BookOnlineIcon
               color="secondary"

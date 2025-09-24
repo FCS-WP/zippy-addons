@@ -17,6 +17,7 @@ import { Api } from "../../api";
 import StoreForm from "../../Components/Stores/StoreForm";
 import StoreFormEdit from "../../Components/Stores/StoreFormEdit";
 import theme from "../../../theme/theme";
+import typeStoreHelper from "../../utils/typeStoreHelper";
 
 const Store = () => {
   const [stores, setStores] = useState([]);
@@ -125,6 +126,11 @@ const Store = () => {
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2" fontWeight="600">
+                    Type
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" fontWeight="600">
                     Actions
                   </Typography>
                 </TableCell>
@@ -146,6 +152,9 @@ const Store = () => {
                       {s.outlet_address?.postal_code || "N/A"}
                     </TableCell>
                     <TableCell>{s.outlet_address?.address || "N/A"}</TableCell>
+                    <TableCell>
+                      {typeStoreHelper.getTypeName(s.type) || "N/A"}
+                    </TableCell>
                     <TableCell>
                       <Button
                         onClick={() => handleEditClick(s)}

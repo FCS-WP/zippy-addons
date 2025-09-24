@@ -3,6 +3,7 @@ import React, { useContext, useEffect } from "react";
 import { deliveryIcon, takeawayIcon } from "../../images";
 import OutletContext from "../../contexts/OutletContext";
 import SelectCartType from "./SelectCartType";
+import { SHOP_TYPE } from "../../consts/consts";
 
 const CustomButton = styled(Button)(({ theme }) => ({
   padding: "16px",
@@ -33,7 +34,7 @@ const SelectMethod = ({ onChangeMode }) => {
             Select Your Preference
           </Typography>
           <Box display={"flex"} m={4} justifyContent={"space-around"}>
-            {cartType === "retail-store" && (
+            {cartType === SHOP_TYPE.RETAIL && (
               <Box>
                 <CustomButton
                   className="method-icon"

@@ -41,6 +41,9 @@ class Zippy_Admin_Booking_Product_Controller
             $session_data["outlet_name"] = $outlet;
 
             $session_data["outlet_address"] = $outlet ?? null;
+
+            $outlet_id = $request['outlet_id'] ?? null;
+            $session_data["outlet_id"] = $outlet_id;
             self::store_to_session($session_data);
 
             $cart = new Zippy_Cart_Handler;

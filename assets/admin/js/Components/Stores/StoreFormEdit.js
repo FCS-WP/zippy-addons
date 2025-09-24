@@ -13,6 +13,9 @@ import {
 } from "@mui/material";
 import { Api } from "../../api";
 import { toast, ToastContainer } from "react-toastify";
+import { typeStore } from "../../../../web/js/helper/typeStore";
+import CustomeDatePicker from "../DatePicker/CustomeDatePicker";
+import typeStoreHelper from "../../utils/typeStoreHelper";
 
 const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -22,12 +25,37 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
     address: "",
     latitude: "",
     longitude: "",
+    type: "",
   });
   const [addressOptions, setAddressOptions] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
+  const handleStartDateChange = (field, date) => {
+    let formattedValue = date;
+
+    if (field === "date" && date) {
+      formattedValue = new Date(date).toISOString().split("T")[0];
+    }
+
+    setStartDate(date);
+    setFormData((prev) => ({ ...prev, start_date: formattedValue }));
+  };
+
+  const handleEndDateChange = (field, date) => {
+    let formattedValue = date;
+
+    if (field === "date" && date) {
+      formattedValue = new Date(date).toISOString().split("T")[0];
+    }
+
+    setEndDate(date);
+    setFormData((prev) => ({ ...prev, end_date: formattedValue }));
+  };
 
   useEffect(() => {
     if (store) {
-      setFormData({
+      const newFormData = {
         id: store.id,
         outlet_name: store.outlet_name || "",
         outlet_phone: store.outlet_phone || "",
@@ -35,7 +63,15 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
         address: store.outlet_address?.address || "",
         latitude: store.outlet_address?.coordinates?.lat || "",
         longitude: store.outlet_address?.coordinates?.lng || "",
-      });
+        type: typeStoreHelper.getTypeKey(store.type) || "",
+        limit_order: store.limit_order || "",
+        start_date: store.start_date || null,
+        end_date: store.end_date || null,
+      };
+
+      setFormData(newFormData);
+      setStartDate(store.start_date ? new Date(store.start_date) : null);
+      setEndDate(store.end_date ? new Date(store.end_date) : null);
 
       if (store.outlet_address?.address) {
         setAddressOptions([
@@ -94,6 +130,10 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
             lng: formData.longitude,
           },
         },
+        type: formData.type || null,
+        limit_order: formData.limit_order ?? null,
+        start_date: formData.start_date || null,
+        end_date: formData.end_date || null,
       };
 
       const response = await Api.updateStore(updateData);
@@ -120,7 +160,7 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
         borderRadius={2}
         width={600}
         mx="auto"
-        mt="10%"
+        mt="5%"
       >
         <Typography variant="h6" mb={2}>
           Edit Store
@@ -194,10 +234,68 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
                 </Select>
               </FormControl>
             </Box>
+
+            <Box mb={2}>
+              <Typography variant="body1">Type</Typography>
+              <FormControl fullWidth>
+                <Select
+                  labelId="type-select-label"
+                  name="type"
+                  value={formData.type || ""}
+                  onChange={handleChange}
+                >
+                  {typeStore.map((t) => (
+                    <MenuItem key={t.key} value={t.key}>
+                      {t.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <TextField
+                label="Limit Order Per Day"
+                name="limit_order"
+                value={formData.limit_order ?? ""}
+                onChange={handleChange}
+                fullWidth
+                margin="dense"
+                type="number"
+                sx={{ mb: 2 }}
+              />
+            </Box>
+            <Box>
+              <InputLabel>Start Date</InputLabel>
+              <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
+                <CustomeDatePicker
+                  startDate={startDate || null}
+                  handleDateChange={(date) =>
+                    handleStartDateChange("date", date)
+                  }
+                  placeholderText="Select a date"
+                  isClearable={true}
+                  selectsRange={false}
+                  sx={{ height: "200px" }}
+                />
+              </FormControl>
+            </Box>
+            <Box>
+              <InputLabel>End Date</InputLabel>
+              <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
+                <CustomeDatePicker
+                  startDate={endDate || null}
+                  handleDateChange={(date) => handleEndDateChange("date", date)}
+                  placeholderText="Select a date"
+                  isClearable={true}
+                  selectsRange={false}
+                />
+              </FormControl>
+            </Box>
           </>
         )}
 
-        <Grid container spacing={2} mt={2}>
+        <Grid container spacing={2} mt={1}>
           <Grid item xs={6}>
             <Button
               onClick={handleSubmit}

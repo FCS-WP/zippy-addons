@@ -30,9 +30,10 @@ const TakeAwayForm = ({ onChangeMode, isEnableDelivery }) => {
       quantity: getSelectProductId()[1],
       order_mode: "takeaway",
       current_cart: cartType,
-      outlet_name: takeawayData.outlet.name,
+      outlet_name: takeawayData.outlet.outlet_name,
       time: takeawayData.time,
       date: takeawayData.date,
+      outlet_id: takeawayData.outlet.id,
     };
 
     const response = await webApi.addToCart(params);
@@ -52,7 +53,6 @@ const TakeAwayForm = ({ onChangeMode, isEnableDelivery }) => {
       window.location.reload(true);
       setIsLoading(false);
     }, 2000);
-   
   };
 
   useEffect(() => {

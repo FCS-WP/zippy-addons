@@ -30,7 +30,7 @@ export const triggerCloseLightbox = () => {
 
 export const dataRetailStore = [
   {
-    name: "Katong Shopping Centre",
+    outlet_name: "Katong Shopping Centre",
     start_date: "2025-07-23",
     end_date: "2070-08-23",
     disable_start: "2025-08-09",

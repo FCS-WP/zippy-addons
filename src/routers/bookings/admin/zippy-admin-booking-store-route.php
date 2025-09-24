@@ -45,8 +45,18 @@ class Zippy_Admin_Booking_Store_Route extends Zippy_Booking_Router
             'callback' => array(Zippy_Admin_Booking_Store_Controller::class, 'zippy_delete_store'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
-
-
+        // GET store by type
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/stores-by-type', array(
+            'methods' => 'GET',
+            'callback' => array(Zippy_Admin_Booking_Store_Controller::class, 'zippy_get_store_by_type'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        ));
+        // Check remain order
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/check-remain-order', array(
+            'methods' => 'GET',
+            'callback' => array(Zippy_Admin_Booking_Store_Controller::class, 'zippy_check_remain_order'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        ));
 
         // CREATE a new store config
         register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/store-config', array(

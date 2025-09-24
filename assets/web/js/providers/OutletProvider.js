@@ -8,6 +8,7 @@ import {
   getSelectProductId,
 } from "../helper/booking";
 import { format } from "date-fns";
+import { SHOP_TYPE } from "../consts/consts";
 
 const OutletProvider = ({ children }) => {
   const [outlets, setOutlets] = useState([]);
@@ -19,22 +20,70 @@ const OutletProvider = ({ children }) => {
 
   const checkCartType = async () => {
     const currentPath = window.location.pathname;
-    let is_retail = currentPath.includes("retail-store");
-    let is_popup = currentPath.includes("popup-reservation");
+    let is_retail = currentPath.includes(SHOP_TYPE.RETAIL);
+    let is_popup = currentPath.includes(SHOP_TYPE.POPUP_RESERVATION);
     if (is_retail || is_popup) {
-      setCartType(is_retail ? "retail-store" : "popup-reservation");
+      setCartType(is_retail ? SHOP_TYPE.RETAIL : SHOP_TYPE.POPUP_RESERVATION);
       let donaOutletData = is_retail ? dataRetailStore : dataPopupReservation;
     }
   };
 
   useEffect(() => {
     if (cartType) {
-      let donaOutletData =
-        cartType === "retail-store" ? dataRetailStore : dataPopupReservation;
-      setCustomOutletData(donaOutletData);
-      setCustomOutletSelected(donaOutletData[0]);
+      getStoreData();
     }
   }, [cartType]);
+
+  const getStoreData = async () => {
+    const dataStore = await getStoreByType();
+    let donaOutletData = dataStore;
+
+    donaOutletData = filterOutlet(donaOutletData);
+
+    setCustomOutletData(donaOutletData);
+    setCustomOutletSelected(donaOutletData[0]);
+  };
+
+  const filterOutlet = (data) => {
+    const today = new Date().toISOString().split("T")[0];
+
+    return data.filter((store) => {
+      const { start_date, end_date } = store;
+
+      if (!start_date && !end_date) {
+        return true;
+      }
+
+      if (start_date && end_date) {
+        return start_date <= today && today <= end_date;
+      }
+
+      if (start_date && !end_date) {
+        return start_date <= today;
+      }
+
+      if (!start_date && end_date) {
+        return today <= end_date;
+      }
+
+      return false;
+    });
+  };
+
+  const getStoreByType = async () => {
+    try {
+      const { data: response } = await webApi.getStoresByType({
+        type: cartType,
+      });
+
+      if (response) {
+        return response.data;
+      }
+    } catch (error) {
+      showAlert("error", "Failed!", "Can not get retail stores!");
+      return [];
+    }
+  };
 
   const getConfigOutlet = async () => {
     try {

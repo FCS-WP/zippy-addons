@@ -23,11 +23,11 @@ const OrderForm = ({ productId, quantity }) => {
     setMode(method);
   };
 
-  useEffect(()=>{
-    setTimeout(()=>{
+  useEffect(() => {
+    setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (mode === "delivery") {
@@ -47,25 +47,20 @@ const OrderForm = ({ productId, quantity }) => {
     <OutletProvider>
       <>
         {isLoading ? (
-          <Box py={5} display={'flex'} justifyContent={'center'}>
+          <Box py={5} display={"flex"} justifyContent={"center"}>
             <CircularProgress color="secondary" size={40} />
           </Box>
         ) : (
           <>
-            
             {mode === "select-method" && (
               <Box>
-                <SelectMethod
-                  onChangeMode={handleChangeMethod}
-                />
+                <SelectMethod onChangeMode={handleChangeMethod} />
               </Box>
             )}
 
             {mode === "takeaway" && (
               <Box id="zippy-takeaway-form">
-                <TakeAwayForm
-                  onChangeMode={handleChangeMethod}
-                />
+                <TakeAwayForm onChangeMode={handleChangeMethod} />
               </Box>
             )}
           </>

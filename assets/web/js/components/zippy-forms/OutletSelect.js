@@ -52,80 +52,76 @@ const OutletSelect = ({
     customOutletData,
     customOutletSelected,
     setCustomOutletSelected,
+    cartType,
   } = useContext(OutletContext);
 
-  const defaultTime = [
-    {
-      from: "10:30",
-      to: "11:30",
-    },
-    {
-      from: "11:30",
-      to: "12:30",
-    },
-    {
-      from: "12:30",
-      to: "13:30",
-    },
-    {
-      from: "13:30",
-      to: "14:30",
-    },
-    {
-      from: "14:30",
-      to: "15:30",
-    },
-    {
-      from: "15:30",
-      to: "16:30",
-    },
-  ];
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [mapRoute, setMapRoute] = useState(null);
-  const [times, setTimes] = useState(defaultTime);
+  const [times, setTimes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [donaSelectedOutlet, setDonaSelectedOutlet] =
     useState(customOutletSelected);
 
+  useEffect(() => {
+    if (selectedDate) {
+      const deliveryTimes = getDeliveryTimes();
+      setTimes(deliveryTimes);
+    }
+  }, [selectedDate]);
+
+  // Get delivery times based on selected date
+  const getDeliveryTimes = () => {
+    if (!selectedDate || !donaSelectedOutlet?.operating_hours) return [];
+
+    const weekday = selectedDate.getDay();
+
+    const dayConfig = donaSelectedOutlet.operating_hours.find(
+      (oh) => Number(oh.week_day) === weekday
+    );
+
+    if (!dayConfig) return [];
+
+    if (Array.isArray(dayConfig.delivery.delivery_hours)) {
+      return dayConfig.delivery.delivery_hours;
+    }
+
+    return [];
+  };
+
   const handleTimes = async () => {
     setIsLoading(true);
     let configTime = [];
-    if (!selectedDate || selectedOutlet?.operating_hours.length <= 0) {
+
+    if (
+      !selectedDate ||
+      !donaSelectedOutlet?.operating_hours ||
+      donaSelectedOutlet.operating_hours.length <= 0
+    ) {
       setSelectedTime("");
       // setTimes(configTime);
       setIsLoading(false);
       return false;
     }
 
-    const openingHours = selectedOutlet?.operating_hours.find((item) => {
-      return parseInt(item.week_day) === selectedDate.getDay();
-    });
-
     switch (type) {
-      case "delivery":
-        if (!openingHours.delivery || openingHours.delivery.enable === "F") {
-          setSelectedTime("");
-          setTimes(configTime);
-          setIsLoading(false);
-          return false;
-        }
-        const deliverySlots = await handleCheckSlot();
-        configTime = getAvailableDeliveryTimes(deliverySlots);
-
-        break;
       case "takeaway":
-        if (!selectedOutlet.takeaway) {
-          setSelectedTime("");
-          // setTimes(configTime);
-          setIsLoading(false);
-          return false;
+        //Check limit order per day
+        if (donaSelectedOutlet.limit_order) {
+          const remainOrder = await handleCheckLimitOrder();
+          if (!remainOrder) {
+            setTimes([]);
+            break;
+          }
         }
-        configTime = generateTimeSlots(
-          openingHours?.open_at,
-          openingHours?.close_at,
-          selectedOutlet?.takeaway.timeslot_duration
-        );
+
+        if (cartType != "popup-reservation") {
+          break;
+        }
+
+        const deliverySlots = await handleCheckSlot();
+        setTimes(deliverySlots);
+        break;
       default:
         break;
     }
@@ -149,8 +145,8 @@ const OutletSelect = ({
     try {
       const params = {
         from: {
-          lat: selectedOutlet.outlet_address.coordinates.lat,
-          lng: selectedOutlet.outlet_address.coordinates.lng,
+          lat: donaSelectedOutlet.outlet_address.coordinates.lat,
+          lng: donaSelectedOutlet.outlet_address.coordinates.lng,
         },
         to: {
           lat: selectedLocation.LATITUDE,
@@ -192,15 +188,15 @@ const OutletSelect = ({
   }, [donaSelectedOutlet, selectedDate, selectedTime]);
 
   useEffect(() => {
-    if (selectedLocation && selectedOutlet) {
+    if (selectedLocation && donaSelectedOutlet) {
       handleDistance();
     }
-  }, [selectedLocation, selectedOutlet]);
+  }, [selectedLocation, donaSelectedOutlet]);
 
   const handleCheckSlot = async () => {
     const params = {
       billing_date: format(selectedDate, "yyyy-MM-dd"),
-      outlet_id: selectedOutlet.id,
+      outlet_id: donaSelectedOutlet.id,
       product_id: getSelectProductId(),
     };
 
@@ -209,6 +205,20 @@ const OutletSelect = ({
       return [];
     }
     return response.data.delivery_hours;
+  };
+
+  const handleCheckLimitOrder = async () => {
+    const params = {
+      billing_date: format(selectedDate, "yyyy-MM-dd"),
+      outlet_id: donaSelectedOutlet.id,
+    };
+
+    const { data: response } = await webApi.checkRemainOrder(params);
+    if (!response || response.status !== "success") {
+      return [];
+    }
+
+    return response.data;
   };
 
   useEffect(() => {
@@ -292,7 +302,7 @@ const OutletSelect = ({
             customOutletData.map((outlet, index) => (
               <MenuItem key={index} value={outlet}>
                 <Typography sx={{ textWrap: "wrap" }} fontSize={14}>
-                  {outlet.name}
+                  {outlet.outlet_name}
                 </Typography>
               </MenuItem>
             ))}
@@ -304,7 +314,7 @@ const OutletSelect = ({
         )}
       </FormControl>
 
-      {selectedOutlet && (
+      {donaSelectedOutlet && (
         <Box>
           {/* Select Date */}
           <Box my={3}>
