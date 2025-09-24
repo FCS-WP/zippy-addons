@@ -159,8 +159,10 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
         boxShadow={3}
         borderRadius={2}
         width={600}
+        maxHeight="80vh"
         mx="auto"
         mt="5%"
+        sx={{ overflowY: "auto" }}
       >
         <Typography variant="h6" mb={2}>
           Edit Store
