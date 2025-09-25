@@ -209,25 +209,21 @@ class Zippy_Orders_Controller
 
     $added_items = [];
     $item        = $order->get_item($item_id);
-
-    // Handle addons
-    $addon_meta = [];
-    if (!empty($addons) && is_array($addons)) {
-        $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
-        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
-    } else {
-        // Set tax for simple product
-        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
-    }
-
     $added_items = [
         'product_id' => $product_id,
         'quantity'   => $quantity,
         'item_id'    => $item_id,
     ];
 
-    if (!empty($addon_meta)) {  
+    // Handle addons
+    $addon_meta = [];
+    if (!empty($addons) && is_array($addons)) {
+        $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
+        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
         $added_items['addons'] = $addon_meta;
+    } else {
+        // Set tax for simple product
+        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
     }
 
     self::updateMetaData($order, $item_id, 'packing_instructions', $packing_instructions);
