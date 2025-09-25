@@ -259,9 +259,6 @@ class Zippy_Products_Controller
 
         $cmp = strcmp($a_cat, $b_cat);
 
-        if ($cmp === 0) {
-          return strcmp($a->get_name(), $b->get_name());
-        }
         return $cmp;
       });
 
@@ -413,7 +410,7 @@ class Zippy_Products_Controller
       'status'   => 'publish',
       'paginate' => true,
       'order' => 'asc',
-      'orderby' => 'title',
+      'orderby' => 'menu_order',
       'tax_query' => [
         [
           'taxonomy' => 'product_cat',
