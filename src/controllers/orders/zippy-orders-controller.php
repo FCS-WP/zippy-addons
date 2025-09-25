@@ -169,126 +169,112 @@ class Zippy_Orders_Controller
   }
 
 
-  public static function add_product_to_order(WP_REST_Request $request)
+  public static function add_product_to_order(WP_REST_Request $request) 
   {
     $required_fields = [
-      "order_id" => ["required" => true, "data_type" => "integer"],
-      "parent_product_id" => ["required" => true, "data_type" => "integer"],
-      "quantity" => ["required" => true, "data_type" => "integer"],
+        "order_id"           => ["required" => true, "data_type" => "integer"],
+        "parent_product_id"  => ["required" => true, "data_type" => "integer"],
+        "quantity"           => ["required" => true, "data_type" => "integer"],
+        "packing_instructions" => ["required" => false, "data_type" => "string"],
     ];
 
     $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
     if (!empty($validate)) {
-      return Zippy_Response_Handler::error($validate);
+        return Zippy_Response_Handler::error($validate);
     }
 
     $order_id = intval($request->get_param('order_id'));
     $order    = wc_get_order($order_id);
-
     if (!$order) {
-      return Zippy_Response_Handler::error('Order not found.');
+        return Zippy_Response_Handler::error('Order not found.');
     }
 
-    // Handle addons (array of product_id + quantity)
-    $addons = $request->get_param('addons');
-    $added_items = [];
+    $product_id   = intval($request->get_param('parent_product_id'));
+    $quantity     = max(1, intval($request->get_param('quantity')));
+    $packing_instructions = sanitize_text_field($request->get_param('packing_instructions'));
+    $addons       = $request->get_param('addons');
 
-    // Handle add product with addons
-    if (!empty($addons) && is_array($addons)) {
-      $product_parent_id = intval($request->get_param('parent_product_id'));
-      $quantity          = max(1, intval($request->get_param('quantity')));
-      $product_parent    = wc_get_product($product_parent_id);
-
-      if (!$product_parent) {
-        return Zippy_Response_Handler::error('Parent product not found.');
-      }
-
-      $product_price = get_product_pricing_rules($product_parent, 1);
-
-
-      $item_id = $order->add_product($product_parent, $quantity);
-
-      if (is_wp_error($item_id)) {
-        return Zippy_Response_Handler::error('Failed to add parent product to order.');
-      }
-
-      $item = $order->get_item($item_id);
-
-      $tax = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
-
-      $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
-
-      if ($item && !is_wp_error($item) && !empty($addon_meta)) {
-
-        $item->update_meta_data('akk_selected', $addon_meta);
-
-        $added_items[] = [
-          'product_id' => $product_parent_id,
-          'quantity'   => $quantity,
-          'item_id'    => $item_id,
-          'addons'     => $addon_meta,
-        ];
-
-        if (!is_composite_product($product_parent)) {
-
-          $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
-
-          $tax = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total, $quantity);
-
-          if ($tax == false) {
-            return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
-          }
-        }
-
-        $item->save();
-      }
-    } else {
-      //Hanle for Simple Product without addons
-
-      $product_id = intval($request->get_param('parent_product_id'));
-      $quantity   = max(1, intval($request->get_param('quantity')));
-
-      if (!$product_id) {
-        return Zippy_Response_Handler::error('Product ID is required.');
-      }
-
-      $product = wc_get_product($product_id);
-
-      if (!$product) {
+    $product = wc_get_product($product_id);
+    if (!$product) {
         return Zippy_Response_Handler::error('Product not found.');
-      }
+    }
 
-      $product_price = get_product_pricing_rules($product, 1);
+    $product_price = get_product_pricing_rules($product, 1);
 
-
-      $item_id = $order->add_product($product, $quantity);
-
-      $simple_item = $order->get_item($item_id);
-
-      $tax = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($simple_item, $product_price, $quantity);
-
-      if (is_wp_error($item_id)) {
+    // Add parent product to order
+    $item_id = $order->add_product($product, $quantity);
+    if (is_wp_error($item_id)) {
         return Zippy_Response_Handler::error('Failed to add product to order.');
-      }
+    }
 
-      $added_items[] = [
+    $added_items = [];
+    $item        = $order->get_item($item_id);
+
+    // Handle addons
+    $addon_meta = [];
+    if (!empty($addons) && is_array($addons)) {
+        $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
+        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
+    } else {
+        // Set tax for simple product
+        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
+    }
+
+    $added_items = [
         'product_id' => $product_id,
         'quantity'   => $quantity,
         'item_id'    => $item_id,
-      ];
+    ];
+
+    if (!empty($addon_meta)) {  
+        $added_items['addons'] = $addon_meta;
     }
 
+    self::updateMetaData($order, $item_id, 'packing_instructions', $packing_instructions);
+
     if (empty($added_items)) {
-      return Zippy_Response_Handler::error('No products were added to the order.');
+        return Zippy_Response_Handler::error('No products were added to the order.');
     }
 
     // Recalculate totals
     $order->calculate_totals();
 
     return Zippy_Response_Handler::success([
-      'order_id' => $order_id,
-      'items'    => $added_items,
-      'message'  => 'Products added to order successfully',
+        'order_id' => $order_id,
+        'items'    => $added_items,
+        'message'  => 'Products added to order successfully',
     ]);
+  }
+
+  private static function updateMetaData($order, $item_id, $key, $value) {
+      if (empty($value)) return;
+      $item = $order->get_item($item_id);
+      if ($item) {
+          $item->update_meta_data($key, $value);
+          // $item->save();
+      }
+  }
+
+  private static function handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price) 
+  {
+    if (empty($item) || empty($addon_meta)) {
+        return false;
+    }
+
+    $item->update_meta_data('akk_selected', $addon_meta);
+
+    // Set tax for no composite product
+    if (!is_composite_product($product)) {
+        $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
+        $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total, $quantity);
+        if ($tax === false) {
+            return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
+        }
+        return true;
+    }
+
+    // Set tax for composite product
+    Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
+    return true;
   }
 }

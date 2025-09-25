@@ -11,11 +11,21 @@ import {
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 
-const ProductDetails = ({ productID, orderID, quantity, addonMinOrder }) => {
+const ProductDetails = ({
+  productID,
+  orderID,
+  quantity,
+  addonMinOrder,
+  packingInstructions,
+}) => {
   const orderIDParam = orderID.orderID;
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
+
+  useEffect(() => {
+    console.log("Packing Instructions:", packingInstructions);
+  }, [packingInstructions]);
 
   /**
    * Fetch product addons
@@ -173,6 +183,7 @@ const ProductDetails = ({ productID, orderID, quantity, addonMinOrder }) => {
         addons: selected,
         parent_product_id: productID,
         quantity: quantity,
+        packing_instructions: packingInstructions || "",
       };
       const response = await generalAPI.addProductsToOrder(params);
       if (response.data.status === "success") {
