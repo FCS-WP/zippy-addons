@@ -329,15 +329,6 @@ class Zippy_Products_Controller
 
       $results = wc_get_product(intval($request['productID']));
 
-      usort($results->products, function ($a, $b) {
-        $a_terms = wp_get_post_terms($a->get_id(), 'product_cat', ['orderby' => 'name']);
-        $b_terms = wp_get_post_terms($b->get_id(), 'product_cat', ['orderby' => 'name']);
-
-        $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
-        $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
-
-        return strcmp($a_cat, $b_cat);
-      });
 
       if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
 
