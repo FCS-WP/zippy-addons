@@ -90,7 +90,7 @@ class Zippy_Handle_Product_Add_On
         if ($qty > 0) {
           $product = wc_get_product($addon_id);
 
-          $data[$addon_id] = [$qty, get_pricing_price_in_cart($product, 1)]; // [0 -> quantity , 1 -> price]
+          $data[$addon_id] = [$qty, get_product_pricing_rules($product, 1)]; // [0 -> quantity , 1 -> price]
         }
       }
     }
