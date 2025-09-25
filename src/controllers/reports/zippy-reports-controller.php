@@ -116,13 +116,20 @@ class Zippy_Reports_Controller
     return [$order_rows, $product_summary];
   }
 
+  /**
+   * Sort product summary by category and menu_order
+   */
   private static function sort_product_summary(array $product_summary): array
   {
+    // Sort categories alphabetically
     ksort($product_summary);
+
+    // Sort products within each category by menu_order
     foreach ($product_summary as $category => &$products) {
         uasort($products, fn($a, $b) => $a['menu_order'] <=> $b['menu_order']);
     }
     unset($products);
+
     return $product_summary;
   }
 
@@ -195,9 +202,11 @@ class Zippy_Reports_Controller
       return [$rows, $product_summary];
   }
 
+  /**
+   * Create array summary of products to generate summary table
+   */
   private static function update_product_summary($product_summary, $product, $name, $qty)
   {
-      // Lấy category
       $categoryNames = wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'names']);
       $categoryIds   = wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'ids']);
       $categoryName  = !empty($categoryNames) ? $categoryNames[0] : 'Uncategorized';
