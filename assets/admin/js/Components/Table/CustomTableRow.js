@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Button,
@@ -9,10 +9,13 @@ import {
   Stack,
   IconButton,
   Collapse,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import theme from "../../../theme/theme";
 import ProductDetails from "../../Pages/Orders/AddProducts/ProductDetails";
+import PackingInstruction from "../../Pages/Orders/AddProducts/PackingInstruction";
 
 const CustomTableRow = ({
   hideCheckbox = false,
@@ -26,25 +29,40 @@ const CustomTableRow = ({
   isSubtableRow = false,
   showCollapseProp = false,
   onAddProduct, // callback for adding product
-  onQuantityChange, // callback for updating quantity
+  onSubTableChange, // callback for updating sub row table [quantity, packing instructions]
 }) => {
   const minOrder = row.MinOrder ?? 0;
   const [disabled, setDisabled] = useState(true && minOrder <= 0);
   const [showCollapse, setShowCollapse] = useState(showCollapseProp);
-
+  const [showCollapsePackingInstruction, setShowCollapsePackingInstruction] =
+    useState(false);
   const handleToggleCollapse = () => {
     setShowCollapse((prev) => !prev);
   };
   const [quantity, setQuantity] = useState(minOrder);
+  const [packingInstructions, setPackingInstructions] = useState("");
 
-  const handleQuantityChange = (e) => {
-    setDisabled(false);
-    const inputValue = parseInt(e.target.value, 10) || 0;
-    const clampedValue = inputValue < minOrder ? minOrder : inputValue;
+  const handleSubTableChange = (e) => {
+    const { name, value } = e.target;
 
-    setQuantity(clampedValue);
-    if (onQuantityChange) {
-      onQuantityChange(row, clampedValue);
+    if (name === "quantity") {
+      setDisabled(false);
+      const inputValue = parseInt(value, 10) || 0;
+      const clampedValue = inputValue < minOrder ? minOrder : inputValue;
+      setQuantity(clampedValue);
+      if (onSubTableChange) {
+        row.quantity = clampedValue;
+        onSubTableChange(row);
+      }
+    }
+
+    // Update packing instructions state
+    if (name === "packingInstructions") {
+      setPackingInstructions(value);
+      row.packingInstructions = value;
+      if (onSubTableChange) {
+        onSubTableChange(row);
+      }
     }
   };
 
@@ -63,9 +81,10 @@ const CustomTableRow = ({
       justifyContent={"flex-end"}
     >
       <TextField
+        name="quantity"
         type="number"
         value={quantity}
-        onChange={handleQuantityChange}
+        onChange={handleSubTableChange}
         size="small"
         sx={{ width: "70px" }}
       />
@@ -74,10 +93,11 @@ const CustomTableRow = ({
           variant="contained"
           color="primary"
           size="small"
-          onClick={handleAddProduct}
+          // onClick={handleAddProduct}
+          onClick={() => setShowCollapsePackingInstruction((prev) => !prev)}
           disabled={disabled}
         >
-          Add Product
+          {showCollapsePackingInstruction ? "Hide" : "Add to Order"}
         </Button>
       )}
       {Object.keys(row.ADDONS || {}).length > 0 && (
@@ -92,7 +112,6 @@ const CustomTableRow = ({
       )}
     </Stack>
   );
-
   return (
     <>
       <TableRow
@@ -110,22 +129,50 @@ const CustomTableRow = ({
         ))}
       </TableRow>
 
-      {/* Collapsible Addons */}
+      {/* Case ADDONS = 0 */}
+      {Object.keys(row.ADDONS || {}).length === 0 && (
+        <TableRow>
+          <TableCell
+            colSpan={cols.length}
+            style={{ paddingBottom: 0, paddingTop: 0 }}
+          >
+            <Collapse
+              in={showCollapsePackingInstruction}
+              timeout="auto"
+              unmountOnExit
+            >
+              <PackingInstruction
+                value={packingInstructions}
+                onChange={handleSubTableChange}
+                showButton
+                onAdd={handleAddProduct}
+                disabled={disabled}
+              />
+            </Collapse>
+          </TableCell>
+        </TableRow>
+      )}
+
+      {/* Case ADDONS > 0 */}
       {Object.keys(row.ADDONS || {}).length > 0 && (
         <TableRow>
           <TableCell
-            style={{ paddingBottom: 0, paddingTop: 0 }}
             colSpan={cols.length}
+            style={{ paddingBottom: 0, paddingTop: 0 }}
           >
             <Collapse in={showCollapse} timeout="auto" unmountOnExit>
-              <Box mb={2} mt={1}>
-                <ProductDetails
-                  productID={row.productID}
-                  orderID={row.orderID}
-                  quantity={quantity}
-                  addonMinOrder={row.MinAddons}
-                />
-              </Box>
+              <PackingInstruction
+                value={packingInstructions}
+                onChange={handleSubTableChange}
+              />
+
+              <ProductDetails
+                productID={row.productID}
+                orderID={row.orderID}
+                quantity={quantity}
+                addonMinOrder={row.MinAddons}
+                packingInstructions={row.packingInstructions}
+              />
             </Collapse>
           </TableCell>
         </TableRow>

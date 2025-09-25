@@ -67,7 +67,6 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
 
   const addSimpleProduct = useCallback(async () => {
     if (Object.keys(simpleProduct).length === 0) return;
-
     try {
       const { data } = await generalAPI.addProductsToOrder(simpleProduct);
 
@@ -98,6 +97,8 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
       MinAddons: item.min_addons,
       MinOrder: item.min_order,
       ADDONS: item.addons || {},
+      packingInstructions: "",
+      quantity: item.min_order,
     }));
 
   /**
@@ -162,14 +163,16 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     [data]
   );
 
-  const handleSubTableChangeQuantity = (row, value) => {
+  const handleSubTableChange = (row) => {
     const params = {
       order_id: orderID.orderID,
       parent_product_id: row.productID,
-      quantity: value,
+      quantity: row.quantity,
+      packing_instructions: row.packingInstructions || "",
     };
     setSimpleProduct(params);
   };
+
   const handleSubTableAddProduct = (row) => {
     addSimpleProduct();
     setSimpleProduct({});
@@ -180,7 +183,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
    */
   const columnWidths = {
     IMAGE: "10%",
-    ID: "20%",
+    ID: "10%",
     NAME: "auto",
     QUANTITY: "20%",
     ACTION: "20%",
@@ -212,7 +215,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
                 rows={rowsWithInputs}
                 className="table-products"
                 handleSubTableAddProduct={handleSubTableAddProduct}
-                handleSubTableChangeQuantity={handleSubTableChangeQuantity}
+                handleSubTableChange={handleSubTableChange}
               />
 
               <TablePaginationCustom
