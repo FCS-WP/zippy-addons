@@ -236,8 +236,7 @@ class Zippy_Orders_Controller
         return Zippy_Response_Handler::error('No products were added to the order.');
     }
 
-    // Recalculate totals
-    $order->calculate_totals();
+    // $order->calculate_totals();
 
     return Zippy_Response_Handler::success([
         'order_id' => $order_id,
@@ -247,7 +246,10 @@ class Zippy_Orders_Controller
   }
 
   private static function updateMetaData($order, $item_id, $key, $value) {
-      if (empty($value)) return;
+      if (empty($value)) {
+        return;
+      }
+
       $item = $order->get_item($item_id);
       if ($item) {
           $item->update_meta_data($key, $value);
