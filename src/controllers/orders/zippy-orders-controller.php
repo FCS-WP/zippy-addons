@@ -199,6 +199,8 @@ class Zippy_Orders_Controller
         return Zippy_Response_Handler::error('Product not found.');
     }
 
+    $product_price = get_product_pricing_rules($product, 1);
+
     // Add parent product to order
     $item_id = $order->add_product($product, $quantity);
     if (is_wp_error($item_id)) {
@@ -212,7 +214,10 @@ class Zippy_Orders_Controller
     $addon_meta = [];
     if (!empty($addons) && is_array($addons)) {
         $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
-        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta);
+        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
+    } else {
+        // Set tax for simple product
+        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
     }
 
     $added_items = [
@@ -246,24 +251,30 @@ class Zippy_Orders_Controller
       $item = $order->get_item($item_id);
       if ($item) {
           $item->update_meta_data($key, $value);
-          $item->save();
+          // $item->save();
       }
   }
 
-  private static function handleUpdateOrderAddons($item, $quantity, $product, $addon_meta) 
+  private static function handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price) 
   {
-    if (!empty($addon_meta) && $item) {
-        $item->update_meta_data('akk_selected', $addon_meta);
-
-        if (!is_composite_product($product)) {
-            $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
-            $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total, $quantity);
-            if ($tax === false) {
-                return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
-            }
-        }
-
-        $item->save();
+    if (empty($item) || empty($addon_meta)) {
+        return false;
     }
+
+    $item->update_meta_data('akk_selected', $addon_meta);
+
+    // Set tax for no composite product
+    if (!is_composite_product($product)) {
+        $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
+        $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total, $quantity);
+        if ($tax === false) {
+            return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
+        }
+        return true;
+    }
+
+    // Set tax for composite product
+    Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
+    return true;
   }
 }
