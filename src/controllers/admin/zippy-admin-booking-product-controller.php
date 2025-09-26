@@ -9,6 +9,7 @@ use Zippy_booking\Src\App\Models\Zippy_Log_Action;
 use Zippy_Booking\Src\Services\One_Map_Api;
 use Zippy_Booking\Utils\Zippy_Session_Handler;
 use Zippy_Booking\Utils\Zippy_Cart_Handler;
+use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
 
 defined('ABSPATH') or die();
 
@@ -136,9 +137,9 @@ class Zippy_Admin_Booking_Product_Controller
             return ['error' => "Shipping config for outlet: $outlet_id does not exist!"];
         }
 
-        $delivery_fee = self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_delivery), $total_distance);
-        $freeship_fee = self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_freeship), $total_distance);
-        $extra_fee = self::calculate_extra_fee(maybe_unserialize($config->extra_fee), $delivery_address);
+        $delivery_fee = Zippy_Handle_Shipping::get_fee_from_config(maybe_unserialize($config->minimum_order_to_delivery), $total_distance);
+        $freeship_fee = Zippy_Handle_Shipping::get_fee_from_config(maybe_unserialize($config->minimum_order_to_freeship), $total_distance);
+        $extra_fee = Zippy_Handle_Shipping::calculate_extra_fee(maybe_unserialize($config->extra_fee), $delivery_address);
         return [
             "total_distance" => $total_distance,
             "shipping_fee" => $delivery_fee,
@@ -150,39 +151,8 @@ class Zippy_Admin_Booking_Product_Controller
         ];
     }
 
-    private static function get_fee_from_config($config_data, $distance)
-    {
-        foreach ($config_data as $rule) {
-            $rule["lower_than"] = $rule["lower_than"] ?? self::MAX_DISTANCE;
-            if ($distance >= $rule["greater_than"] && $distance <= $rule["lower_than"]) {
-                return $rule["fee"];
-            }
-        }
-        return 0;
-    }
 
-    private static function get_portal_code_from_address($address)
-    {
-        $array_string  = explode(" ", $address);
-        $address = end($array_string);
-        return $address;
-    }
 
-    private static function calculate_extra_fee($config_data, $delivery_address)
-    {
-
-        $address = self::get_portal_code_from_address($delivery_address["address_name"]);
-        foreach ($config_data as $rule) {
-            if (
-                $rule["type"] === "postal_code" &&
-                $address >= $rule["from"] &&
-                $address <= $rule["to"]
-            ) {
-                return $rule['fee'];
-            }
-        }
-        return 0;
-    }
 
     private static function extract_common_data($request)
     {
