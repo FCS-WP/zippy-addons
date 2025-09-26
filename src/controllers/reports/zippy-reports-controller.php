@@ -126,7 +126,7 @@ class Zippy_Reports_Controller
 
     // Sort products within each category by menu_order
     foreach ($product_summary as $category => &$products) {
-        uasort($products, fn($a, $b) => $a['menu_order'] <=> $b['menu_order']);
+      uasort($products, fn($a, $b) => $a['menu_order'] <=> $b['menu_order']);
     }
     unset($products);
 
@@ -138,27 +138,27 @@ class Zippy_Reports_Controller
    */
   private static function process_item($order, $item, $phone, $mode, $product_summary)
   {
-      $name = $item->get_name();
-      $qty  = $item->get_quantity();
-      $total  = $item->get_total();
-      $tax_total  = $item->get_total_tax();
+    $name = $item->get_name();
+    $qty  = $item->get_quantity();
+    $total  = $item->get_total();
+    $tax_total  = $item->get_total_tax();
 
-      $product = wc_get_product($item->get_product_id());
-      $product_summary = self::update_product_summary($product_summary, $product, $name, $qty);
+    $product = wc_get_product($item->get_product_id());
+    $product_summary = self::update_product_summary($product_summary, $product, $name, $qty);
 
-      // Build row
-      $row = [
-        'order_number'   => '#' . $order->get_id(),
-        'phone'          => $phone,
-        'mode'           => $mode,
-        'time'           => self::format_time_slot($order->get_meta(BILLING_TIME)),
-        'item'           => $name,
-        'quantity'       => $qty,
-        'total_price' => html_entity_decode(strip_tags(wc_price($total + $tax_total))),
-        'payment_status' =>  $order->get_transaction_id() ? 'Paid' : 'Pending Payment'
-      ];
+    // Build row
+    $row = [
+      'order_number'   => '#' . $order->get_id(),
+      'phone'          => $phone,
+      'mode'           => $mode,
+      'time'           => self::format_time_slot($order->get_meta(BILLING_TIME)),
+      'item'           => $name,
+      'quantity'       => $qty,
+      'total_price' => html_entity_decode(strip_tags(wc_price($total + $tax_total))),
+      'payment_status' =>  $order->get_status()
+    ];
 
-      return [$row, $product_summary];
+    return [$row, $product_summary];
   }
 
   /**
@@ -185,7 +185,7 @@ class Zippy_Reports_Controller
         $total_addon  =  !is_array($add_on_qty) ? html_entity_decode(strip_tags(wc_price($add_on_product->get_price()))) : wc_price($add_on_qty[1]);
 
         $product_summary = self::update_product_summary($product_summary, $add_on_product, $add_on_name, $add_on_qty);
-        
+
         // Build row
         $rows[] = [
           'order_number'   => '#' . $order->get_id(),
@@ -199,7 +199,7 @@ class Zippy_Reports_Controller
       }
     }
 
-      return [$rows, $product_summary];
+    return [$rows, $product_summary];
   }
 
   /**
@@ -207,30 +207,30 @@ class Zippy_Reports_Controller
    */
   private static function update_product_summary($product_summary, $product, $name, $qty)
   {
-      $categoryNames = wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'names']);
-      $categoryIds   = wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'ids']);
-      $categoryName  = !empty($categoryNames) ? $categoryNames[0] : 'Uncategorized';
-      $categoryId    = !empty($categoryIds) ? $categoryIds[0] : 0;
-      $excludedIds   = [15, 23]; // ['uncategorized', 'add-ons']
+    $categoryNames = wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'names']);
+    $categoryIds   = wp_get_post_terms($product->get_id(), 'product_cat', ['fields' => 'ids']);
+    $categoryName  = !empty($categoryNames) ? $categoryNames[0] : 'Uncategorized';
+    $categoryId    = !empty($categoryIds) ? $categoryIds[0] : 0;
+    $excludedIds   = [15, 23]; // ['uncategorized', 'add-ons']
 
-      if (in_array($categoryId, $excludedIds)) {
-          return $product_summary;
-      }
-
-      if (!isset($product_summary[$categoryName])) {
-          $product_summary[$categoryName] = [];
-      }
-
-      if (!isset($product_summary[$categoryName][$name])) {
-          $product_summary[$categoryName][$name] = [
-              'qty'        => 0,
-              'menu_order' => $product->get_menu_order()
-          ];
-      }
-
-      $product_summary[$categoryName][$name]['qty'] += $qty;
-
+    if (in_array($categoryId, $excludedIds)) {
       return $product_summary;
+    }
+
+    if (!isset($product_summary[$categoryName])) {
+      $product_summary[$categoryName] = [];
+    }
+
+    if (!isset($product_summary[$categoryName][$name])) {
+      $product_summary[$categoryName][$name] = [
+        'qty'        => 0,
+        'menu_order' => $product->get_menu_order()
+      ];
+    }
+
+    $product_summary[$categoryName][$name]['qty'] += $qty;
+
+    return $product_summary;
   }
 
   /**
@@ -262,10 +262,10 @@ class Zippy_Reports_Controller
     fputcsv($output, ['Category', 'Product', 'Quantity'], ',');
 
     foreach ($product_summary as $category => $products) {
-        fputcsv($output, [$category, '', ''], ',');
-        foreach ($products as $product => $info) {
-            fputcsv($output, ['', $product, $info['qty']], ',');
-        }
+      fputcsv($output, [$category, '', ''], ',');
+      foreach ($products as $product => $info) {
+        fputcsv($output, ['', $product, $info['qty']], ',');
+      }
     }
 
     fseek($output, 0);
@@ -355,13 +355,13 @@ class Zippy_Reports_Controller
                 <tbody>';
 
     foreach ($product_summary as $category => $products) {
-        $html .= '<tr><td colspan="2" style="text-align:center;"><strong>' . esc_html($category) . '</strong></td></tr>';
-        foreach ($products as $product => $info) {
-            $html .= '<tr>
+      $html .= '<tr><td colspan="2" style="text-align:center;"><strong>' . esc_html($category) . '</strong></td></tr>';
+      foreach ($products as $product => $info) {
+        $html .= '<tr>
                         <td>' . esc_html($product) . '</td>
                         <td>' . esc_html($info['qty']) . '</td>
                       </tr>';
-        }
+      }
     }
 
     $html .= '</tbody></table>';

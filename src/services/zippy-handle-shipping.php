@@ -46,19 +46,19 @@ class Zippy_Handle_Shipping
     }
   }
 
-  private static function is_free_shipping($order_total,  $minimum_order_to_freeship)
+  public static function is_free_shipping($order_total,  $minimum_order_to_freeship)
   {
     return $order_total >= $minimum_order_to_freeship;
   }
 
-  private static function query_shipping()
+  public static function query_shipping()
   {
     global $wpdb;
     $table = OUTLET_SHIPPING_CONFIG_TABLE_NAME;
     return $wpdb->get_row("SELECT * FROM {$table}");
   }
 
-  private static function get_fee_from_config($config_data, $distance)
+  public static function get_fee_from_config($config_data, $distance)
   {
     foreach ($config_data as $rule) {
       $min = (float) ($rule['greater_than'] ?? 0);
@@ -71,7 +71,7 @@ class Zippy_Handle_Shipping
     return 0.0;
   }
 
-  private static function calculate_extra_fee($config_data, $delivery_address)
+  public static function calculate_extra_fee($config_data, $delivery_address)
   {
     $postal_code = self::extract_postal_code($delivery_address);
 
@@ -88,7 +88,7 @@ class Zippy_Handle_Shipping
     return 0;
   }
 
-  private static function extract_postal_code($address)
+  public static function extract_postal_code($address)
   {
     if (is_array($address) && !empty($address['address_name'])) {
       $address = $address['address_name'];
@@ -98,7 +98,7 @@ class Zippy_Handle_Shipping
     return trim(end($parts) ?: '');
   }
 
-  private static function add_shipping_item($order,  $method_title,  $total)
+  public static function add_shipping_item($order,  $method_title,  $total)
   {
     $shipping = new WC_Order_Item_Shipping();
     $shipping->set_method_title($method_title);
