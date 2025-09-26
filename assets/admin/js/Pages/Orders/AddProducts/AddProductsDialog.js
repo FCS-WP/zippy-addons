@@ -65,23 +65,33 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     }
   }, [params]);
 
-  const addSimpleProduct = useCallback(async () => {
-    if (Object.keys(simpleProduct).length === 0) return;
-    try {
-      const { data } = await generalAPI.addProductsToOrder(simpleProduct);
+  const addSimpleProduct = useCallback(
+    async (row) => {
+      // if (Object.keys(simpleProduct).length === 0) return;
+      try {
+        const params = {
+          order_id: orderID.orderID,
+          parent_product_id: row.productID,
+          quantity: row.quantity,
+          packing_instructions: row.packingInstructions || "",
+        };
 
-      if (data?.status === "success") {
-        toast.success("Product added to order successfully");
-      } else {
-        // Handle error case
-        console.error("Failed to add product to order:", data?.message);
+        const { data } = await generalAPI.addProductsToOrder(params);
+
+        if (data?.status === "success") {
+          toast.success("Product added to order successfully");
+        } else {
+          // Handle error case
+          console.error("Failed to add product to order:", data?.message);
+        }
+      } catch (error) {
+        console.error("Error adding product to order:", error);
+      } finally {
+        // window.location.reload();
       }
-    } catch (error) {
-      console.error("Error adding product to order:", error);
-    } finally {
-      window.location.reload();
-    }
-  }, [simpleProduct, fetchProducts]);
+    },
+    [simpleProduct, fetchProducts]
+  );
 
   const convertRows = (rows) =>
     rows.map((item) => ({
@@ -164,17 +174,17 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
   );
 
   const handleSubTableChange = (row) => {
-    const params = {
-      order_id: orderID.orderID,
-      parent_product_id: row.productID,
-      quantity: row.quantity,
-      packing_instructions: row.packingInstructions || "",
-    };
-    setSimpleProduct(params);
+    // const params = {
+    //   order_id: orderID.orderID,
+    //   parent_product_id: row.productID,
+    //   quantity: row.quantity,
+    //   packing_instructions: row.packingInstructions || "",
+    // };
+    // setSimpleProduct(params);
   };
 
   const handleSubTableAddProduct = (row) => {
-    addSimpleProduct();
+    addSimpleProduct(row);
     setSimpleProduct({});
   };
 

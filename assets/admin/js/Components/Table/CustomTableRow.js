@@ -42,6 +42,16 @@ const CustomTableRow = ({
   const [quantity, setQuantity] = useState(minOrder);
   const [packingInstructions, setPackingInstructions] = useState("");
 
+  useEffect(() => {
+    if (minOrder > 0) {
+      setQuantity(minOrder);
+      if (onSubTableChange) {
+        row.quantity = minOrder;
+        onSubTableChange(row);
+      }
+    }
+  }, [minOrder]);
+
   const handleSubTableChange = (e) => {
     const { name, value } = e.target;
 
