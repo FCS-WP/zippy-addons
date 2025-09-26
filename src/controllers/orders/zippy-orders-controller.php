@@ -8,7 +8,7 @@ use Dompdf\Dompdf;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Add_On;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Tax;
-
+use WC_Coupon;
 
 defined('ABSPATH') or die();
 
@@ -209,25 +209,21 @@ class Zippy_Orders_Controller
 
     $added_items = [];
     $item        = $order->get_item($item_id);
-
-    // Handle addons
-    $addon_meta = [];
-    if (!empty($addons) && is_array($addons)) {
-        $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
-        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
-    } else {
-        // Set tax for simple product
-        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
-    }
-
     $added_items = [
         'product_id' => $product_id,
         'quantity'   => $quantity,
         'item_id'    => $item_id,
     ];
 
-    if (!empty($addon_meta)) {  
+    // Handle addons
+    $addon_meta = [];
+    if (!empty($addons) && is_array($addons)) {
+        $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
+        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
         $added_items['addons'] = $addon_meta;
+    } else {
+        // Set tax for simple product
+        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
     }
 
     self::updateMetaData($order, $item_id, 'packing_instructions', $packing_instructions);
@@ -253,7 +249,7 @@ class Zippy_Orders_Controller
       $item = $order->get_item($item_id);
       if ($item) {
           $item->update_meta_data($key, $value);
-          // $item->save();
+          $item->save();
       }
   }
 
@@ -278,5 +274,195 @@ class Zippy_Orders_Controller
     // Set tax for composite product
     Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
     return true;
+  }
+
+  public static function get_order_info(WP_REST_Request $request) 
+  {
+    $required_fields = [
+        "order_id" => ["required" => true, "data_type" => "integer"],
+    ];
+
+    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    if (!empty($validate)) {
+        return Zippy_Response_Handler::error($validate);
+    }
+
+    $order_id = intval($request->get_param('order_id'));
+    $order    = wc_get_order($order_id);
+    if (!$order) {
+        return Zippy_Response_Handler::error('Order not found.');
+    }
+
+    $items = $order->get_items();
+    $shipping_items = $order->get_items('shipping');
+    $fee = $order->get_items('fee');
+    $coupon_items = $order->get_items('coupon');
+
+    $result = [];
+
+    foreach ($items as $item_id => $item) {
+        $akk_selected = $item->get_meta('akk_selected', true);
+        $akk_selected = maybe_unserialize($akk_selected);
+        $addons = [];
+
+        if (!empty($akk_selected)) {
+            foreach ($akk_selected as $addon_id => $values) {
+                $addon_product = wc_get_product($addon_id);
+                $addons[] = [
+                    'addon_id' => $addon_id,
+                    'name'     => $addon_product ? $addon_product->get_name() : '',
+                    'quantity' => $values[0] ?? 0,
+                    'price'    => $values[1] ?? 0,
+                ];
+            }
+        }
+        $product = $item->get_product();
+        $result['products'][$item_id] = [
+            'product_id'    => $product ? $product->get_id() : 0,
+            'name'           => $product ? $product->get_name() : '',
+            'img_url'       => $product ? wp_get_attachment_url($product->get_image_id()) : '',
+            'sku'           => $product ? $product->get_sku() : '',
+            'quantity'       => $item->get_quantity(),
+            'addons'         => $addons,
+            'price_total'    => wc_format_decimal( $item->get_subtotal(), wc_get_price_decimals() ),
+            'tax_total'      => wc_format_decimal( $item->get_subtotal_tax(), wc_get_price_decimals() ),
+            'price_per_item' => wc_format_decimal( $item->get_subtotal() / max(1, $item->get_quantity()), wc_get_price_decimals() ),
+            'tax_per_item'   => wc_format_decimal( $item->get_subtotal_tax() / max(1, $item->get_quantity()), wc_get_price_decimals() ),
+            'parking_instructions' => $item->get_meta('packing_instructions', true)
+        ];
+    }
+
+    foreach ($shipping_items as $ship_id => $shipping) {
+        $result['shipping'][] = [
+            'method' => $shipping->get_name(),
+            'total'  => $shipping->get_total(),
+            'tax_shipping' => $shipping->get_total_tax(),
+        ];
+    }
+
+    foreach ($fee as $fee_id => $fee_item) {
+        $result['fees'][] = [
+            'name'  => $fee_item->get_name(),
+            'total' => $fee_item->get_total(),
+            'tax_fee' => $fee_item->get_total_tax(),
+        ];
+    }
+
+    foreach ($coupon_items as $coupon_id => $coupon) {
+        $result['coupons'][] = [
+            'total' => $coupon->get_discount(),
+        ];
+    }
+
+    return Zippy_Response_Handler::success($result);
+  }
+
+  public static function remove_order_item(WP_REST_Request $request) 
+  {
+    $required_fields = [
+        "order_id" => ["required" => true, "data_type" => "integer"],
+        "item_id"  => ["required" => true, "data_type" => "integer"],
+    ];
+
+    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    if (!empty($validate)) {
+        return Zippy_Response_Handler::error($validate);
+    }
+
+    $order_id = intval($request->get_param('order_id'));
+    $item_id  = intval($request->get_param('item_id'));
+
+    $order = wc_get_order($order_id);
+    if (!$order) {
+        return Zippy_Response_Handler::error('Order not found.');
+    }
+
+    $deleted = wc_delete_order_item($item_id);
+
+    if (!$deleted) {
+        // $order->calculate_totals();
+        return Zippy_Response_Handler::error('Failed to delete order item.');
+    }
+
+    return Zippy_Response_Handler::success([
+        'order_id' => $order_id,
+        'item_id'  => $item_id,
+    ], 'Order item deleted successfully.');
+  }
+
+  public static function update_meta_data_order_item(WP_REST_Request $request) {
+      $order_id = $request->get_param('order_id');
+      $item_id  = $request->get_param('item_id');
+      $quantity = $request->get_param('quantity');
+
+      if (empty($order_id) || empty($item_id) || !is_numeric($quantity)) {
+          return Zippy_Response_Handler::error('Missing or invalid parameters.');
+      }
+
+      $order = wc_get_order($order_id);
+      if (!$order) {
+          return Zippy_Response_Handler::error('Order not found.');
+      }
+
+      $item = $order->get_item($item_id);
+      if (!$item) {
+          return Zippy_Response_Handler::error('Order item not found.');
+      }
+
+      $item->set_quantity($quantity, true);
+      $item->save();
+
+      return Zippy_Response_Handler::success([
+          'status' => 'success',
+          'message' => 'Quantity updated',
+          'data' => [
+              'order_id' => $order_id,
+              'item_id' => $item_id,
+              'quantity' => $quantity
+          ]
+      ], 200);
+  }
+
+  public static function apply_coupon_to_order(WP_REST_Request $request) {
+    try {
+      $order_id = $request->get_param('order_id');
+      $coupon_code = $request->get_param('coupon_code');
+
+      if (empty($order_id) || empty($coupon_code)) {
+          return Zippy_Response_Handler::error('Missing parameters.');
+      }
+
+      $order = wc_get_order($order_id);
+      if (!$order) {
+          return Zippy_Response_Handler::error('Order not found.');
+      }
+
+      $coupon = new WC_Coupon($coupon_code);
+      if (!$coupon || !$coupon->get_id()) {
+          return Zippy_Response_Handler::error('Invalid coupon code.');
+      }
+
+      foreach ($order->get_items('coupon') as $item) {
+          if ($item->get_code() === $coupon_code) {
+              return Zippy_Response_Handler::error('Coupon already applied to this order.');
+          }
+      }
+
+      $item_id = $order->add_coupon($coupon_code);
+      if (is_wp_error($item_id)) {
+          return Zippy_Response_Handler::error('Failed to apply coupon to order.');
+      }
+
+      $order = wc_get_order($order_id);
+      $order->calculate_totals();
+
+      return Zippy_Response_Handler::success([
+          'order_id' => $order_id,
+          'coupon_code' => $coupon_code,
+          'message' => 'Coupon applied successfully.'
+      ]);
+    } catch (\Throwable $th) {
+      return Zippy_Response_Handler::error('An error occurred while applying the coupon.');
+    }
   }
 }
