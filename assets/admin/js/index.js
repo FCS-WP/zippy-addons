@@ -15,6 +15,7 @@ import AdminMenus from "./Pages/Menus/AdminMenus";
 import { BrowserRouter } from "react-router";
 import NewOrder from "./Pages/Orders/NewOrder";
 import ButtonAddProducts from "./Pages/Orders/AddProducts/ButtonAddProducts";
+import TableOrder from "./Components/order/order-info/TableOrder";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -25,6 +26,7 @@ function initializeApp() {
   const zippyMenus = document.getElementById("zippy_menus");
   const zippyOrderFilter = document.getElementById("zippy_order_filter");
   const zippyCreateOrder = document.getElementById("admin_create_order");
+  const zippyOrderTable = document.getElementById("admin-table-order");
 
   if (zippyCreateOrder) {
     const root = ReactDOM.createRoot(zippyCreateOrder);
@@ -100,6 +102,17 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <FilterOrder filterName={filtername} filterValue={currentValue} />
+      </ThemeProvider>
+    );
+  }
+
+  if (zippyOrderTable) {
+    const root = ReactDOM.createRoot(zippyOrderTable);
+    const orderId = zippyOrderTable.getAttribute("data-order-id");
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <TableOrder orderId={orderId} />
       </ThemeProvider>
     );
   }

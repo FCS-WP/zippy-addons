@@ -87,7 +87,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
       } catch (error) {
         console.error("Error adding product to order:", error);
       } finally {
-        // window.location.reload();
+        window.location.reload();
       }
     },
     [simpleProduct, fetchProducts]
