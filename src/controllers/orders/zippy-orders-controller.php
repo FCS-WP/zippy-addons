@@ -465,4 +465,68 @@ class Zippy_Orders_Controller
       return Zippy_Response_Handler::error('An error occurred while applying the coupon.');
     }
   }
+
+  public static function update_order_status(WP_REST_Request $request) {
+      $order_ids = $request->get_param('order_ids');
+      $status = $request->get_param('status');
+
+      if (empty($order_ids) || empty($status)) {
+          return Zippy_Response_Handler::error('Missing parameters.');
+      }
+
+      if (!is_array($order_ids)) {
+          return Zippy_Response_Handler::error('Order IDs must be an array.');
+      }
+
+      $valid_statuses = wc_get_order_statuses();
+      if (!array_key_exists($status, $valid_statuses)) {
+          return Zippy_Response_Handler::error('Invalid order status.');
+      }
+
+      $updated_orders = [];
+      $failed_orders = [];
+
+      foreach ($order_ids as $order_id) {
+          $order = wc_get_order($order_id);
+          if ($order) {
+              $order->update_status($status, 'Order status updated via API', true);
+              $updated_orders[] = $order_id;
+          } else {
+              $failed_orders[] = $order_id;
+          }
+      }
+
+      return Zippy_Response_Handler::success([
+          'updated_orders' => $updated_orders,
+          'failed_orders' => $failed_orders,
+          'new_status' => $status,
+      ], 'Order statuses updated successfully.');
+  }
+
+  public static function move_to_trash(WP_REST_Request $request) {
+      $order_ids = $request->get_param('order_ids');
+
+      if (empty($order_ids)) {
+          return Zippy_Response_Handler::error('Missing order_ids.');
+      }
+
+      $trashed = [];
+
+      foreach ($order_ids as $order_id) {
+          $order = wc_get_order($order_id);
+
+          if ($order) {
+              $order->delete( false );
+              $trashed[] = $order_id;
+          }
+      }
+
+      if (empty($trashed)) {
+          return Zippy_Response_Handler::error('No orders were trashed.');
+      }
+
+      return Zippy_Response_Handler::success([
+          'trashed_orders' => $trashed,
+      ], 'Orders moved to trash.');
+  }
 }

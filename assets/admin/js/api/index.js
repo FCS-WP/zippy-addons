@@ -65,13 +65,13 @@ export const Api = {
   async getDeliveryConfig(params) {
     return await makeRequest("/delivery", params);
   },
-    async addHolidayConfig(params) {
+  async addHolidayConfig(params) {
     return await makeRequest("/holiday", params, "POST");
   },
   async getHolidayConfig(params) {
     return await makeRequest("/holiday", params);
   },
-      async updateHolidayConfig(params) {
+  async updateHolidayConfig(params) {
     return await makeRequest("/holiday", params, "PUT");
   },
   async addShipping(params) {
@@ -108,9 +108,27 @@ export const Api = {
     return await makeRequest("/location", params);
   },
   async checkSlotDelivery(params) {
-    return await makeRequest('/slot', params);
+    return await makeRequest("/slot", params);
   },
   async searchRoute(params) {
     return await makeRequest("/distance", params);
+  },
+  async getOrderInfo(params) {
+    return await makeRequest("/get-order-info", params);
+  },
+  async removeOrderItem(params) {
+    return await makeRequest("/remove-item-order", params, "POST");
+  },
+  async updateOrderItemMetaData(params) {
+    return await makeRequest("/update-meta-data-order-item", params, "POST");
+  },
+  async applyCouponToOrder(params) {
+    return await makeRequest("/apply_coupon_to_order", params, "POST");
+  },
+  async updateOrderStatus(params) {
+    return await makeRequest("/update-order-status", params, "POST");
+  },
+  async moveToTrashOrder(params) {
+    return await makeRequest("/move-to-trash", params, "POST");
   },
 };

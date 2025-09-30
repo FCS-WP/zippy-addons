@@ -42,6 +42,8 @@ class Zippy_Admin_Settings
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_one_map_credentials'));
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'get_one_map_access_token'));
+
+    add_shortcode('admin_order_table', array($this, 'generate_admin_order_table_div'));
   }
 
   public function admin_booking_assets()
@@ -182,5 +184,18 @@ class Zippy_Admin_Settings
     if (!empty($authen["access_token"])) {
       update_option(ONEMAP_ACCESS_TOKEN_KEY, Zippy_Utils_Core::encrypt_data_input($authen["access_token"]));
     }
+  }
+
+  function generate_admin_order_table_div($atts) {
+    $atts = shortcode_atts([
+        'order_id' => 0,
+    ], $atts, 'admin_order_table');
+
+    $order_id = intval($atts['order_id']);
+    if (!$order_id) {
+        return '';
+    }
+
+    return '<div id="admin-table-order" data-order-id="' . esc_attr($order_id) . '"></div>';
   }
 }
