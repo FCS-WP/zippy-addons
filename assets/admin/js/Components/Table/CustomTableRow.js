@@ -113,13 +113,7 @@ const CustomTableRow = ({
           min={minOrder}
           value={quantity}
           onChange={handleSubTableChange}
-          style={{
-            width: "50px",
-            textAlign: "center",
-            fontSize: "16px",
-            padding: "4px",
-            borderColor: error ? "red" : undefined,
-          }}
+          className={`custom-input ${error ? "error" : ""}`}
         />
         <span
           style={{
