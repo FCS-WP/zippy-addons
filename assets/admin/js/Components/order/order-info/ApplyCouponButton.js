@@ -18,8 +18,8 @@ export default function ApplyCouponButton({ onApply }) {
   const handleApply = () => {
     if (coupon.trim()) {
       onApply(coupon);
-      handleClose(); // đóng popup sau khi apply
-      setCoupon(""); // reset input
+      handleClose();
+      setCoupon("");
     }
   };
 
