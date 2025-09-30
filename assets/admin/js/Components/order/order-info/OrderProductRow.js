@@ -8,6 +8,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
+import { Api } from "../../../api";
 
 const OrderProductRow = ({
   item_id,
@@ -118,13 +119,31 @@ const OrderProductRow = ({
       <TableCell>${unitPriceInclTax.toFixed(2)}</TableCell>
       <TableCell>
         {editingItemId === item_id ? (
-          <input
-            type="number"
-            min={1}
-            value={tempQuantity}
-            onChange={(e) => setTempQuantity(parseInt(e.target.value))}
-            style={{ width: "60px" }}
-          />
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span
+              style={{
+                fontSize: "20px",
+                cursor: "pointer",
+                userSelect: "none",
+              }}
+              onClick={() => setTempQuantity((prev) => Math.max(1, prev - 1))}
+            >
+              –
+            </span>
+            <span style={{ minWidth: "30px", textAlign: "center" }}>
+              {tempQuantity}
+            </span>
+            <span
+              style={{
+                fontSize: "20px",
+                cursor: "pointer",
+                userSelect: "none",
+              }}
+              onClick={() => setTempQuantity((prev) => prev + 1)}
+            >
+              +
+            </span>
+          </div>
         ) : (
           item.quantity
         )}
