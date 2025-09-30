@@ -328,7 +328,8 @@ class Zippy_Orders_Controller
             'tax_total'      => wc_format_decimal( $item->get_subtotal_tax(), wc_get_price_decimals() ),
             'price_per_item' => wc_format_decimal( $item->get_subtotal() / max(1, $item->get_quantity()), wc_get_price_decimals() ),
             'tax_per_item'   => wc_format_decimal( $item->get_subtotal_tax() / max(1, $item->get_quantity()), wc_get_price_decimals() ),
-            'parking_instructions' => $item->get_meta('packing_instructions', true)
+            'packing_instructions' => $item->get_meta('packing_instructions', true),
+            'min_order' => get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0,
         ];
     }
 
