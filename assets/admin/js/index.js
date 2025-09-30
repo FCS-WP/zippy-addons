@@ -16,6 +16,7 @@ import { BrowserRouter } from "react-router";
 import NewOrder from "./Pages/Orders/NewOrder";
 import ButtonAddProducts from "./Pages/Orders/AddProducts/ButtonAddProducts";
 import TableOrder from "./Components/order/order-info/TableOrder";
+import BulkAction from "./Pages/Orders/BulkAction";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -27,6 +28,7 @@ function initializeApp() {
   const zippyOrderFilter = document.getElementById("zippy_order_filter");
   const zippyCreateOrder = document.getElementById("admin_create_order");
   const zippyOrderTable = document.getElementById("admin-table-order");
+  const bulkActionWrapper = document.querySelector(".bulkactions");
 
   if (zippyCreateOrder) {
     const root = ReactDOM.createRoot(zippyCreateOrder);
@@ -113,6 +115,29 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <TableOrder orderId={orderId} />
+      </ThemeProvider>
+    );
+  }
+
+  if (bulkActionWrapper) {
+    bulkActionWrapper
+      .querySelectorAll("select, input[type='submit'], label")
+      .forEach((el) => {
+        el.style.display = "none";
+      });
+
+    let customBulkDiv = document.getElementById("zippy-bulk-action");
+    if (!customBulkDiv) {
+      customBulkDiv = document.createElement("div");
+      customBulkDiv.id = "zippy-bulk-action";
+      bulkActionWrapper.appendChild(customBulkDiv);
+    }
+
+    const root = ReactDOM.createRoot(customBulkDiv);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BulkAction />
       </ThemeProvider>
     );
   }

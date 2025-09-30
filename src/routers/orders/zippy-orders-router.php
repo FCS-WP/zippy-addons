@@ -59,5 +59,13 @@ class Zippy_Orders_Router
       'methods' => 'POST',
       'callback' => [Zippy_Orders_Controller::class, 'apply_coupon_to_order'],
     ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/update-order-status', array(
+      'methods' => 'POST',
+      'callback' => [Zippy_Orders_Controller::class, 'update_order_status'],
+    ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/move-to-trash', array(
+      'methods' => 'POST',
+      'callback' => [Zippy_Orders_Controller::class, 'move_to_trash'],
+    ));
   }
 }

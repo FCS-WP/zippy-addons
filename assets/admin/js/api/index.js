@@ -125,4 +125,10 @@ export const Api = {
   async applyCouponToOrder(params) {
     return await makeRequest("/apply_coupon_to_order", params, "POST");
   },
+  async updateOrderStatus(params) {
+    return await makeRequest("/update-order-status", params, "POST");
+  },
+  async moveToTrashOrder(params) {
+    return await makeRequest("/move-to-trash", params, "POST");
+  },
 };
