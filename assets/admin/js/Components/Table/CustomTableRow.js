@@ -41,6 +41,7 @@ const CustomTableRow = ({
   };
   const [quantity, setQuantity] = useState(minOrder);
   const [packingInstructions, setPackingInstructions] = useState("");
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (minOrder > 0) {
@@ -58,10 +59,11 @@ const CustomTableRow = ({
     if (name === "quantity") {
       setDisabled(false);
       const inputValue = parseInt(value, 10) || 0;
-      const clampedValue = inputValue < minOrder ? minOrder : inputValue;
-      setQuantity(clampedValue);
+      setQuantity(inputValue);
+      setDisabled(inputValue < minOrder);
+      setError(inputValue < minOrder);
       if (onSubTableChange) {
-        row.quantity = clampedValue;
+        row.quantity = inputValue;
         onSubTableChange(row);
       }
     }
@@ -90,14 +92,49 @@ const CustomTableRow = ({
       alignItems="center"
       justifyContent={"flex-end"}
     >
-      <TextField
-        name="quantity"
-        type="number"
-        value={quantity}
-        onChange={handleSubTableChange}
-        size="small"
-        sx={{ width: "70px" }}
-      />
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <span
+          style={{
+            fontSize: "20px",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={() =>
+            handleSubTableChange({
+              target: { name: "quantity", value: Number(quantity) - 1 },
+            })
+          }
+        >
+          –
+        </span>
+        <input
+          name="quantity"
+          min={minOrder}
+          value={quantity}
+          onChange={handleSubTableChange}
+          style={{
+            width: "50px",
+            textAlign: "center",
+            fontSize: "16px",
+            padding: "4px",
+            borderColor: error ? "red" : undefined,
+          }}
+        />
+        <span
+          style={{
+            fontSize: "20px",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={() =>
+            handleSubTableChange({
+              target: { name: "quantity", value: Number(quantity) + 1 },
+            })
+          }
+        >
+          +
+        </span>
+      </div>
       {Object.keys(row.ADDONS || {}).length == 0 && (
         <Button
           variant="contained"

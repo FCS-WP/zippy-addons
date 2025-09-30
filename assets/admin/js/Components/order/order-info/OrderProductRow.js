@@ -97,21 +97,21 @@ const OrderProductRow = ({
             ))}
           </Box>
         )}
-        {item.parking_instructions && (
+        {item.packing_instructions && (
           <Box sx={{ mt: 0.5 }}>
             <Typography
               variant="body2"
               fontWeight="bold"
               sx={{ fontSize: "0.8rem" }}
             >
-              Packing Instructions:
+              Packing Instructions:{" "}
             </Typography>
             <Typography
               variant="body2"
               color="text.secondary"
               sx={{ fontSize: "0.75rem", whiteSpace: "pre-wrap" }}
             >
-              {item.parking_instructions}
+              {item.packing_instructions}
             </Typography>
           </Box>
         )}
@@ -126,20 +126,46 @@ const OrderProductRow = ({
                 cursor: "pointer",
                 userSelect: "none",
               }}
-              onClick={() => setTempQuantity((prev) => Math.max(1, prev - 1))}
+              onClick={() =>
+                setTempQuantity((prev) =>
+                  Math.max(item.min_order, Number(prev || item.min_order) - 1)
+                )
+              }
             >
               –
             </span>
-            <span style={{ minWidth: "30px", textAlign: "center" }}>
-              {tempQuantity}
-            </span>
+
+            <input
+              min={item.min_order}
+              value={tempQuantity}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "") {
+                  setTempQuantity("");
+                } else {
+                  setTempQuantity(parseInt(val, 10));
+                }
+              }}
+              onBlur={() => {
+                if (!tempQuantity || tempQuantity < item.min_order) {
+                  setTempQuantity(item.min_order);
+                }
+              }}
+              style={{
+                width: "50px",
+                textAlign: "center",
+                fontSize: "16px",
+                padding: "4px",
+              }}
+            />
+
             <span
               style={{
                 fontSize: "20px",
                 cursor: "pointer",
                 userSelect: "none",
               }}
-              onClick={() => setTempQuantity((prev) => prev + 1)}
+              onClick={() => setTempQuantity((prev) => Number(prev || 0) + 1)}
             >
               +
             </span>

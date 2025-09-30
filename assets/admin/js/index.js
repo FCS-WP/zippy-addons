@@ -28,7 +28,7 @@ function initializeApp() {
   const zippyOrderFilter = document.getElementById("zippy_order_filter");
   const zippyCreateOrder = document.getElementById("admin_create_order");
   const zippyOrderTable = document.getElementById("admin-table-order");
-  const bulkActionWrapper = document.querySelector(".bulkactions");
+  const bulkActionWrapper = document.querySelector("body.woocommerce_page_wc-orders .bulkactions");
 
   if (zippyCreateOrder) {
     const root = ReactDOM.createRoot(zippyCreateOrder);
