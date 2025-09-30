@@ -59,6 +59,7 @@ const CustomTableRow = ({
     if (name === "quantity") {
       setDisabled(false);
       const inputValue = parseInt(value, 10) || 0;
+      if (inputValue < 0) inputValue = 0;
       setQuantity(inputValue);
       setDisabled(inputValue < minOrder);
       setError(inputValue < minOrder);
@@ -153,6 +154,7 @@ const CustomTableRow = ({
           color="primary"
           size="small"
           onClick={handleToggleCollapse}
+          disabled={disabled}
         >
           {showCollapse ? "Hide Add-ons" : "Show Add-ons"}
         </Button>
