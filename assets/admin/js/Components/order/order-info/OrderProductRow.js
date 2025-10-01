@@ -26,10 +26,16 @@ const OrderProductRow = ({
 
   const saveQuantity = async () => {
     try {
+      const oldItemQuantity = item.quantity;
+      const addons = (item.addons || []).map((a) => ({
+        item_id: a.addon_id,
+        quantity: a.quantity / oldItemQuantity,
+      }));
       const { data: res } = await Api.updateOrderItemMetaData({
         order_id: orderId,
         item_id,
         quantity: tempQuantity,
+        addons,
       });
       if (res.status === "success") refreshOrderInfo();
       else console.error(res.message);
