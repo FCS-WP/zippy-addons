@@ -25,3 +25,5 @@ export const productListOrder = ["IMAGE", "ID", "NAME", "INVENTORY", "ACTIONS"];
 
 export const happyHoursColumns = ["START TIME", "END TIME", "ACTIONS"];
 export const addProducts = ["IMAGE", "NAME", "ADDON ACTIONS"];
+
+export const roundUp2dp = (num) => (Math.round(num * 10) / 10).toFixed(2);
