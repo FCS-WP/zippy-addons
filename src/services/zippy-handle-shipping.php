@@ -37,11 +37,12 @@ class Zippy_Handle_Shipping
     if ($shipping_fee > 0) {
       self::add_shipping_item($order, 'Shipping Fee', $shipping_fee);
     }
-
     // Extra Fee
     if ($extra_fee > 0) {
       self::add_fee_item($order, __('Extra Fee', 'zippy-booking'), $extra_fee);
     }
+
+    $order->calculate_totals();
   }
 
   public static function process_free_shipping($order_id)
@@ -135,28 +136,19 @@ class Zippy_Handle_Shipping
     // $shipping->set_tax_class('standard');
 
     $order->add_item($shipping);
-
-    $order->calculate_totals();
   }
 
 
 
 
 
-  private static function add_fee_item($order, $name, $amount)
+  private static function add_fee_item($order,  $name,  $amount)
   {
     $fee = new WC_Order_Item_Fee();
     $fee->set_name($name);
     $fee->set_total(floatval($amount));
-
-    $tax_rates   = WC_Tax::get_rates('standard');
-    $taxes       = WC_Tax::calc_tax($amount, $tax_rates, false);
-    $total_tax   = array_sum($taxes);
-
-    $fee->set_taxes(['total' => $taxes]);
-    $fee->set_total_tax($total_tax);
-    $fee->set_tax_class('standard');
-
+    $fee->set_tax_class(''); // No tax
+    $fee->set_tax_status('none'); // No tax
     $order->add_item($fee);
   }
 

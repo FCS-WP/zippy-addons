@@ -87,6 +87,7 @@ const TableOrder = ({ orderId }) => {
   const shipping = orderInfo.shipping || [];
   const fees = orderInfo.fees || [];
   const coupons = orderInfo.coupons || [];
+  const roundUp2dp = (num) => (Math.round(num * 10) / 10).toFixed(2);
 
   // Calculate totals per product
   const subtotal = products.reduce((sum, [_, item]) => {
@@ -111,10 +112,9 @@ const TableOrder = ({ orderId }) => {
     0
   );
 
-  const gst =
-    Math.ceil(
-      parseFloat(gstFromProducts + gstFromShipping + gstFromFees) * 100
-    ) / 100;
+  const gst = roundUp2dp(
+    parseFloat(gstFromProducts + gstFromShipping + gstFromFees)
+  );
 
   // Calculate for shipping
   const shippingTotal = shipping.reduce(
