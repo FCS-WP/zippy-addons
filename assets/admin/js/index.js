@@ -17,6 +17,7 @@ import NewOrder from "./Pages/Orders/NewOrder";
 import ButtonAddProducts from "./Pages/Orders/AddProducts/ButtonAddProducts";
 import TableOrder from "./Components/order/order-info/TableOrder";
 import BulkAction from "./Pages/Orders/BulkAction";
+import CustomerSelect from "./Pages/Orders/CustomerSelect";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -28,7 +29,10 @@ function initializeApp() {
   const zippyOrderFilter = document.getElementById("zippy_order_filter");
   const zippyCreateOrder = document.getElementById("admin_create_order");
   const zippyOrderTable = document.getElementById("admin-table-order");
-  const bulkActionWrapper = document.querySelector("body.woocommerce_page_wc-orders .bulkactions");
+  const bulkActionWrapper = document.querySelector(
+    "body.woocommerce_page_wc-orders .bulkactions"
+  );
+  const customerWrapper = document.querySelector("p.wc-customer-user");
 
   if (zippyCreateOrder) {
     const root = ReactDOM.createRoot(zippyCreateOrder);
@@ -138,6 +142,26 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BulkAction />
+      </ThemeProvider>
+    );
+  }
+
+  if (customerWrapper) {
+    customerWrapper.style.display = "none";
+
+    let customDiv = document.getElementById("custom-customer-select");
+    if (!customDiv) {
+      customDiv = document.createElement("div");
+      customDiv.id = "custom-customer-select";
+
+      customerWrapper.parentNode.appendChild(customDiv);
+    }
+
+    const root = ReactDOM.createRoot(customDiv);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <CustomerSelect />
       </ThemeProvider>
     );
   }

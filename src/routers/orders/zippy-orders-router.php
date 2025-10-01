@@ -67,5 +67,9 @@ class Zippy_Orders_Router
       'methods' => 'POST',
       'callback' => [Zippy_Orders_Controller::class, 'move_to_trash'],
     ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/get-list-customers', array(
+      'methods' => 'GET',
+      'callback' => [Zippy_Orders_Controller::class, 'get_list_customers'],
+    ));
   }
 }
