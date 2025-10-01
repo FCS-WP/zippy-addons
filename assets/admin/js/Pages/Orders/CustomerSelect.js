@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { TextField, Autocomplete, Box } from "@mui/material";
+import {
+  TextField,
+  Autocomplete,
+  Box,
+  InputAdornment,
+  IconButton,
+  MenuItem,
+  Select,
+} from "@mui/material";
 import { Api } from "../../api";
 
 export default function CustomerSelect() {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [selectedRole, setSelectedRole] = useState(""); // role filter
-  const [roles, setRoles] = useState([]); // available roles
+  const [selectedRole, setSelectedRole] = useState("");
+  const [roles, setRoles] = useState([]);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -88,21 +96,7 @@ export default function CustomerSelect() {
   };
 
   return (
-    <Box sx={{ mt: 2 }}>
-      {/* Role filter */}
-      <Autocomplete
-        options={roles}
-        value={selectedRole}
-        onChange={(e, value) => setSelectedRole(value || "")}
-        renderInput={(params) => (
-          <TextField {...params} label="Filter by Role" variant="outlined" />
-        )}
-        clearOnEscape
-        sx={{ my: 2 }}
-        size="small"
-      />
-
-      {/* Customer select */}
+    <Box sx={{ mt: 3, position: "relative" }}>
       <Autocomplete
         options={filteredCustomers}
         getOptionLabel={(option) => {
@@ -120,6 +114,34 @@ export default function CustomerSelect() {
             placeholder="Type to search..."
             variant="outlined"
             fullWidth
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    displayEmpty
+                    size="small"
+                    variant="standard"
+                    IconComponent={() => null}
+                    sx={{
+                      minWidth: 40,
+                      "& .MuiSelect-select": { paddingRight: "24px" },
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>All</em>
+                    </MenuItem>
+                    {roles.map((role) => (
+                      <MenuItem key={role} value={role}>
+                        {role}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </InputAdornment>
+              ),
+            }}
             inputProps={{
               ...params.inputProps,
               id: "my_customer_select",
