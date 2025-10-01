@@ -88,12 +88,6 @@ class Zippy_Woo_Manual_Order
     $order_new->save();
   }
 
-  private function is_order_edit_screen()
-  {
-    global $pagenow;
-
-    return ($pagenow === 'admin-ajax.php'  && isset($_POST['action']) && $_POST['action'] === 'woocommerce_calc_line_taxes');
-  }
 
   private function add_order_meta_data_manual($order)
   {
