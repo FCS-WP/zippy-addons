@@ -530,4 +530,24 @@ class Zippy_Orders_Controller
           'trashed_orders' => $trashed,
       ], 'Orders moved to trash.');
   }
+
+    public static function get_list_customers() {
+        $users = get_users([
+            'orderby'=> 'display_name',
+            'order'  => 'ASC',
+        ]);
+
+        $customers = [];
+
+        foreach ($users as $user) {
+            $customers[] = [
+                'id'    => $user->ID,
+                'label' => $user->display_name,
+                'email' => $user->user_email,
+                'roles' => $user->roles,
+            ];
+        }
+
+        return Zippy_Response_Handler::success($customers);
+    }
 }

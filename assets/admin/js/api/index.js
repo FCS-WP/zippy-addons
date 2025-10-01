@@ -131,4 +131,7 @@ export const Api = {
   async moveToTrashOrder(params) {
     return await makeRequest("/move-to-trash", params, "POST");
   },
+  async getCustomers(params) {
+    return await makeRequest("/get-list-customers", params);
+  },
 };

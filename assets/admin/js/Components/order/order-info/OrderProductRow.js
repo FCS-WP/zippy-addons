@@ -136,6 +136,7 @@ const OrderProductRow = ({
             </span>
 
             <input
+              className="custom-input"
               min={item.min_order}
               value={tempQuantity}
               onChange={(e) => {

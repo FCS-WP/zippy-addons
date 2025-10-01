@@ -1,0 +1,13 @@
+.custom-input {
+  width: 50px;
+  text-align: center;
+  font-size: 16px;
+  padding: 4px;
+  border: 1px solid #100;
+  border-radius: 4px;
+  outline: none;
+}
+
+.custom-input.error {
+  border-color: red;
+}
