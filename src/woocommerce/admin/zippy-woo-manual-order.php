@@ -41,7 +41,7 @@ class Zippy_Woo_Manual_Order
    */
   protected function set_hooks()
   {
-    add_action('woocommerce_after_order_object_save', [$this, 'maybe_handle_manual_order'], 20, 2);
+    add_action('woocommerce_new_order', [$this, 'maybe_handle_manual_order'], 20, 2);
   }
 
   /**
@@ -50,15 +50,33 @@ class Zippy_Woo_Manual_Order
    * @param \WC_Order $order
    * @param object    $data_store
    */
-  public function maybe_handle_manual_order($order, $data_store)
+  public function maybe_handle_manual_order($order_id)
   {
     if (! is_admin()) {
       return; // Only in wp-admin
     }
+    $order = wc_get_order($order_id);
+
 
     if (! $order instanceof \WC_Order) {
       return;
     }
+
+    if (! $_POST['is_manual_order']) {
+      return;
+    }
+
+    $this->add_order_meta_data_manual($order);
+    $order->save();
+
+
+    $order_new = wc_get_order($order_id);
+
+
+    if (! $order instanceof \WC_Order) {
+      return;
+    }
+
 
     // Only run for manual orders
     if ($order->get_meta('is_manual_order') !== 'yes') {
@@ -66,12 +84,8 @@ class Zippy_Woo_Manual_Order
     }
 
     // Add shipping / extra fees
-    Zippy_Handle_Shipping::process_add_shipping_fee($order);
-
-
-    if ($this->is_order_edit_screen()) {
-      echo '<script>setTimeout(function(){ location.reload(); }, 2000);</script>';
-    }
+    Zippy_Handle_Shipping::process_add_shipping_fee($order_new);
+    $order_new->save();
   }
 
   private function is_order_edit_screen()
@@ -79,5 +93,40 @@ class Zippy_Woo_Manual_Order
     global $pagenow;
 
     return ($pagenow === 'admin-ajax.php'  && isset($_POST['action']) && $_POST['action'] === 'woocommerce_calc_line_taxes');
+  }
+
+  private function add_order_meta_data_manual($order)
+  {
+    // Check and save custom fields if exist
+    if (isset($_POST['_billing_outlet'])) {
+      $order->update_meta_data('_billing_outlet', sanitize_text_field($_POST['_billing_outlet']));
+    }
+    if (isset($_POST['_billing_outlet_name'])) {
+      $order->update_meta_data('_billing_outlet_name', sanitize_text_field($_POST['_billing_outlet_name']));
+    }
+    if (isset($_POST['_billing_outlet_address'])) {
+      $order->update_meta_data('_billing_outlet_address', sanitize_text_field($_POST['_billing_outlet_address']));
+    }
+    if (isset($_POST['_billing_date'])) {
+      $order->update_meta_data('_billing_date', sanitize_text_field($_POST['_billing_date']));
+    }
+    if (isset($_POST['_billing_delivery_to'])) {
+      $order->update_meta_data('_billing_delivery_to', sanitize_text_field($_POST['_billing_delivery_to']));
+    }
+    if (isset($_POST['_billing_delivery_postal'])) {
+      $order->update_meta_data('_billing_delivery_postal', sanitize_text_field($_POST['_billing_delivery_postal']));
+    }
+    if (isset($_POST['_billing_distance'])) {
+      $order->update_meta_data('_billing_distance', sanitize_text_field($_POST['_billing_distance']));
+    }
+    if (isset($_POST['_billing_time'])) {
+      $order->update_meta_data('_billing_time', sanitize_text_field($_POST['_billing_time']));
+    }
+    if (isset($_POST['_billing_method_shipping'])) {
+      $order->update_meta_data('_billing_method_shipping', sanitize_text_field($_POST['_billing_method_shipping']));
+    }
+    if (isset($_POST['is_manual_order'])) {
+      $order->update_meta_data('is_manual_order', sanitize_text_field($_POST['is_manual_order']));
+    }
   }
 }
