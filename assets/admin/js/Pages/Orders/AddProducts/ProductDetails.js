@@ -23,10 +23,6 @@ const ProductDetails = ({
   const [data, setData] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
 
-  useEffect(() => {
-    console.log("Packing Instructions:", packingInstructions);
-  }, [packingInstructions]);
-
   /**
    * Fetch product addons
    */
@@ -110,14 +106,38 @@ const ProductDetails = ({
       "No Image"
     ),
     "ADDON ACTIONS": (
-      <TextField
-        type="number"
-        size="small"
-        value={row.QUANTITY ?? 0}
-        onChange={(e) => handleQuantityChange(row.ID, e.target.value)}
-        inputProps={{ min: row.MIN, max: row.MAX }}
-        sx={{ width: "70px" }}
-      />
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <span
+          style={{
+            fontSize: "20px",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={() =>
+            handleQuantityChange(row.ID, Math.max(0, (row.QUANTITY || 0) - 1))
+          }
+        >
+          –
+        </span>
+        <input
+          name="quantity"
+          min={row.MIN}
+          max={row.MAX}
+          value={row.QUANTITY || 0}
+          onChange={(e) => handleQuantityChange(row.ID, e.target.value)}
+          className={`custom-input`}
+        />
+        <span
+          style={{
+            fontSize: "20px",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={() => handleQuantityChange(row.ID, (row.QUANTITY || 0) + 1)}
+        >
+          +
+        </span>
+      </div>
     ),
   }));
 
@@ -220,7 +240,7 @@ const ProductDetails = ({
             className="table-addons"
           />
 
-          <Box display="flex" justifyContent="flex-end" mt={2}>
+          <Box display="flex" justifyContent="flex-end" my={2}>
             <Button
               variant="contained"
               color="primary"
