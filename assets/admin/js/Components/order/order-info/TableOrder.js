@@ -88,28 +88,50 @@ const TableOrder = ({ orderId }) => {
   const fees = orderInfo.fees || [];
   const coupons = orderInfo.coupons || [];
 
+  // Calculate totals per product
   const subtotal = products.reduce((sum, [_, item]) => {
     const unitPriceInclTax =
       parseFloat(item.price_per_item) + parseFloat(item.tax_per_item);
     return sum + unitPriceInclTax * item.quantity;
   }, 0);
 
-  const gst = products.reduce(
+  // Calculate GST from products and shipping
+  const gstFromProducts = products.reduce(
     (sum, [_, item]) => sum + parseFloat(item.tax_total || 0),
     0
   );
+
+  const gstFromShipping = (shipping || []).reduce(
+    (sum, ship) => sum + parseFloat(ship.tax_shipping || 0),
+    0
+  );
+
+  const gstFromFees = (fees || []).reduce(
+    (sum, fee) => sum + parseFloat(fee.tax_total || 0),
+    0
+  );
+
+  const gst = gstFromProducts + gstFromShipping + gstFromFees;
+
+  // Calculate for shipping
   const shippingTotal = shipping.reduce(
     (sum, s) => sum + parseFloat(s.total || 0),
     0
   );
+
+  // Calculate for fees
   const feesTotal = fees.reduce(
     (sum, fee) => sum + parseFloat(fee.total || 0),
     0
   );
+
+  // Calculate for coupons
   const couponsTotal = coupons.reduce(
     (sum, coupon) => sum + parseFloat(coupon.total || 0),
     0
   );
+
+  // Calculate total
   const total = subtotal + shippingTotal + feesTotal - couponsTotal;
 
   return (

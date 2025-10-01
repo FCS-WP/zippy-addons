@@ -8,6 +8,7 @@ use Dompdf\Dompdf;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Add_On;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Tax;
+use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
 use WC_Coupon;
 
 defined('ABSPATH') or die();
@@ -232,7 +233,11 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('No products were added to the order.');
         }
 
-        // $order->calculate_totals();
+        $new_order = wc_get_order($order_id);
+        $new_order->calculate_totals();
+        $new_order->save();
+
+        Zippy_Handle_Shipping::process_free_shipping($order_id);
 
         return Zippy_Response_Handler::success([
             'order_id' => $order_id,
@@ -431,6 +436,14 @@ class Zippy_Orders_Controller
             // Set tax for simple product
             Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
         }
+
+        $new_order = wc_get_order($order_id);
+        $new_order->calculate_totals();
+        $new_order->save();
+
+
+        Zippy_Handle_Shipping::process_free_shipping($order_id);
+
 
         return Zippy_Response_Handler::success([
             'status' => 'success',

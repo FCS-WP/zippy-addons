@@ -3,6 +3,7 @@
 namespace Zippy_Booking\Src\Services;
 
 use WC_Order;
+use WC_Tax;
 use WC_Order_Item_Shipping;
 use WC_Order_Item_Fee;
 
@@ -30,19 +31,41 @@ class Zippy_Handle_Shipping
     }
 
     $shipping_fee = (float) self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_delivery), $distance);
-    $free_shipping_threshold = (float) self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_freeship), $distance);
     $extra_fee = (float) self::calculate_extra_fee(maybe_unserialize($config->extra_fee), $customer_address);
 
     // Shipping
-    if (self::is_free_shipping($order->get_total(), $free_shipping_threshold)) {
-      self::add_shipping_item($order, 'Free Shipping', 0);
-    } elseif ($shipping_fee > 0) {
+    if ($shipping_fee > 0) {
       self::add_shipping_item($order, 'Shipping Fee', $shipping_fee);
     }
 
     // Extra Fee
     if ($extra_fee > 0) {
       self::add_fee_item($order, __('Extra Fee', 'zippy-booking'), $extra_fee);
+    }
+  }
+
+  public static function process_free_shipping($order_id)
+  {
+    $order = wc_get_order(intval($order_id));
+
+
+    $distance         = (float) $order->get_meta(BILLING_DISTANCE);
+    $order_type       = $order->get_meta(BILLING_METHOD);
+
+    if ($distance <= 0 || $order_type !== 'delivery') {
+      return;
+    }
+
+    $config = self::query_shipping();
+
+    $free_shipping_threshold = (float) self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_freeship), $distance);
+
+    if (self::is_free_shipping($order->get_total(), $free_shipping_threshold)) {
+      self::add_free_shipping($order);
+      $new_order = wc_get_order(intval($order_id));
+
+      self::add_shipping_item($new_order, 'Free Shipping', 0);
+      $new_order->calculate_totals();
     }
   }
 
@@ -98,23 +121,55 @@ class Zippy_Handle_Shipping
     return trim(end($parts) ?: '');
   }
 
-  public static function add_shipping_item($order,  $method_title,  $total)
+  public static function add_shipping_item($order, $method_title, $total)
   {
     $shipping = new WC_Order_Item_Shipping();
     $shipping->set_method_title($method_title);
-    $shipping->set_total($total);
+    $shipping->set_total(floatval($total));
+
+    $tax_rates = WC_Tax::get_shipping_tax_rates();
+    $taxes     = WC_Tax::calc_tax($total, $tax_rates, false);
+    $total_tax = array_sum($taxes);
+
+    $shipping->set_taxes(['total' => $taxes]);
+    // $shipping->set_tax_class('standard');
 
     $order->add_item($shipping);
-    $order->set_shipping_total($total);
+
+    $order->calculate_totals();
   }
 
-  private static function add_fee_item($order,  $name,  $amount)
+
+
+
+
+  private static function add_fee_item($order, $name, $amount)
   {
     $fee = new WC_Order_Item_Fee();
     $fee->set_name($name);
     $fee->set_total(floatval($amount));
-    $fee->set_tax_class(''); // No tax
-    $fee->set_tax_status('none'); // No tax
+
+    $tax_rates   = WC_Tax::get_rates('standard');
+    $taxes       = WC_Tax::calc_tax($amount, $tax_rates, false);
+    $total_tax   = array_sum($taxes);
+
+    $fee->set_taxes(['total' => $taxes]);
+    $fee->set_total_tax($total_tax);
+    $fee->set_tax_class('standard');
+
     $order->add_item($fee);
+  }
+
+
+  private static function add_free_shipping($order)
+  {
+    $old_shipping_fee = $order->get_items('shipping');
+
+    if (sizeof($old_shipping_fee) > 0) {
+      foreach ($old_shipping_fee as $item_id => $item) {
+        $order->remove_item($item_id);
+      }
+      $order->calculate_totals();
+    }
   }
 }
