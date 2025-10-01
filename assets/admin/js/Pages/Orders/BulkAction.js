@@ -64,17 +64,21 @@ const BulkAction = () => {
           data.data.updated_orders.forEach((orderId) => {
             const row = document.querySelector(`#order-${orderId}`);
             if (row) {
-              row.className = row.className.replace(
-                /status-[^\s]+/,
-                `status-${action}`
-              );
-
-              const statusCell = row.querySelector(
-                ".column-order_status mark span"
-              );
+              const cleanStatus = action.replace(/^wc-/, "");
+              const statusCell = row.querySelector(".column-order_status mark");
               if (statusCell) {
-                const statusText = statusOptions[action] || action;
-                statusCell.textContent = statusText;
+                statusCell.classList.forEach((cls) => {
+                  if (cls.startsWith("status-")) {
+                    statusCell.classList.remove(cls);
+                  }
+                });
+
+                statusCell.classList.add(`status-${cleanStatus}`);
+                const span = statusCell.querySelector("span");
+                if (span) {
+                  const statusText = statusOptions[action] || cleanStatus;
+                  span.textContent = statusText;
+                }
               }
             }
           });
