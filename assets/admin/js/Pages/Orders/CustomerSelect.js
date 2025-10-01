@@ -12,20 +12,17 @@ export default function CustomerSelect() {
     const fetchCustomers = async () => {
       const { data } = await Api.getCustomers();
       if (data.status === "success") {
-        // format label + collect roles
         const formatted = data.data.map((c) => ({
           ...c,
           label: `${c.label} (#${c.id} – ${c.email})`,
         }));
         setCustomers(formatted);
 
-        // get unique roles
         const allRoles = Array.from(
           new Set(data.data.flatMap((c) => c.roles || []))
         );
         setRoles(allRoles);
 
-        // set selectedCustomer nếu select gốc có value
         const originalSelect = document.getElementById("customer_user");
         if (originalSelect && originalSelect.value) {
           const match = formatted.find(
