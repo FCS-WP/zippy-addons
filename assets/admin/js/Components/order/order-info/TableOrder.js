@@ -17,6 +17,7 @@ import ButtonAddProducts from "../../../Pages/Orders/AddProducts/ButtonAddProduc
 import ApplyCouponButton from "./ApplyCouponButton";
 import OrderProductRow from "./OrderProductRow";
 import OrderSummary from "./OrderSummary";
+import { roundUp2dp } from "../../../utils/tableHelper";
 
 const TableOrder = ({ orderId }) => {
   const [orderInfo, setOrderInfo] = useState(null);
@@ -57,7 +58,7 @@ const TableOrder = ({ orderId }) => {
       return;
     try {
       const { data: res } = await Api.removeOrderItem({
-        order_id: orderId,
+        order_id:  orderId,
         item_id: itemId,
       });
       if (res.status === "success") getOrderInfo();
@@ -87,7 +88,6 @@ const TableOrder = ({ orderId }) => {
   const shipping = orderInfo.shipping || [];
   const fees = orderInfo.fees || [];
   const coupons = orderInfo.coupons || [];
-  const roundUp2dp = (num) => (Math.round(num * 10) / 10).toFixed(2);
 
   // Calculate totals per product
   const subtotal = products.reduce((sum, [_, item]) => {

@@ -9,6 +9,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import { Api } from "../../../api";
+import { roundUp2dp } from "../../../utils/tableHelper";
 
 const OrderProductRow = ({
   item_id,
@@ -21,8 +22,9 @@ const OrderProductRow = ({
   refreshOrderInfo,
   handleDeleteItem,
 }) => {
-  const unitPriceInclTax =
-    parseFloat(item.price_per_item) + parseFloat(item.tax_per_item);
+  const unitPriceInclTax = roundUp2dp(
+    parseFloat(item.price_per_item) + parseFloat(item.tax_per_item)
+  );
 
   const saveQuantity = async () => {
     try {
@@ -122,7 +124,7 @@ const OrderProductRow = ({
           </Box>
         )}
       </TableCell>
-      <TableCell>${unitPriceInclTax.toFixed(2)}</TableCell>
+      <TableCell>${unitPriceInclTax}</TableCell>
       <TableCell>
         {editingItemId === item_id ? (
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
