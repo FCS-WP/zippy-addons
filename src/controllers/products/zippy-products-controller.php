@@ -262,11 +262,13 @@ class Zippy_Products_Controller
         return $cmp;
       });
 
-
       $data = array();
-
+      $excludedTag = ['add-ons'];
       foreach ($results->products as $product) {
-
+        $tags = wp_get_post_terms($product->get_id(), 'product_tag', ['fields' => 'slugs']);
+        if (!empty(array_intersect($tags, $excludedTag))) {
+          continue;
+        }
 
         $is_composite_product = is_composite_product($product);
 
