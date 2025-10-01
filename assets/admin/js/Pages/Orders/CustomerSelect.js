@@ -19,7 +19,14 @@ export default function CustomerSelect() {
         setCustomers(formatted);
 
         const allRoles = Array.from(
-          new Set(data.data.flatMap((c) => c.roles || []))
+          new Set(
+            data.data.flatMap((c) => {
+              if (!c.roles) return [];
+              if (Array.isArray(c.roles)) return c.roles;
+              if (typeof c.roles === "object") return Object.values(c.roles);
+              return [String(c.roles)];
+            })
+          )
         );
         setRoles(allRoles);
 
@@ -35,10 +42,15 @@ export default function CustomerSelect() {
     fetchCustomers();
   }, []);
 
-  // filtered customers theo role
   const filteredCustomers = useMemo(() => {
     if (!selectedRole) return customers;
-    return customers.filter((c) => c.roles?.includes(selectedRole));
+    return customers.filter((c) => {
+      if (!c.roles) return false;
+      if (Array.isArray(c.roles)) return c.roles.includes(selectedRole);
+      if (typeof c.roles === "object")
+        return Object.values(c.roles).includes(selectedRole);
+      return String(c.roles) === selectedRole;
+    });
   }, [customers, selectedRole]);
 
   const handleChange = (event, value) => {
@@ -55,13 +67,23 @@ export default function CustomerSelect() {
         const opt = new Option(value.label, value.id, true, true);
         originalSelect.add(opt);
       }
-      jQuery(originalSelect).val(value?.id || "");
-      jQuery(originalSelect).trigger("change.select2");
-      jQuery(originalSelect).trigger("change");
-      jQuery(originalSelect).trigger({
-        type: "select2:select",
-        params: { data: value },
+
+      jQuery(originalSelect)
+        .val(value?.id || "")
+        .trigger("change")
+        .trigger({
+          type: "select2:select",
+          params: { data: { id: value?.id, text: value?.label } },
+        });
+    }
+
+    const inputEl = document.getElementById("my_customer_select");
+    if (inputEl) {
+      const customEvent = new CustomEvent("customer:changed", {
+        detail: value,
+        bubbles: true,
       });
+      inputEl.dispatchEvent(customEvent);
     }
   };
 
@@ -83,7 +105,12 @@ export default function CustomerSelect() {
       {/* Customer select */}
       <Autocomplete
         options={filteredCustomers}
-        getOptionLabel={(option) => option.label}
+        getOptionLabel={(option) => {
+          if (!option) return "";
+          if (typeof option === "string") return option;
+          if (option.label) return String(option.label);
+          return String(option.id || "");
+        }}
         value={selectedCustomer}
         onChange={handleChange}
         renderInput={(params) => (
@@ -93,6 +120,10 @@ export default function CustomerSelect() {
             placeholder="Type to search..."
             variant="outlined"
             fullWidth
+            inputProps={{
+              ...params.inputProps,
+              id: "my_customer_select",
+            }}
           />
         )}
         isOptionEqualToValue={(option, value) => option.id === value.id}
