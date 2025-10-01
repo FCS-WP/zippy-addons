@@ -111,7 +111,10 @@ const TableOrder = ({ orderId }) => {
     0
   );
 
-  const gst = gstFromProducts + gstFromShipping + gstFromFees;
+  const gst =
+    Math.ceil(
+      parseFloat(gstFromProducts + gstFromShipping + gstFromFees) * 100
+    ) / 100;
 
   // Calculate for shipping
   const shippingTotal = shipping.reduce(

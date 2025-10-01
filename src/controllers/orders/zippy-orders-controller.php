@@ -10,6 +10,7 @@ use Zippy_Booking\Src\Services\Zippy_Handle_Product_Add_On;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Tax;
 use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
 use WC_Coupon;
+use WC_Tax;
 
 defined('ABSPATH') or die();
 
@@ -343,7 +344,7 @@ class Zippy_Orders_Controller
             $result['shipping'][] = [
                 'method' => $shipping->get_name(),
                 'total'  => $shipping->get_total(),
-                'tax_shipping' => $shipping->get_total_tax(),
+                'tax_shipping' => self::get_tax(floatval($shipping->get_total())),
             ];
         }
 
@@ -585,5 +586,15 @@ class Zippy_Orders_Controller
         }
 
         return Zippy_Response_Handler::success($customers);
+    }
+
+
+    private static function get_tax($total)
+    {
+
+        $tax = get_tax_percent();
+        $tax_rate = floatval($tax->tax_rate);
+        $shipping_tax = $total - $total / (1 + $tax_rate / 100);
+        return wc_format_decimal($shipping_tax, wc_get_price_decimals());
     }
 }
