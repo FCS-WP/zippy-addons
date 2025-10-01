@@ -24,12 +24,7 @@ const OrderSummary = ({
         ${subtotal.toFixed(2)}
       </Typography>
     </Typography>
-    <Typography sx={{ fontWeight: "bold", fontSize: "0.85rem" }}>
-      GST:{" "}
-      <Typography component="span" sx={{ fontWeight: "normal" }}>
-        ${gst.toFixed(2)}
-      </Typography>
-    </Typography>
+
     {shippingTotal > 0 && (
       <Typography sx={{ fontWeight: "bold", fontSize: "0.85rem" }}>
         Shipping:{" "}
@@ -40,7 +35,7 @@ const OrderSummary = ({
     )}
     {feesTotal > 0 && (
       <Typography sx={{ fontWeight: "bold", fontSize: "0.85rem" }}>
-        Fees:{" "}
+        Extra Fee:{" "}
         <Typography component="span" sx={{ fontWeight: "normal" }}>
           ${feesTotal.toFixed(2)}
         </Typography>
@@ -54,6 +49,12 @@ const OrderSummary = ({
         </Typography>
       </Typography>
     )}
+    <Typography sx={{ fontWeight: "bold", fontSize: "0.85rem" }}>
+      GST:{" "}
+      <Typography component="span" sx={{ fontWeight: "normal" }}>
+        ${gst}
+      </Typography>
+    </Typography>
     <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: "1rem" }}>
       Total: ${total.toFixed(2)}
     </Typography>
