@@ -108,7 +108,7 @@ const TableOrder = ({ orderId }) => {
   );
 
   const gstFromFees = (fees || []).reduce(
-    (sum, fee) => sum + parseFloat(fee.tax_total || 0),
+    (sum, fee) => sum + parseFloat(fee.tax_fee || 0),
     0
   );
 

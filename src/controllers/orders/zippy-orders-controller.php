@@ -352,7 +352,7 @@ class Zippy_Orders_Controller
             $result['fees'][] = [
                 'name'  => $fee_item->get_name(),
                 'total' => $fee_item->get_total(),
-                'tax_fee' => $fee_item->get_total_tax(),
+                'tax_fee' => self::get_tax(floatval($fee_item->get_total())),
             ];
         }
 
