@@ -603,6 +603,7 @@ class Zippy_Orders_Controller
             $taxTotal += $tax_total;
         }
 
+        $subtotal = Zippy_Wc_Calculate_Helper::round_price_wc($subtotal);
         return [$products, $subtotal, $taxTotal];
     }
 
