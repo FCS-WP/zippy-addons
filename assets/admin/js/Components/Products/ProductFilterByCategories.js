@@ -32,7 +32,11 @@ const ProductFilterbyCategories = ({ onFilter }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onFilter(filters); // send filters back to parent
+    const submitFilters = {
+      ...filters,
+      category: filters.category === "all" ? "" : filters.category,
+    };
+    onFilter(submitFilters);
   };
 
   return (
@@ -64,7 +68,7 @@ const ProductFilterbyCategories = ({ onFilter }) => {
             onChange={handleChange}
             sx={{ fontSize: "14px" }}
           >
-            <MenuItem autoFocus={true} value="" sx={{ fontSize: "14px" }}>
+            <MenuItem autoFocus={true} value="all" sx={{ fontSize: "14px" }}>
               All Categories
             </MenuItem>
             {categories.map((cat) => (
