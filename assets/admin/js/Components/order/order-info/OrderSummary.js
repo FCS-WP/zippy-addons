@@ -21,7 +21,7 @@ const OrderSummary = ({
     <Typography sx={{ fontWeight: "bold", fontSize: "0.85rem" }}>
       Subtotal:{" "}
       <Typography component="span" sx={{ fontWeight: "normal" }}>
-        ${subtotal.toFixed(2)}
+        ${subtotal}
       </Typography>
     </Typography>
 
@@ -56,7 +56,7 @@ const OrderSummary = ({
       </Typography>
     </Typography>
     <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-      Total: ${total.toFixed(2)}
+      Total: ${total}
     </Typography>
   </Box>
 );

@@ -11,6 +11,7 @@ use Zippy_Booking\Src\Services\Zippy_Handle_Product_Tax;
 use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
 use WC_Coupon;
 use WC_Tax;
+use Zippy_Booking\Utils\Zippy_Wc_Calculate_Helper;
 
 defined('ABSPATH') or die();
 
@@ -292,7 +293,7 @@ class Zippy_Orders_Controller
 
         $order_id = intval($request->get_param('order_id'));
         $order    = wc_get_order($order_id);
-        if (!$order) {
+        if (empty($order)) {
             return Zippy_Response_Handler::error('Order not found.');
         }
 
@@ -303,60 +304,21 @@ class Zippy_Orders_Controller
 
         $result = [];
 
-        foreach ($items as $item_id => $item) {
-            $akk_selected = $item->get_meta('akk_selected', true);
-            $akk_selected = maybe_unserialize($akk_selected);
-            $addons = [];
+        [$result['products'], $subtotalOrder, $taxTotalOrder] = self::get_products_info($items);
+        [$result['shipping'], $totalShipping, $taxShipping] = self::get_shipping_info($shipping_items);
+        [$result['fees'], $totalFee, $taxFee] = self::get_fees_info($fee);
+        [$result['coupons'], $totalCoupon] = self::get_coupons_info($coupon_items);
 
-            if (!empty($akk_selected)) {
-                foreach ($akk_selected as $addon_id => $values) {
-                    $addon_product = wc_get_product($addon_id);
-                    $addons[] = [
-                        'addon_id' => $addon_id,
-                        'name'     => $addon_product ? $addon_product->get_name() : '',
-                        'quantity' => $values[0] ?? 0,
-                        'price'    => $values[1] ?? 0,
-                    ];
-                }
-            }
-            $product = $item->get_product();
-            $result['products'][$item_id] = [
-                'product_id'    => $product ? $product->get_id() : 0,
-                'name'           => $product ? $product->get_name() : '',
-                'img_url'       => $product ? wp_get_attachment_url($product->get_image_id()) : '',
-                'sku'           => $product ? $product->get_sku() : '',
-                'quantity'       => $item->get_quantity(),
-                'addons'         => $addons,
-                'price_total'    => wc_format_decimal($item->get_subtotal(), wc_get_price_decimals()),
-                'tax_total'      => wc_format_decimal($item->get_subtotal_tax(), wc_get_price_decimals()),
-                'price_per_item' => wc_format_decimal($item->get_subtotal() / max(1, $item->get_quantity()), wc_get_price_decimals()),
-                'tax_per_item'   => wc_format_decimal($item->get_subtotal_tax() / max(1, $item->get_quantity()), wc_get_price_decimals()),
-                'packing_instructions' => $item->get_meta('packing_instructions', true),
-                'min_order' => get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0,
-            ];
-        }
+        $taxTotal = Zippy_Wc_Calculate_Helper::round_price_wc($taxTotalOrder + $taxShipping + $taxFee);
+        $totalCalculated = Zippy_Wc_Calculate_Helper::round_price_wc(
+            ($subtotalOrder + $totalShipping + $totalFee - $totalCoupon)
+        );
 
-        foreach ($shipping_items as $ship_id => $shipping) {
-            $result['shipping'][] = [
-                'method' => $shipping->get_name(),
-                'total'  => $shipping->get_total(),
-                'tax_shipping' => self::get_tax(floatval($shipping->get_total())),
-            ];
-        }
-
-        foreach ($fee as $fee_id => $fee_item) {
-            $result['fees'][] = [
-                'name'  => $fee_item->get_name(),
-                'total' => $fee_item->get_total(),
-                'tax_fee' => self::get_tax(floatval($fee_item->get_total())),
-            ];
-        }
-
-        foreach ($coupon_items as $coupon_id => $coupon) {
-            $result['coupons'][] = [
-                'total' => $coupon->get_discount(),
-            ];
-        }
+        $result['order_info'] = [
+            'subtotal'   => $subtotalOrder,
+            'tax_total'  => $taxTotal,
+            'total'      => $totalCalculated,
+        ];
 
         return Zippy_Response_Handler::success($result);
     }
@@ -592,10 +554,118 @@ class Zippy_Orders_Controller
 
     private static function get_tax($total)
     {
-
         $tax = get_tax_percent();
         $tax_rate = floatval($tax->tax_rate);
         $shipping_tax = $total - $total / (1 + $tax_rate / 100);
-        return wc_format_decimal($shipping_tax, wc_get_price_decimals());
+        return Zippy_Wc_Calculate_Helper::round_price_wc($shipping_tax);
+    }
+
+    private static function get_products_info($items)
+    {
+        $products = [];
+        $subtotal = 0;
+        $taxTotal = 0;
+
+        foreach ($items as $item_id => $item) {
+            $akk_selected = maybe_unserialize($item->get_meta('akk_selected', true));
+            $addons = [];
+
+            if (!empty($akk_selected)) {
+                foreach ($akk_selected as $addon_id => $values) {
+                    $addon_product = wc_get_product($addon_id);
+                    $addons[] = [
+                        'addon_id' => $addon_id,
+                        'name'     => $addon_product ? $addon_product->get_name() : '',
+                        'quantity' => $values[0] ?? 0,
+                        'price'    => $values[1] ?? 0,
+                    ];
+                }
+            }
+
+            $product = $item->get_product();
+            $price_total = Zippy_Wc_Calculate_Helper::round_price_wc($item->get_subtotal());
+            $tax_total = $item->get_subtotal_tax();
+
+            $products[$item_id] = [
+                'product_id'        => $product ? $product->get_id() : 0,
+                'name'              => $product ? $product->get_name() : '',
+                'img_url'           => $product ? wp_get_attachment_url($product->get_image_id()) : '',
+                'sku'               => $product ? $product->get_sku() : '',
+                'quantity'          => $item->get_quantity(),
+                'addons'            => $addons,
+                'price_total'       => $price_total,
+                'tax_total'         => $tax_total,
+                'price_per_item'    => Zippy_Wc_Calculate_Helper::round_price_wc($item->get_subtotal() / max(1, $item->get_quantity())),
+                'tax_per_item'      => Zippy_Wc_Calculate_Helper::round_price_wc($item->get_subtotal_tax() / max(1, $item->get_quantity())),
+                'packing_instructions' => $item->get_meta('packing_instructions', true),
+                'min_order'         => get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0,
+            ];
+
+            $subtotal += ($price_total + Zippy_Wc_Calculate_Helper::round_price_wc($tax_total));
+            $taxTotal += $tax_total;
+        }
+
+        $subtotal = Zippy_Wc_Calculate_Helper::round_price_wc($subtotal);
+        return [$products, $subtotal, $taxTotal];
+    }
+
+    private static function get_shipping_info($shipping_items)
+    {
+        $shipping = [];
+        $total = 0;
+        $tax = 0;
+
+        foreach ($shipping_items as $ship_id => $item) {
+            $amount = floatval($item->get_total());
+            $taxItem = self::get_tax($amount);
+
+            $shipping[] = [
+                'method'       => $item->get_name(),
+                'total'        => $amount,
+                'tax_shipping' => $taxItem,
+            ];
+
+            $total += $amount;
+            $tax += $taxItem;
+        }
+
+        return [$shipping, $total, $tax];
+    }
+
+    private static function get_fees_info($fee_items)
+    {
+        $fees = [];
+        $total = 0;
+        $tax = 0;
+
+        foreach ($fee_items as $fee_id => $item) {
+            $amount = floatval($item->get_total());
+            $taxItem = self::get_tax($amount);
+
+            $fees[] = [
+                'name'     => $item->get_name(),
+                'total'    => $amount,
+                'tax_fee'  => $taxItem,
+            ];
+
+            $total += $amount;
+            $tax += $taxItem;
+        }
+
+        return [$fees, $total, $tax];
+    }
+
+    private static function get_coupons_info($coupon_items)
+    {
+        $coupons = [];
+        $total = 0;
+
+        foreach ($coupon_items as $coupon_id => $item) {
+            $amount = floatval($item->get_discount());
+            $coupons[] = ['total' => $amount];
+            $total += $amount;
+        }
+
+        return [$coupons, $total];
     }
 }
