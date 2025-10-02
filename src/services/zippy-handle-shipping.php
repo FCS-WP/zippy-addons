@@ -141,14 +141,10 @@ class Zippy_Handle_Shipping
   {
     $shipping = new WC_Order_Item_Shipping();
     $shipping->set_method_title($method_title);
+    $shipping->set_method_id('flat_rate');
+    $shipping->set_taxes(array('total' => array()));
+    $shipping->set_tax_status('none'); // No tax
     $shipping->set_total(floatval($total));
-
-    $tax_rates = WC_Tax::get_shipping_tax_rates();
-    $taxes     = WC_Tax::calc_tax($total, $tax_rates, false);
-    $total_tax = array_sum($taxes);
-
-    $shipping->set_taxes(['total' => $taxes]);
-    // $shipping->set_tax_class('standard');
 
     $order->add_item($shipping);
   }

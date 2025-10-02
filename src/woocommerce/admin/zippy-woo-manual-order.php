@@ -42,7 +42,11 @@ class Zippy_Woo_Manual_Order
   protected function set_hooks()
   {
     add_action('woocommerce_new_order', [$this, 'maybe_handle_manual_order'], 20, 2);
+
+    add_action('woocommerce_order_item_shipping_after_calculate_taxes', [$this, 'remove_tax_from_shipping_fee'], 10, 2);
   }
+
+
 
   /**
    * Process shipping fees for manual orders
@@ -88,9 +92,20 @@ class Zippy_Woo_Manual_Order
     // Add shipping / extra fees
     Zippy_Handle_Shipping::process_add_shipping_fee($order_new, $config);
     Zippy_Handle_Shipping::process_add_extra_fee($order_new, $config);
-    $order_new->save();
+    // New order calculate
+    $new_order = wc_get_order($order->get_id());
+    $new_order->calculate_totals();
+    $new_order->save();
   }
 
+  public function remove_tax_from_shipping_fee($shipping_item)
+  {
+
+    $shipping_item->set_taxes([
+      'total'    => array(),
+      'subtotal' => array(),
+    ]);
+  }
 
   private function add_order_meta_data_manual($order)
   {
