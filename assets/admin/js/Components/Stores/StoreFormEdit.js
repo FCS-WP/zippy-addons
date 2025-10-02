@@ -35,7 +35,15 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
     let formattedValue = date;
 
     if (field === "date" && date) {
-      formattedValue = new Date(date).toISOString().split("T")[0];
+      const dt = new Date(date);
+
+      const offsetDate = new Date(dt.getTime() + 8 * 60 * 60 * 1000);
+
+      const year = offsetDate.getUTCFullYear();
+      const month = String(offsetDate.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(offsetDate.getUTCDate()).padStart(2, "0");
+
+      formattedValue = `${year}-${month}-${day}`;
     }
 
     setStartDate(date);
@@ -46,7 +54,15 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
     let formattedValue = date;
 
     if (field === "date" && date) {
-      formattedValue = new Date(date).toISOString().split("T")[0];
+      const dt = new Date(date);
+
+      const offsetDate = new Date(dt.getTime() + 8 * 60 * 60 * 1000);
+
+      const year = offsetDate.getUTCFullYear();
+      const month = String(offsetDate.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(offsetDate.getUTCDate()).padStart(2, "0");
+
+      formattedValue = `${year}-${month}-${day}`;
     }
 
     setEndDate(date);

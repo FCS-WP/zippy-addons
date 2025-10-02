@@ -298,7 +298,7 @@ const OutletSelect = ({
             </Typography>
           </MenuItem>
           {/* Multi outlets */}
-          {customOutletData.length > 0 &&
+          {customOutletData?.length > 0 &&
             customOutletData.map((outlet, index) => (
               <MenuItem key={index} value={outlet}>
                 <Typography sx={{ textWrap: "wrap" }} fontSize={14}>
@@ -313,6 +313,20 @@ const OutletSelect = ({
           </Typography>
         )}
       </FormControl>
+
+      {customOutletData && customOutletData.length <= 0 && (
+        <Box
+          display={"flex"}
+          my={2}
+          alignItems={"center"}
+          justifyContent={"center"}
+        >
+          <WarningAmberIcon color="warning" />
+          <Typography fontWeight={600} fontSize={14}>
+            No store available
+          </Typography>
+        </Box>
+      )}
 
       {donaSelectedOutlet && (
         <Box>
