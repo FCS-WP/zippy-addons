@@ -93,9 +93,7 @@ class Zippy_Woo_Manual_Order
     Zippy_Handle_Shipping::process_add_shipping_fee($order_new, $config);
     Zippy_Handle_Shipping::process_add_extra_fee($order_new, $config);
     // New order calculate
-    $new_order = wc_get_order($order->get_id());
-    $new_order->calculate_totals();
-    $new_order->save();
+    $order_new->save();
   }
 
   public function remove_tax_from_shipping_fee($shipping_item)
