@@ -83,8 +83,11 @@ class Zippy_Woo_Manual_Order
       return;
     }
 
+    $config = Zippy_Handle_Shipping::query_shipping();
+
     // Add shipping / extra fees
-    Zippy_Handle_Shipping::process_add_shipping_fee($order_new);
+    Zippy_Handle_Shipping::process_add_shipping_fee($order_new, $config);
+    Zippy_Handle_Shipping::process_add_extra_fee($order_new, $config);
     $order_new->save();
   }
 

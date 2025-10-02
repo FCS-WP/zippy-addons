@@ -11,11 +11,10 @@ class Zippy_Handle_Shipping
 {
   private const DEFAULT_MAX_DISTANCE = 99999999;
 
-  public static function process_add_shipping_fee(WC_Order $order)
+  public static function process_add_shipping_fee(WC_Order $order, $config)
   {
     $distance         = (float) $order->get_meta(BILLING_DISTANCE);
     $order_type       = $order->get_meta(BILLING_METHOD);
-    $customer_address = $order->get_meta(BILLING_DELIVERY);
 
     if ($distance <= 0 || $order_type !== 'delivery') {
       return;
@@ -25,24 +24,36 @@ class Zippy_Handle_Shipping
       return;
     }
 
-    $config = self::query_shipping();
     if (!$config) {
       return;
     }
 
     $shipping_fee = (float) self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_delivery), $distance);
-    $extra_fee = (float) self::calculate_extra_fee(maybe_unserialize($config->extra_fee), $customer_address);
 
     // Shipping
     if ($shipping_fee > 0) {
       self::add_shipping_item($order, 'Shipping Fee', $shipping_fee);
+      $order->calculate_totals();
     }
-    // Extra Fee
-    if ($extra_fee > 0) {
-      self::add_fee_item($order, __('Extra Fee', 'zippy-booking'), $extra_fee);
+  }
+
+
+  public static function process_add_extra_fee(WC_Order $order, $config)
+  {
+
+    if (!$config) {
+      return;
     }
 
-    $order->calculate_totals();
+    $customer_address = $order->get_meta(BILLING_DELIVERY);
+
+    $extra_fee = (float) self::calculate_extra_fee(maybe_unserialize($config->extra_fee), $customer_address);
+    // Extra Fee
+
+    if ($extra_fee > 0) {
+      self::add_fee_item($order, __('Extra Fee', 'zippy-booking'), $extra_fee);
+      $order->calculate_totals();
+    }
   }
 
   public static function process_free_shipping($order_id)
@@ -60,13 +71,18 @@ class Zippy_Handle_Shipping
     $config = self::query_shipping();
 
     $free_shipping_threshold = (float) self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_freeship), $distance);
-
+    // var_dump($order->get_total());die;
     if (self::is_free_shipping($order->get_total(), $free_shipping_threshold)) {
       self::add_free_shipping($order);
       $new_order = wc_get_order(intval($order_id));
 
       self::add_shipping_item($new_order, 'Free Shipping', 0);
       $new_order->calculate_totals();
+    } else {
+      $new_order = wc_get_order(intval($order_id));
+
+      // add fee shipping Back
+      self::process_add_shipping_fee($new_order, $config);
     }
   }
 

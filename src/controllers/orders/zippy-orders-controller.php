@@ -234,12 +234,8 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('No products were added to the order.');
         }
 
-        $new_order = wc_get_order($order_id);
-        $new_order->calculate_totals();
-        $new_order->save();
 
-        Zippy_Handle_Shipping::process_free_shipping($order_id);
-
+        self::handle_free_shipping($order_id);
         return Zippy_Response_Handler::success([
             'order_id' => $order_id,
             'items'    => $added_items,
@@ -392,6 +388,8 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('Failed to delete order item.');
         }
 
+        self::handle_free_shipping($order_id);
+
         return Zippy_Response_Handler::success([
             'order_id' => $order_id,
             'item_id'  => $item_id,
@@ -438,13 +436,7 @@ class Zippy_Orders_Controller
             Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
         }
 
-        $new_order = wc_get_order($order_id);
-        $new_order->calculate_totals();
-        $new_order->save();
-
-
-        Zippy_Handle_Shipping::process_free_shipping($order_id);
-
+        self::handle_free_shipping($order_id);
 
         return Zippy_Response_Handler::success([
             'status' => 'success',
@@ -586,6 +578,15 @@ class Zippy_Orders_Controller
         }
 
         return Zippy_Response_Handler::success($customers);
+    }
+
+    private static function handle_free_shipping($order_id)
+    {
+        $new_order = wc_get_order($order_id);
+        $new_order->calculate_totals();
+        $new_order->save();
+
+        Zippy_Handle_Shipping::process_free_shipping($order_id);
     }
 
 
