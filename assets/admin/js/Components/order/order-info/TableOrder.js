@@ -58,7 +58,7 @@ const TableOrder = ({ orderId }) => {
       return;
     try {
       const { data: res } = await Api.removeOrderItem({
-        order_id:  orderId,
+        order_id: orderId,
         item_id: itemId,
       });
       if (res.status === "success") getOrderInfo();
@@ -88,33 +88,12 @@ const TableOrder = ({ orderId }) => {
   const shipping = orderInfo.shipping || [];
   const fees = orderInfo.fees || [];
   const coupons = orderInfo.coupons || [];
+  const priceOrderInfo = orderInfo.order_info || {};
 
   // Calculate totals per product
-  const subtotal = products.reduce((sum, [_, item]) => {
-    const unitPriceInclTax =
-      parseFloat(item.price_per_item) + parseFloat(item.tax_per_item);
-    return sum + unitPriceInclTax * item.quantity;
-  }, 0);
+  const subtotal = priceOrderInfo?.subtotal;
 
-  // Calculate GST from products and shipping
-  const gstFromProducts = products.reduce(
-    (sum, [_, item]) => sum + parseFloat(item.tax_total || 0),
-    0
-  );
-
-  const gstFromShipping = (shipping || []).reduce(
-    (sum, ship) => sum + parseFloat(ship.tax_shipping || 0),
-    0
-  );
-
-  const gstFromFees = (fees || []).reduce(
-    (sum, fee) => sum + parseFloat(fee.tax_fee || 0),
-    0
-  );
-
-  const gst = roundUp2dp(
-    parseFloat(gstFromProducts + gstFromShipping + gstFromFees)
-  );
+  const gst = priceOrderInfo?.tax_total;
 
   // Calculate for shipping
   const shippingTotal = shipping.reduce(
@@ -135,7 +114,7 @@ const TableOrder = ({ orderId }) => {
   );
 
   // Calculate total
-  const total = subtotal + shippingTotal + feesTotal - couponsTotal;
+  const total = priceOrderInfo?.total;
 
   return (
     <Box sx={{ mt: 4 }}>
