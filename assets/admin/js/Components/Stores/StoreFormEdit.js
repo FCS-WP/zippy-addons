@@ -16,6 +16,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { typeStore } from "../../../../web/js/helper/typeStore";
 import CustomeDatePicker from "../DatePicker/CustomeDatePicker";
 import typeStoreHelper from "../../utils/typeStoreHelper";
+import DateTimeHelper from "../../../../web/js/utils/DateTimeHelper";
 
 const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -35,15 +36,7 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
     let formattedValue = date;
 
     if (field === "date" && date) {
-      const dt = new Date(date);
-
-      const offsetDate = new Date(dt.getTime() + 8 * 60 * 60 * 1000);
-
-      const year = offsetDate.getUTCFullYear();
-      const month = String(offsetDate.getUTCMonth() + 1).padStart(2, "0");
-      const day = String(offsetDate.getUTCDate()).padStart(2, "0");
-
-      formattedValue = `${year}-${month}-${day}`;
+      formattedValue = DateTimeHelper.getDateWithOffset(date);
     }
 
     setStartDate(date);
@@ -54,15 +47,7 @@ const StoreFormEdit = ({ store, loading, onClose, onSave }) => {
     let formattedValue = date;
 
     if (field === "date" && date) {
-      const dt = new Date(date);
-
-      const offsetDate = new Date(dt.getTime() + 8 * 60 * 60 * 1000);
-
-      const year = offsetDate.getUTCFullYear();
-      const month = String(offsetDate.getUTCMonth() + 1).padStart(2, "0");
-      const day = String(offsetDate.getUTCDate()).padStart(2, "0");
-
-      formattedValue = `${year}-${month}-${day}`;
+      formattedValue = DateTimeHelper.getDateWithOffset(date);
     }
 
     setEndDate(date);

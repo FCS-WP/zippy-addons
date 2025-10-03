@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import HolidayTable from "../../Components/Configs/HolidayTable";
 import BookingSettings from "../../Components/Configs/BookingSettings";
 import WeekdayTable from "../../Components/Configs/WeekdayTable/WeekdayTable";
+import DateTimeHelper from "../../../../web/js/utils/DateTimeHelper";
 
 const daysOfWeek = [
   "Sunday",
@@ -217,15 +218,9 @@ const Settings = () => {
     setHolidays((prevHolidays) => [...prevHolidays, { label: "", date: "" }]);
   };
   const handleHolidayChange = (index, key, value) => {
-    let formattedValue = value;
-
-    if (key === "date" && value) {
-      formattedValue = new Date(value).toISOString().split("T")[0];
-    }
-
     setHolidays((prevHolidays) =>
       prevHolidays.map((holiday, i) =>
-        i === index ? { ...holiday, [key]: formattedValue } : holiday
+        i === index ? { ...holiday, [key]: value } : holiday
       )
     );
   };
@@ -311,7 +306,9 @@ const Settings = () => {
         })),
         closed_dates: holidays.map((holiday) => ({
           label: holiday.label,
-          value: new Date(holiday.date).toISOString().split("T")[0],
+          value: holiday.date
+            ? DateTimeHelper.getDateWithOffset(holiday.date)
+            : "",
         })),
         takeaway: {
           enabled: "F",

@@ -9,6 +9,7 @@ import {
 } from "../helper/booking";
 import { format } from "date-fns";
 import { SHOP_TYPE } from "../consts/consts";
+import DateTimeHelper from "../utils/DateTimeHelper";
 
 const OutletProvider = ({ children }) => {
   const [outlets, setOutlets] = useState([]);
@@ -45,7 +46,11 @@ const OutletProvider = ({ children }) => {
   };
 
   const filterOutlet = (data) => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = DateTimeHelper.getToday();
+
+    if (!data || data.length === 0) {
+      return [];
+    }
 
     return data.filter((store) => {
       const { start_date, end_date } = store;
