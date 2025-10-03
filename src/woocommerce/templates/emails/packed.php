@@ -1,3 +1,18 @@
+<?php
+
+/**
+ * Packed Order Email Template
+ *
+ * @package WooCommerce/Templates/Emails
+ */
+
+if (! defined('ABSPATH')) {
+	exit;
+}
+
+$order_id = $order->get_id();
+?>
+
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border:1px solid #cccccc;border-collapse:collapse">
 	<tbody>
 		<tr>
