@@ -198,8 +198,18 @@ foreach ($items as $item_id => $item) :
 			?>
 		</td>
 		<td align="center">
+			<?php
+			$subtotal      = (float) $item->get_subtotal();
+			$subtotal_tax  = (float) $item->get_subtotal_tax();
+			$quantity      = (int)   $item->get_quantity();
 
-			<?php echo wp_kses_post($sub_price); ?>
+			if ($quantity > 0) {
+				$unit_price = ($subtotal + $subtotal_tax) / $quantity;
+				echo wc_price($unit_price, array('currency' => $order->get_currency()));
+			} else {
+				echo '-';
+			}
+			?>
 		</td>
 		<td align="right">
 			<?php echo wp_kses_post($order->get_formatted_line_subtotal($item)); ?>
