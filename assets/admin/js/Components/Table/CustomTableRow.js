@@ -110,6 +110,14 @@ const CustomTableRow = ({
       );
 
       setDisabledRemove(false);
+
+      if (Object.keys(row.ADDONS || {}).length == 0) {
+        setShowCollapsePackingInstruction(true);
+      }
+
+      if (Object.keys(row.ADDONS || {}).length > 0) {
+        setShowCollapse(true);
+      }
     }
   }, [addedProducts, row.productID, minOrder]);
 

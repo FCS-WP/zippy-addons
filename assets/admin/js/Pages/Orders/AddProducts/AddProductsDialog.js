@@ -303,7 +303,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
           variant="contained"
           disabled={Object.keys(addedProducts).length === 0}
         >
-          Add to Order
+          Save
         </Button>
         <Button onClick={onClose} color="inherit">
           Cancel
