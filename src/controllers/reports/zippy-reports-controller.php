@@ -80,6 +80,7 @@ class Zippy_Reports_Controller
       'orderby'      => 'meta_value',
       'meta_key'     => BILLING_TIME,
       'order'        => 'ASC',
+      'status'       => ['pending', 'processing']
     ];
     return wc_get_orders($args);
   }
@@ -155,7 +156,8 @@ class Zippy_Reports_Controller
       'item'           => $name,
       'quantity'       => $qty,
       'total_price' => html_entity_decode(strip_tags(wc_price($total + $tax_total))),
-      'payment_status' =>  $order->get_status()
+      'payment_status' =>  $order->get_status(),
+      'payment_method' =>  $order->get_payment_method_title(),
     ];
 
     return [$row, $product_summary];
@@ -248,7 +250,7 @@ class Zippy_Reports_Controller
     $current_order_id = null;
     foreach ($order_rows as $row) {
       if ($row['order_number'] !== $current_order_id) {
-        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], $row['payment_status']], ',');
+        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], self::format_payment_status($row['payment_status'], $row['payment_method'], true)], ',');
         $current_order_id = $row['order_number'];
       } else {
         fputcsv($output, ['', '', '', '', $row['item'], $row['quantity'], $row['total_price']], ',');
@@ -327,7 +329,7 @@ class Zippy_Reports_Controller
                         <td>' . esc_html($row['item']) . '</td>
                         <td>' . esc_html($row['quantity']) . '</td>
                         <td>' . esc_html($row['total_price']) . '</td>
-                        <td>' . esc_html($row['payment_status']) . '</td>
+                        <td>' . self::format_payment_status($row['payment_status'], $row['payment_method']) . '</td>
                       </tr>';
         $current_order_id = $row['order_number'];
       } else {
@@ -381,5 +383,18 @@ class Zippy_Reports_Controller
   private static function format_time_slot($slot)
   {
     return  preg_replace('/^From\s+/i', '', $slot);
+  }
+
+  private static function format_payment_status($status, $method, $forCsv = false)
+  {
+    if ($status === 'pending') {
+      return $forCsv ? 'Pending' : '<span style="color:red;font-weight:bold;">Pending</span>';
+    }
+
+    if ($status === 'processing') {
+      return $forCsv ? 'Processing (' . esc_html($method) . ')' : '<span>Processing (' . esc_html($method) . ')</span>';
+    }
+
+    return esc_html($status);
   }
 }

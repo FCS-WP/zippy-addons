@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, use } from "react";
 import { addProducts } from "../../../utils/tableHelper";
 import { generalAPI } from "../../../api/general";
 import TableView from "../../../Components/TableView";
@@ -17,12 +17,19 @@ const ProductDetails = ({
   quantity,
   addonMinOrder,
   packingInstructions,
+  addedProducts,
+  addAddonProduct,
+  handleRemoveProduct,
+  disabledRemove,
 }) => {
   const orderIDParam = orderID.orderID;
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
 
+  useEffect(() => {
+    console.log("ADDED PRODUCTS:", addedProducts);
+  }, [addedProducts]);
   /**
    * Fetch product addons
    */
@@ -32,8 +39,10 @@ const ProductDetails = ({
     setLoading(true);
     try {
       const { data } = await generalAPI.product({ productID });
+      let converted = [];
       if (data?.status === "success" && data.data?.addons) {
-        setData(convertRows(data.data));
+        converted = convertRows(data.data);
+        setData(mergeAddedProducts(converted, addedProducts, productID));
         setGroupTotal(data.data.grouped_addons?.quantity_products_group || 0);
       } else {
         setData([]);
@@ -45,7 +54,38 @@ const ProductDetails = ({
     } finally {
       setLoading(false);
     }
-  }, [productID]);
+  }, [productID, addedProducts]);
+
+  useEffect(() => {
+    if (!productID || !addedProducts) {
+      setData((prev) =>
+        prev.map((row) => ({ ...row, QUANTITY: row.MIN || 0 }))
+      );
+      return;
+    }
+
+    const productData = addedProducts[productID];
+    if (productData && Array.isArray(productData.addons)) {
+      setData((prev) => mergeAddedProducts(prev, addedProducts, productID));
+    } else {
+      setData((prev) =>
+        prev.map((row) => ({ ...row, QUANTITY: row.MIN || 0 }))
+      );
+    }
+  }, [addedProducts, productID]);
+
+  const mergeAddedProducts = (data, addedProducts, productID) => {
+    const productData = addedProducts?.[productID];
+    if (!productData || !Array.isArray(productData.addons)) return data;
+
+    return data.map((row) => {
+      const match = productData.addons.find(
+        (addon) => String(addon.item_id) === String(row.ID)
+      );
+      if (match) return { ...row, QUANTITY: Number(match.quantity) };
+      return row;
+    });
+  };
 
   const convertRows = (rows) =>
     Object.entries(rows.addons).map(([key, value]) => ({
@@ -193,31 +233,13 @@ const ProductDetails = ({
       }
     }
 
-    handleAddProducts(selected, orderIDParam, quantity);
+    handleAddProducts(selected, quantity);
   };
 
-  const handleAddProducts = async (selected, orderID, quantity) => {
-    try {
-      const params = {
-        order_id: orderID,
-        addons: selected,
-        parent_product_id: productID,
-        quantity: quantity,
-        packing_instructions: packingInstructions || "",
-      };
-      const response = await generalAPI.addProductsToOrder(params);
-      if (response.data.status === "success") {
-        toast.success("Products added to order successfully!");
-      } else {
-        toast.error("Failed to add products to order.");
-      }
-    } catch (error) {
-      console.error("Error adding products to order:", error);
-      toast.error("An error occurred while adding products to order.");
-    } finally {
-      window.location.reload();
-    }
+  const handleAddProducts = async (selected, quantity) => {
+    addAddonProduct(productID, quantity, packingInstructions, selected);
   };
+
   return (
     <Box>
       <ToastContainer
@@ -239,8 +261,18 @@ const ProductDetails = ({
             rows={rowsWithInputs}
             className="table-addons"
           />
-
-          <Box display="flex" justifyContent="flex-end" my={2}>
+          <Box display="flex" justifyContent="flex-end" my={2} gap={1}>
+            {!!addedProducts?.[productID] && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleRemoveProduct}
+                disabled={disabledRemove}
+                sx={{ borderColor: "red", color: "red" }}
+              >
+                Remove
+              </Button>
+            )}
             <Button
               variant="contained"
               color="primary"

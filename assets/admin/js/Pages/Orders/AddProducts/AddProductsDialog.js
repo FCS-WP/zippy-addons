@@ -38,6 +38,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
   });
 
   const [simpleProduct, setSimpleProduct] = useState({});
+  const [addedProducts, setAddedProducts] = useState([]);
   /**
    * Fetch products with API call
    */
@@ -65,33 +66,69 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     }
   }, [params]);
 
-  const addSimpleProduct = useCallback(
-    async (row) => {
-      // if (Object.keys(simpleProduct).length === 0) return;
-      try {
-        const params = {
-          order_id: orderID.orderID,
-          parent_product_id: row.productID,
-          quantity: row.quantity,
-          packing_instructions: row.packingInstructions || "",
-        };
-
-        const { data } = await generalAPI.addProductsToOrder(params);
-
-        if (data?.status === "success") {
-          toast.success("Product added to order successfully");
-        } else {
-          // Handle error case
-          console.error("Failed to add product to order:", data?.message);
-        }
-      } catch (error) {
-        console.error("Error adding product to order:", error);
-      } finally {
-        window.location.reload();
+  const callAddProductsToOrder = async (payload) => {
+    try {
+      const { data } = await generalAPI.addProductsToOrder(payload);
+      if (data?.status === "success") {
+        toast.success("Products added to order successfully");
+        return data;
+      } else {
+        console.error("Failed to add products to order:", data?.message);
+        toast.error(data?.message || "Failed to add products");
+        return null;
       }
+    } catch (error) {
+      console.error("Error adding products to order:", error);
+      toast.error("Error adding products to order");
+      return null;
+    } finally {
+      window.location.reload();
+    }
+  };
+
+  const addSimpleProduct = useCallback((row) => {
+    const info = {
+      parent_product_id: row.productID,
+      quantity: row.quantity,
+      packing_instructions: row.packingInstructions || "",
+    };
+
+    setAddedProducts((prev) => ({
+      ...prev,
+      [row.productID]: info,
+    }));
+  }, []);
+
+  const addAddonProduct = useCallback(
+    (productId, quantity, packingInstructions, addon) => {
+      const info = {
+        parent_product_id: productId,
+        quantity: quantity,
+        packing_instructions: packingInstructions || "",
+        addons: addon,
+      };
+
+      setAddedProducts((prev) => ({
+        ...prev,
+        [productId]: info,
+      }));
     },
-    [simpleProduct, fetchProducts]
+    []
   );
+
+  const submitProducts = useCallback(async () => {
+    if (!orderID?.orderID) {
+      toast.error("Order ID is missing");
+      return;
+    }
+
+    const payload = {
+      order_id: orderID.orderID,
+      products: Object.values(addedProducts),
+    };
+
+    await callAddProductsToOrder(payload);
+  }, [orderID, addedProducts]);
 
   const convertRows = (rows) =>
     rows.map((item) => ({
@@ -188,6 +225,14 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     setSimpleProduct({});
   };
 
+  const handleRemoveProduct = (productID) => {
+    setAddedProducts((prev) => {
+      const newProducts = { ...prev };
+      delete newProducts[productID];
+      return newProducts;
+    });
+  };
+
   /**
    * Table column widths
    */
@@ -226,6 +271,9 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
                 className="table-products"
                 handleSubTableAddProduct={handleSubTableAddProduct}
                 handleSubTableChange={handleSubTableChange}
+                addedProducts={addedProducts} // State save products in temp before submit
+                onRemoveProduct={handleRemoveProduct} // Remove product from state before submit
+                addAddonProduct={addAddonProduct} // Add addon product to state before submit
               />
 
               <TablePaginationCustom
@@ -249,6 +297,14 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
         </Box>
       </DialogContent>
       <DialogActions>
+        <Button
+          onClick={submitProducts}
+          color="primary"
+          variant="contained"
+          disabled={Object.keys(addedProducts).length === 0}
+        >
+          Save
+        </Button>
         <Button onClick={onClose} color="inherit">
           Cancel
         </Button>

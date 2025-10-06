@@ -174,28 +174,41 @@ class Zippy_Orders_Controller
 
     public static function add_product_to_order(WP_REST_Request $request)
     {
-        $required_fields = [
-            "order_id"           => ["required" => true, "data_type" => "integer"],
-            "parent_product_id"  => ["required" => true, "data_type" => "integer"],
-            "quantity"           => ["required" => true, "data_type" => "integer"],
-            "packing_instructions" => ["required" => false, "data_type" => "string"],
-        ];
-
-        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
-        if (!empty($validate)) {
-            return Zippy_Response_Handler::error($validate);
-        }
-
         $order_id = intval($request->get_param('order_id'));
         $order    = wc_get_order($order_id);
         if (!$order) {
             return Zippy_Response_Handler::error('Order not found.');
         }
 
-        $product_id   = intval($request->get_param('parent_product_id'));
-        $quantity     = max(1, intval($request->get_param('quantity')));
-        $packing_instructions = sanitize_text_field($request->get_param('packing_instructions'));
-        $addons       = $request->get_param('addons');
+        $products = $request->get_param('products');
+        if (empty($products) || !is_array($products)) {
+            return Zippy_Response_Handler::error('No products provided.');
+        }
+
+        $added_items = [];
+        foreach ($products as $product) {
+            $added_item = self::add_single_product_to_order($order, $product);
+            if (!empty($added_item)) {
+                $added_items[] = $added_item;
+            }
+        }
+
+        self::handle_free_shipping($order_id);
+
+        return Zippy_Response_Handler::success([
+            'order_id' => $order_id,
+            'items'    => $added_items,
+            'message'  => 'Products added to order successfully',
+        ]);
+    }
+
+    private static function add_single_product_to_order($order, $product)
+    {
+        $added_items = [];
+        $product_id = intval($product['parent_product_id'] ?? 0);
+        $quantity   = max(1, intval($product['quantity'] ?? 1));
+        $packing_instructions = sanitize_text_field($product['packing_instructions'] ?? '');
+        $addons     = $product['addons'] ?? [];
 
         $product = wc_get_product($product_id);
         if (!$product) {
@@ -204,14 +217,17 @@ class Zippy_Orders_Controller
 
         $product_price = get_product_pricing_rules($product, 1);
 
-        // Add parent product to order
+        // Add product to order
         $item_id = $order->add_product($product, $quantity);
         if (is_wp_error($item_id)) {
             return Zippy_Response_Handler::error('Failed to add product to order.');
         }
 
-        $added_items = [];
-        $item        = $order->get_item($item_id);
+        $item = $order->get_item($item_id);
+        if (!$item) {
+            return Zippy_Response_Handler::error('Failed to retrieve added order item.');
+        }
+
         $added_items = [
             'product_id' => $product_id,
             'quantity'   => $quantity,
@@ -231,17 +247,7 @@ class Zippy_Orders_Controller
 
         self::updateMetaData($order, $item_id, 'packing_instructions', $packing_instructions);
 
-        if (empty($added_items)) {
-            return Zippy_Response_Handler::error('No products were added to the order.');
-        }
-
-
-        self::handle_free_shipping($order_id);
-        return Zippy_Response_Handler::success([
-            'order_id' => $order_id,
-            'items'    => $added_items,
-            'message'  => 'Products added to order successfully',
-        ]);
+        return $added_items;
     }
 
     private static function updateMetaData($order, $item_id, $key, $value)
@@ -268,7 +274,7 @@ class Zippy_Orders_Controller
         // Set tax for no composite product
         if (!is_composite_product($product)) {
             $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
-            $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total, $quantity);
+            $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total);
             if ($tax === false) {
                 return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
             }
