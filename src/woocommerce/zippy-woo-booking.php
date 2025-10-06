@@ -13,6 +13,7 @@ defined('ABSPATH') or die();
 use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 use Zippy_Booking\Utils\Zippy_Session_Handler;
 use Zippy_Booking\Utils\Zippy_Utils_Core;
+use WC_Session_Handler;
 
 class Zippy_Woo_Booking
 {
@@ -44,13 +45,27 @@ class Zippy_Woo_Booking
     add_action('woocommerce_applied_coupon', array($this, 'after_apply_coupon_action'));
     add_action('woocommerce_product_options_pricing', array($this, 'add_custom_price_field_to_product'));
     add_filter('woocommerce_add_to_cart_validation', array($this, 'check_product_category_before_add_to_cart'), 10, 5);
+    add_action('wp_login', array($this, 'init_session'), 10, 2);
+    add_action('init', array($this, 'init_session'), 5);
+  }
+
+  public function init_session()
+  {
+    if (!WC()->session) {
+      WC()->session = new WC_Session_Handler();
+      WC()->session->init();
+    }
+
+    if (!WC()->session->has_session()) {
+      WC()->session->set_customer_session_cookie(true);
+    }
   }
 
   function check_product_category_before_add_to_cart($passed, $product_id, $quantity, $variation_id = null, $variations = null)
   {
     if (isset($_POST['zippy_source_path'])) {
-        $cart_item_data['zippy_source_path'] = sanitize_text_field($_POST['zippy_source_path']);
-        var_dump(3333);
+      $cart_item_data['zippy_source_path'] = sanitize_text_field($_POST['zippy_source_path']);
+      var_dump(3333);
     }
 
     $session = new Zippy_Session_Handler;
