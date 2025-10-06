@@ -30,6 +30,9 @@ const CustomTableRow = ({
   showCollapseProp = false,
   onAddProduct, // callback for adding product
   onSubTableChange, // callback for updating sub row table [quantity, packing instructions]
+  addedProducts,
+  onRemoveProduct,
+  addAddonProduct,
 }) => {
   const minOrder = row.MinOrder ?? 0;
   const [disabled, setDisabled] = useState(true && minOrder <= 0);
@@ -42,6 +45,7 @@ const CustomTableRow = ({
   const [quantity, setQuantity] = useState(minOrder);
   const [packingInstructions, setPackingInstructions] = useState("");
   const [error, setError] = useState(false);
+  const [disabledRemove, setDisabledRemove] = useState(true);
 
   useEffect(() => {
     if (minOrder > 0) {
@@ -83,8 +87,31 @@ const CustomTableRow = ({
     if (onAddProduct) {
       onAddProduct(row);
       setDisabled(true);
+      setDisabledRemove(false);
     }
   };
+
+  const handleRemoveProduct = () => {
+    onRemoveProduct(row.productID);
+    setDisabled(false);
+    setDisabledRemove(true);
+  };
+
+  useEffect(() => {
+    if (!addedProducts) return;
+
+    if (addedProducts[row.productID]) {
+      const q = Number(addedProducts[row.productID].quantity) || minOrder;
+      setQuantity(q);
+      row.quantity = q;
+
+      setPackingInstructions(
+        addedProducts[row.productID].packing_instructions || ""
+      );
+
+      setDisabledRemove(false);
+    }
+  }, [addedProducts, row.productID, minOrder]);
 
   const ActionGroup = () => (
     <Stack
@@ -93,43 +120,8 @@ const CustomTableRow = ({
       alignItems="center"
       justifyContent={"flex-end"}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <span
-          style={{
-            fontSize: "20px",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={() =>
-            handleSubTableChange({
-              target: { name: "quantity", value: Number(quantity) - 1 },
-            })
-          }
-        >
-          –
-        </span>
-        <input
-          name="quantity"
-          min={minOrder}
-          value={quantity}
-          onChange={handleSubTableChange}
-          className={`custom-input ${error ? "error" : ""}`}
-        />
-        <span
-          style={{
-            fontSize: "20px",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={() =>
-            handleSubTableChange({
-              target: { name: "quantity", value: Number(quantity) + 1 },
-            })
-          }
-        >
-          +
-        </span>
-      </div>
+      {renderQuantity()}
+
       {Object.keys(row.ADDONS || {}).length == 0 && (
         <Button
           variant="contained"
@@ -155,6 +147,119 @@ const CustomTableRow = ({
       )}
     </Stack>
   );
+
+  const renderQuantity = () => (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+      <span
+        style={{
+          fontSize: "20px",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+        onClick={() =>
+          handleSubTableChange({
+            target: { name: "quantity", value: Number(quantity) - 1 },
+          })
+        }
+      >
+        –
+      </span>
+      <input
+        name="quantity"
+        min={minOrder}
+        value={quantity}
+        onChange={handleSubTableChange}
+        className={`custom-input ${error ? "error" : ""}`}
+      />
+      <span
+        style={{
+          fontSize: "20px",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+        onClick={() =>
+          handleSubTableChange({
+            target: { name: "quantity", value: Number(quantity) + 1 },
+          })
+        }
+      >
+        +
+      </span>
+    </div>
+  );
+
+  const renderSimpleProduct = () => (
+    <TableCell
+      colSpan={cols.length}
+      style={{ paddingBottom: 0, paddingTop: 0 }}
+    >
+      <Collapse
+        in={showCollapsePackingInstruction}
+        timeout="auto"
+        unmountOnExit
+      >
+        <PackingInstruction
+          value={packingInstructions}
+          onChange={handleSubTableChange}
+        />
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          spacing={1}
+          mt={1}
+          mb={2}
+        >
+          {!!addedProducts?.[row.productID] && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleRemoveProduct}
+              disabled={disabledRemove}
+              sx={{ borderColor: "red", color: "red" }}
+            >
+              Remove
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={handleAddProduct}
+            disabled={disabled}
+          >
+            Add to Order
+          </Button>
+        </Stack>
+      </Collapse>
+    </TableCell>
+  );
+
+  const renderProductHasAddons = () => (
+    <TableCell
+      colSpan={cols.length}
+      style={{ paddingBottom: 0, paddingTop: 0 }}
+    >
+      <Collapse in={showCollapse} timeout="auto" unmountOnExit>
+        <PackingInstruction
+          value={packingInstructions}
+          onChange={handleSubTableChange}
+        />
+
+        <ProductDetails
+          productID={row.productID}
+          orderID={row.orderID}
+          quantity={quantity}
+          addonMinOrder={row.MinAddons}
+          packingInstructions={row.packingInstructions}
+          addedProducts={addedProducts}
+          addAddonProduct={addAddonProduct}
+          handleRemoveProduct={handleRemoveProduct}
+          disabledRemove={disabledRemove}
+        />
+      </Collapse>
+    </TableCell>
+  );
+
   return (
     <>
       <TableRow
@@ -174,51 +279,12 @@ const CustomTableRow = ({
 
       {/* Case ADDONS = 0 */}
       {Object.keys(row.ADDONS || {}).length === 0 && (
-        <TableRow>
-          <TableCell
-            colSpan={cols.length}
-            style={{ paddingBottom: 0, paddingTop: 0 }}
-          >
-            <Collapse
-              in={showCollapsePackingInstruction}
-              timeout="auto"
-              unmountOnExit
-            >
-              <PackingInstruction
-                value={packingInstructions}
-                onChange={handleSubTableChange}
-                showButton
-                onAdd={handleAddProduct}
-                disabled={disabled}
-              />
-            </Collapse>
-          </TableCell>
-        </TableRow>
+        <TableRow>{renderSimpleProduct()}</TableRow>
       )}
 
       {/* Case ADDONS > 0 */}
       {Object.keys(row.ADDONS || {}).length > 0 && (
-        <TableRow>
-          <TableCell
-            colSpan={cols.length}
-            style={{ paddingBottom: 0, paddingTop: 0 }}
-          >
-            <Collapse in={showCollapse} timeout="auto" unmountOnExit>
-              <PackingInstruction
-                value={packingInstructions}
-                onChange={handleSubTableChange}
-              />
-
-              <ProductDetails
-                productID={row.productID}
-                orderID={row.orderID}
-                quantity={quantity}
-                addonMinOrder={row.MinAddons}
-                packingInstructions={row.packingInstructions}
-              />
-            </Collapse>
-          </TableCell>
-        </TableRow>
+        <TableRow>{renderProductHasAddons()}</TableRow>
       )}
     </>
   );

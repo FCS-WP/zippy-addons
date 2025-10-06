@@ -38,6 +38,7 @@ class Zippy_Woo_Orders
 
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_billing_date_col'));
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_billing_time_col'));
+    add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_payment_method_col'));
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_phone_col'));
 
     add_filter('woocommerce_order_query_args', array($this, 'add_meta_billing_date_query'));
@@ -45,6 +46,7 @@ class Zippy_Woo_Orders
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'phone_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_date_order_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_time_order_items_column'), 25, 2);
+    add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'payment_method_order_items_column'), 25, 2);
 
     //add customer parameter for API Report
     add_filter('woocommerce_order_data_store_cpt_get_orders_query', array($this, 'handle_fulfilment_query_var'), 10, 2);
@@ -127,6 +129,33 @@ class Zippy_Woo_Orders
     $columns = $before + $new + $after;
 
     return $columns;
+  }
+
+  public function add_payment_method_col($columns)
+  {
+    // Chèn cột vào sau "order_status"
+    $new_columns = [];
+
+    foreach ($columns as $key => $column) {
+      $new_columns[$key] = $column;
+
+      if ($key === 'order_status') {
+        $new_columns['payment_method'] = __('Payment Method', 'woocommerce');
+      }
+    }
+
+    return $new_columns;
+  }
+
+  public function payment_method_order_items_column($column_name, $order_or_order_id)
+  {
+    if ($column_name === 'payment_method') {
+      $order = $order_or_order_id instanceof \WC_Order ? $order_or_order_id : wc_get_order($order_or_order_id);
+
+      if ($order) {
+        echo esc_html($order->get_payment_method_title());
+      }
+    }
   }
 
   public function billing_time_order_items_column($column_name, $order_or_order_id)
@@ -217,6 +246,10 @@ class Zippy_Woo_Orders
         'value'   => sanitize_text_field($date),
         'compare' => '='
       ];
+    }
+
+    if (!empty($_GET[BILLING_DATE])) {
+      $args['status'] = ['pending', 'processing'];
     }
 
     return $args;

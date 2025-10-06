@@ -35,6 +35,9 @@ const TableView = (props) => {
     headerElement,
     addonsBox,
     className = {},
+    addedProducts = [], // State save products in temp before submit
+    onRemoveProduct = () => {}, // Remove product from state before submit
+    addAddonProduct = () => {}, // Add addon product to state before submit
   } = props;
   const [selectedRows, setSelectedRows] = useState({});
 
@@ -151,6 +154,9 @@ const TableView = (props) => {
                 onChangeCheckbox={handleRowCheckboxChange}
                 onAddProduct={handleSubTableAddProduct}
                 onSubTableChange={handleSubTableChange}
+                addedProducts={addedProducts}
+                onRemoveProduct={onRemoveProduct}
+                addAddonProduct={addAddonProduct}
               />
             ))}
           </TableBody>

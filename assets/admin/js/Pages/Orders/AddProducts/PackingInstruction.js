@@ -1,12 +1,7 @@
-import { Box, Button, FormControl, TextField } from "@mui/material";
+import { Box, Button, FormControl, Stack, TextField } from "@mui/material";
+import { useEffect } from "react";
 
-const PackingInstruction = ({
-  value,
-  onChange,
-  showButton,
-  onAdd,
-  disabled,
-}) => (
+const PackingInstruction = ({ value, onChange }) => (
   <Box mb={2} mt={1}>
     <FormControl fullWidth>
       <TextField
@@ -21,20 +16,6 @@ const PackingInstruction = ({
         label="Packing Instructions"
       />
     </FormControl>
-
-    {showButton && (
-      <Box mt={1} textAlign="right">
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          onClick={onAdd}
-          disabled={disabled}
-        >
-          Add to Order
-        </Button>
-      </Box>
-    )}
   </Box>
 );
 

@@ -107,11 +107,12 @@
 
 .order-status {
   &.status-completed {
-    background: #ff0000 !important;
+    background: #2271b1 !important;
     color: #fff !important;
   }
   &.status-pending {
-    background: #ffa500 !important;
+    background: #ff0000 !important;
+    color: #fff !important;
   }
   &.status-cancelled {
     background: #ffc0cb !important;
