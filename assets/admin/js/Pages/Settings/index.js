@@ -6,6 +6,7 @@ import HolidayTable from "../../Components/Configs/HolidayTable";
 import BookingSettings from "../../Components/Configs/BookingSettings";
 import WeekdayTable from "../../Components/Configs/WeekdayTable/WeekdayTable";
 import DateTimeHelper from "../../../../web/js/utils/DateTimeHelper";
+import CopySchedulerButton from "../../Components/Configs/CopySchedulerButton";
 
 const daysOfWeek = [
   "Sunday",
@@ -414,6 +415,10 @@ const Settings = () => {
                       disabled={stores.length === 0}
                     />
                   )}
+                  <CopySchedulerButton
+                    stores={stores}
+                    selectedOutlet={selectedStore}
+                  />
                 </>
               )}
             </Grid>

@@ -30,13 +30,13 @@ class Zippy_Admin_Booking_Shipping_Route extends Zippy_Booking_Router
             'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'get_shipping_config'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
         ));
-        
+
         // DELETE GET Config
         register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/shipping', array(
             'methods' => 'DELETE',
             'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'delete_shipping_config'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-        )); 
+        ));
 
 
         // GET Remain delivery slot
@@ -44,6 +44,12 @@ class Zippy_Admin_Booking_Shipping_Route extends Zippy_Booking_Router
             'methods' => 'GET',
             'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'check_for_remaining_slots'),
             'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
-        )); 
+        ));
+
+        register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/clone-schedule-from-store', array(
+            'methods' => 'POST',
+            'callback' => array(Zippy_Admin_Booking_Shipping_Controller::class, 'clone_schedule_from_store'),
+            'permission_callback' => array(Zippy_Booking_Permission::class, 'zippy_permission_callback'),
+        ));
     }
 }

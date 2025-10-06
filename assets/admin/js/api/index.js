@@ -94,4 +94,7 @@ export const Api = {
   async updateProductPrices(params) {
     return await makeRequest("/product-prices", params, "POST");
   },
+  async cloneScheduleFromStore(params) {
+    return await makeRequest("/clone-schedule-from-store", params, "POST");
+  },
 };

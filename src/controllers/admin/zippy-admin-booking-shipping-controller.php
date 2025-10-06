@@ -313,4 +313,56 @@ class Zippy_Admin_Booking_Shipping_Controller
             return Zippy_Response_Handler::error("An error occurred: " . $th->getMessage());
         }
     }
+
+    public static function clone_schedule_from_store(WP_REST_Request $request)
+    {
+        $required_fields = [
+            "outlet_id" => ["required" => true, "data_type" => "string"],
+            "from_outlet_id" => ["required" => true, "data_type" => "string"],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+        try {
+
+            $outlet_id = $request["outlet_id"];
+            $from_outlet_id = $request["from_outlet_id"];
+
+            global $wpdb;
+            $outlet_table_name = OUTLET_CONFIG_TABLE_NAME;
+            if (!empty($outlet_id)) {
+                $query = "SELECT * FROM $outlet_table_name WHERE id ='" . $outlet_id . "'";
+            }
+
+            $outlet = $wpdb->get_results($query);
+
+            if (empty($outlet)) {
+                return Zippy_Response_Handler::error("Outlet not exist");
+            }
+
+            if (!empty($from_outlet_id)) {
+                $query = "SELECT * FROM $outlet_table_name WHERE id ='" . $from_outlet_id . "'";
+            }
+
+            $from_outlet = $wpdb->get_results($query);
+            if (empty($from_outlet)) {
+                return Zippy_Response_Handler::error("From Outlet not exist");
+            }
+
+            $operatingHoursFromOutlet = $from_outlet[0]->operating_hours;
+            $outlet[0]->operating_hours = $operatingHoursFromOutlet;
+            $is_updated = $wpdb->update($outlet_table_name, ["operating_hours" => $operatingHoursFromOutlet], ["id" => $outlet_id]);
+            if (!$is_updated) {
+                return Zippy_Response_Handler::error("Update operating hours failed");
+            }
+
+            return Zippy_Response_Handler::success($outlet[0], "Success");
+        } catch (\Throwable $th) {
+            $message = $th->getMessage();
+            Zippy_Log_Action::log('clone_schedule_from_store', json_encode($request), 'Failure', $message);
+        }
+    }
 }
