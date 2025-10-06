@@ -1,11 +1,22 @@
-#zippy-delivery-form , #zippy-takeaway-form, .custom-input {
-    input {
-        border: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-        background: white;
-        padding: 0;
-        font-size: 14px;
-        text-overflow: ellipsis;
+#zippy-delivery-form,
+#zippy-takeaway-form,
+.custom-input {
+  input {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: white;
+    padding: 0;
+    font-size: 14px;
+    text-overflow: ellipsis;
+  }
+}
+#order_review {
+  #method_shipping {
+    .quickcheckout-heading {
+      font-size: 18px !important;
+      color: #000000;
+      margin-bottom: 10px;
     }
+  }
 }
