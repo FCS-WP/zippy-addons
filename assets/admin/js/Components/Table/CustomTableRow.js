@@ -113,6 +113,7 @@ const CustomTableRow = ({
 
       if (Object.keys(row.ADDONS || {}).length == 0) {
         setShowCollapsePackingInstruction(true);
+        setDisabled(true);
       }
 
       if (Object.keys(row.ADDONS || {}).length > 0) {
