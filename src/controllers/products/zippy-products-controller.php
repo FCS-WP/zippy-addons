@@ -431,10 +431,17 @@ class Zippy_Products_Controller
           'limit'     => -1,
           'category'  => [$category->slug],
           'tax_query' => [
+            'relation' => 'AND',
             [
               'taxonomy' => 'product_tag',
               'field'    => 'slug',
               'terms'    => $excluded_tag,
+              'operator' => 'NOT IN',
+            ],
+            [
+              'taxonomy' => 'product_visibility',
+              'field'    => 'name',
+              'terms'    => ['exclude-from-catalog'],
               'operator' => 'NOT IN',
             ],
           ],
@@ -460,8 +467,8 @@ class Zippy_Products_Controller
     $args = [
       'status'   => 'publish',
       'paginate' => true,
-      'order' => 'asc',
-      'orderby' => 'menu_order',
+      'order'    => 'asc',
+      'orderby'  => 'menu_order',
       'tax_query' => [
         'relation' => 'AND',
         [
@@ -474,6 +481,12 @@ class Zippy_Products_Controller
           'taxonomy' => 'product_tag',
           'field'    => 'slug',
           'terms'    => $excluded_tag,
+          'operator' => 'NOT IN',
+        ],
+        [
+          'taxonomy' => 'product_visibility',
+          'field'    => 'name',
+          'terms'    => ['exclude-from-catalog'],
           'operator' => 'NOT IN',
         ],
       ],
@@ -492,6 +505,7 @@ class Zippy_Products_Controller
     if (!empty($request['search'])) {
       $args['s'] = sanitize_text_field($request['search']);
     }
+
     return $args;
   }
 
