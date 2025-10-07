@@ -43,11 +43,9 @@ class Zippy_Woo_Manual_Order
   protected function set_hooks()
   {
     add_action('woocommerce_new_order', [$this, 'maybe_handle_manual_order'], 20, 2);
-
     add_action('woocommerce_order_item_shipping_after_calculate_taxes', [$this, 'remove_tax_from_shipping_fee'], 10, 2);
+    add_action('woocommerce_order_status_pending_to_processing', [$this, 'handle_change_status_pending_to_processing'], 10, 2);
   }
-
-
 
   /**
    * Process shipping fees for manual orders
@@ -88,10 +86,6 @@ class Zippy_Woo_Manual_Order
       return;
     }
 
-    if ($order_new->get_status() === 'processing') {
-      $order_new->set_payment_method_title(self::PAID_UPON_COLLECTION);
-    }
-
     $config = Zippy_Handle_Shipping::query_shipping();
 
     // Add shipping / extra fees
@@ -108,6 +102,20 @@ class Zippy_Woo_Manual_Order
       'total'    => array(),
       'subtotal' => array(),
     ]);
+  }
+
+  public function handle_change_status_pending_to_processing($order_id, $order)
+  {
+    if (! $order instanceof \WC_Order) {
+      return;
+    }
+
+    if ($order->get_meta('is_manual_order') !== 'yes') {
+      return;
+    }
+
+    $order->set_payment_method_title(self::PAID_UPON_COLLECTION);
+    $order->save();
   }
 
   private function add_order_meta_data_manual($order)
