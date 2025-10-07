@@ -27,6 +27,7 @@ const ProductDetails = ({
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
+  const [hasChanges, setHasChanges] = useState(false);
 
   /**
    * Fetch product addons
@@ -127,6 +128,8 @@ const ProductDetails = ({
 
       return updated;
     });
+
+    setHasChanges(true);
   };
 
   /**
@@ -237,6 +240,7 @@ const ProductDetails = ({
   const handleAddProducts = async (selected, quantity) => {
     addAddonProduct(productID, quantity, packingInstructions, selected);
     setDisabledRemove(false);
+    setHasChanges(false);
   };
 
   return (
@@ -276,7 +280,7 @@ const ProductDetails = ({
               variant="contained"
               color="primary"
               onClick={handleAddAllAddons}
-              disabled={!data.some((row) => row.QUANTITY > 0)}
+              disabled={!data.some((row) => row.QUANTITY > 0) || !hasChanges}
             >
               Add All Add-ons
             </Button>
