@@ -160,7 +160,7 @@ class Zippy_Admin_Settings
 
       $credentials = [
         "email" => "dev@zippy.sg",
-        "password" => Zippy_Utils_Core::encrypt_data_input("Zippy12345678@"),
+        "password" => Zippy_Utils_Core::encrypt_data_input("dev@zippysgnhale@2025"),
       ];
 
       add_option(ONEMAP_META_KEY, Zippy_Utils_Core::encrypt_data_input(json_encode($credentials), true));
