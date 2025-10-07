@@ -24,7 +24,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
   const [data, setData] = useState([]);
   const [pagination, setPagination] = useState({
     page: 0,
-    rowsPerPage: 5,
+    rowsPerPage: 20,
     total: 0,
   });
   const [loading, setLoading] = useState(false);
@@ -52,7 +52,6 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
         setPagination((prev) => ({
           ...prev,
           total: data.data.pagination?.total || 0,
-          rowsPerPage: data.data.pagination?.per_page || 20,
         }));
       } else {
         setData([]);
