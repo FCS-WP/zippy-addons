@@ -50,6 +50,7 @@ class Zippy_Woo_Orders
 
     //add customer parameter for API Report
     add_filter('woocommerce_order_data_store_cpt_get_orders_query', array($this, 'handle_fulfilment_query_var'), 10, 2);
+    add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'rename_order_status_column'));
   }
 
   public function show_filter_by_billing_date()
@@ -128,6 +129,14 @@ class Zippy_Woo_Orders
 
     $columns = $before + $new + $after;
 
+    return $columns;
+  }
+
+  public function rename_order_status_column($columns)
+  {
+    if (isset($columns['order_status'])) {
+      $columns['order_status'] = __('Order Status', 'woocommerce');
+    }
     return $columns;
   }
 

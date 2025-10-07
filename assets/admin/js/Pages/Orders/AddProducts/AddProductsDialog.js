@@ -52,6 +52,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
         setPagination((prev) => ({
           ...prev,
           total: data.data.pagination?.total || 0,
+          rowsPerPage: data.data.pagination?.per_page || 20,
         }));
       } else {
         setData([]);
