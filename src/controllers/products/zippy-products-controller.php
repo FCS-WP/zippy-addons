@@ -244,64 +244,53 @@ class Zippy_Products_Controller
         return $error;
       }
 
+      $category = !empty($request['category']);
       $args = self::sanitize_products($request);
+      $page = max(1, intval($request['page']));
+      $per_page = 20;
 
-      $results = wc_get_products($args);
+      [$products, $total, $max_pages] = self::sort_and_paginate_products($args, $category, $page, $per_page);
 
-      if (empty($results)) return Zippy_Response_Handler::error('No products found. ', 500);
-
-      usort($results->products, function ($a, $b) {
-        $a_terms = wp_get_post_terms($a->get_id(), 'product_cat', ['orderby' => 'name']);
-        $b_terms = wp_get_post_terms($b->get_id(), 'product_cat', ['orderby' => 'name']);
-
-        $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
-        $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
-
-        $cmp = strcmp($a_cat, $b_cat);
-
-        return $cmp;
-      });
-
-      $data = array();
-      $excludedTag = ['add-ons'];
-      foreach ($results->products as $product) {
-        $tags = wp_get_post_terms($product->get_id(), 'product_tag', ['fields' => 'slugs']);
-        if (!empty(array_intersect($tags, $excludedTag))) {
-          continue;
-        }
-
+      // Build data
+      $data = [];
+      foreach ($products as $product) {
         $is_composite_product = is_composite_product($product);
 
         $list_sub_products = get_field('product_combo', $product->get_id());
-        $min_addons         = get_field('min_order', $product->get_id()) ?: 0;
+        $min_addons        = get_field('min_order', $product->get_id()) ?: 0;
         $min_order         = get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0;
         $groups            = get_field('products_group', $product->get_id()) ?: [];
         $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
 
-        $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons);
+        $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons(
+          $list_sub_products,
+          $is_composite_product,
+          $grouped_addons
+        );
 
-        $product_data = array(
+        $data[] = [
           'id'    => $product->get_id(),
-          'sku'    => $product->get_sku(),
+          'sku'   => $product->get_sku(),
           'name'  => $product->get_name(),
-          'stock'  => $product->get_stock_quantity(),
+          'stock' => $product->get_stock_quantity(),
           'img_url' => wp_get_attachment_image_url($product->get_image_id(), 'thumbnail'),
           'type'  => $product->get_type(),
           'link'  => admin_url('post.php?post=' . $product->get_id() . '&action=edit'),
-          'min_addons'    => $min_addons,
-          'min_order'    => $min_order,
-          'addons' => $addons_rules,
+          'min_addons' => $min_addons,
+          'min_order'  => $min_order,
+          'addons'     => $addons_rules,
           'grouped_addons' => $grouped_addons,
           'is_composite_product' => $is_composite_product,
-        );
-        $data[] = $product_data;
+        ];
       }
 
       $response = [
         'data' => $data,
         'pagination' => [
-          'total' => $results->total,
-          'max_num_pages' => $results->max_num_pages
+          'total' => $total,
+          'max_num_pages' => $max_pages,
+          'page'  => $page,
+          'per_page' => $per_page,
         ],
       ];
 
@@ -313,10 +302,59 @@ class Zippy_Products_Controller
     }
   }
 
+  private static function sort_and_paginate_products($args, $has_category, $page, $per_page)
+  {
+    if ($has_category) {
+      $results = wc_get_products($args);
+      if (empty($results) || empty($results->products)) {
+        return [[], 0, 0];
+      }
+
+      $products  = self::sort_products_by_category($results->products);
+      $total     = $results->total;
+      $max_pages = $results->max_num_pages;
+    } else {
+      $args['limit']    = -1;
+      $args['paginate'] = false;
+
+      $all_products = wc_get_products($args);
+      if (empty($all_products)) {
+        return [[], 0, 0];
+      }
+
+      $all_products = self::sort_products_by_category($all_products);
+
+      $total     = count($all_products);
+      $max_pages = ceil($total / $per_page);
+      $offset    = ($page - 1) * $per_page;
+      $products  = array_slice($all_products, $offset, $per_page);
+    }
+
+    return [$products, $total, $max_pages];
+  }
+
+  private static function sort_products_by_category($products)
+  {
+    usort($products, function ($a, $b) {
+      $a_terms = wp_get_post_terms($a->get_id(), 'product_cat', ['orderby' => 'name']);
+      $b_terms = wp_get_post_terms($b->get_id(), 'product_cat', ['orderby' => 'name']);
+
+      $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
+      $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
+
+      $cmp = strcmp($a_cat, $b_cat);
+      if ($cmp !== 0) {
+        return $cmp;
+      }
+      return $a->get_menu_order() <=> $b->get_menu_order();
+    });
+
+    return $products;
+  }
+
+
   public static function get_product(WP_REST_Request $request)
   {
-
-
     try {
       // Validate Request
       if ($error = self::validate_request([
@@ -370,7 +408,6 @@ class Zippy_Products_Controller
   public static function get_categories(WP_REST_Request $request)
   {
     try {
-      // Validate Request
       if ($error = self::validate_request([
         "category_id" => ["data_type" => "number", "required" => false],
       ], $request)) {
@@ -379,15 +416,31 @@ class Zippy_Products_Controller
 
       $args = self::sanitize_categories($request);
 
-
       $results = get_categories($args);
 
-      if (empty($results)) return Zippy_Response_Handler::error('No categories found. ', 500);
+      if (empty($results) || is_wp_error($results)) {
+        return Zippy_Response_Handler::error('No categories found.', 500);
+      }
 
-      $data = array();
+      $excluded_tag = ['add-ons'];
+      $data = [];
 
-      foreach ($results as $key => $category) {
+      foreach ($results as $category) {
+        $products = wc_get_products([
+          'status'    => 'publish',
+          'limit'     => -1,
+          'category'  => [$category->slug],
+          'tax_query' => [
+            [
+              'taxonomy' => 'product_tag',
+              'field'    => 'slug',
+              'terms'    => $excluded_tag,
+              'operator' => 'NOT IN',
+            ],
+          ],
+        ]);
 
+        $category->count = count($products);
         $data[] = $category;
       }
 
@@ -402,28 +455,38 @@ class Zippy_Products_Controller
 
   private static function sanitize_products($request)
   {
-    $userID = intval($request['userID']);
-
-    $items = get_user_meta($userID, 'edit_shop_order_per_page');
     $excluded = [15, 23]; // ['uncategorized', 'add-ons']
+    $excluded_tag = ['add-ons'];
     $args = [
-      'offset' => (intval($request['page']) - 1) * intval($items[0]),
-      'limit' => intval($items[0]) ?? 5,
       'status'   => 'publish',
       'paginate' => true,
       'order' => 'asc',
       'orderby' => 'menu_order',
       'tax_query' => [
+        'relation' => 'AND',
         [
           'taxonomy' => 'product_cat',
           'field'    => 'term_id',
           'terms'    => $excluded,
           'operator' => 'NOT IN',
         ],
+        [
+          'taxonomy' => 'product_tag',
+          'field'    => 'slug',
+          'terms'    => $excluded_tag,
+          'operator' => 'NOT IN',
+        ],
       ],
     ];
+
     if (!empty($request['category'])) {
+      $args['limit'] = 20;
+      $args['paginate'] = true;
       $args['product_category_id'] = [intval($request['category'])];
+      $args['page'] = max(1, intval($request['page']));
+    } else {
+      $args['limit'] = -1;
+      $args['paginate'] = false;
     }
 
     if (!empty($request['search'])) {
