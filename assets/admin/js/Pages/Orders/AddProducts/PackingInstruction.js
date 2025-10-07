@@ -9,11 +9,16 @@ const PackingInstruction = ({ value, onChange }) => (
         value={value}
         multiline
         rows={2}
-        placeholder="Packing Instructions"
+        placeholder="Leave your packing instructions here. Example: 5 per box"
         variant="outlined"
         size="small"
         onChange={onChange}
         label="Packing Instructions"
+        sx={{
+          "& .MuiInputBase-input::placeholder": {
+            fontSize: "0.8rem",
+          },
+        }}
       />
     </FormControl>
   </Box>

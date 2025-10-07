@@ -15,6 +15,7 @@ class Zippy_Woo_Manual_Order
 
   protected static $_instance = null;
 
+  const PAID_UPON_COLLECTION = 'Paid Upon Collection';
   /**
    * Singleton instance
    *
@@ -85,6 +86,10 @@ class Zippy_Woo_Manual_Order
     // Only run for manual orders
     if ($order->get_meta('is_manual_order') !== 'yes') {
       return;
+    }
+
+    if ($order_new->get_status() === 'processing') {
+      $order_new->set_payment_method_title(self::PAID_UPON_COLLECTION);
     }
 
     $config = Zippy_Handle_Shipping::query_shipping();
