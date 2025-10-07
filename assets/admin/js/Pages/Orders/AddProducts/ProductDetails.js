@@ -54,7 +54,7 @@ const ProductDetails = ({
     } finally {
       setLoading(false);
     }
-  }, [productID, addedProducts]);
+  }, [productID]);
 
   useEffect(() => {
     if (!productID || !addedProducts) {
