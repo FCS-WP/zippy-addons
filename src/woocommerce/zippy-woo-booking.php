@@ -14,6 +14,7 @@ defined('ABSPATH') or die();
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Orders;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Product_Composite;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
+use WC_Session_Handler;
 
 class Zippy_Woo_Booking
 {
@@ -44,6 +45,8 @@ class Zippy_Woo_Booking
     /* Update Checkout After Applied Coupon */
     add_action('woocommerce_applied_coupon', array($this, 'after_apply_coupon_action'));
 
+    add_action('init', array($this, 'init_woo_session'), 5);
+
     Zippy_Woo_Orders::get_instance();
 
     Zippy_Woo_Manual_Order::get_instance();
@@ -54,6 +57,18 @@ class Zippy_Woo_Booking
   function after_apply_coupon_action($coupon_code)
   {
     echo '<script>jQuery( "body" ).trigger( "update_checkout" ); </script>';
+  }
+
+  public function init_woo_session()
+  {
+    if (!WC()->session) {
+      WC()->session = new WC_Session_Handler();
+      WC()->session->init();
+    }
+
+    if (!WC()->session->has_session()) {
+      WC()->session->set_customer_session_cookie(true);
+    }
   }
 
   protected function set_hooks()
