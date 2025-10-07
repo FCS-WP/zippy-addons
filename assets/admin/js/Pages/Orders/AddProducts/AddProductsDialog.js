@@ -68,6 +68,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
 
   const callAddProductsToOrder = async (payload) => {
     try {
+      setLoading(true);
       const { data } = await generalAPI.addProductsToOrder(payload);
       if (data?.status === "success") {
         toast.success("Products added to order successfully");
@@ -78,10 +79,12 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
         return null;
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error adding products to order:", error);
       toast.error("Error adding products to order");
       return null;
     } finally {
+      setLoading(false);
       window.location.reload();
     }
   };
