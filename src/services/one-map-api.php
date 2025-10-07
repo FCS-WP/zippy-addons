@@ -9,6 +9,8 @@
 namespace Zippy_Booking\Src\Services;
 
 use Zippy_Booking\Utils\Zippy_Utils_Core;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class One_Map_Api
 {
@@ -17,77 +19,95 @@ class One_Map_Api
 
 	public static function call(string $method, string $endpoint, array $params = [])
 	{
-		$url = ONEMAP_API_URL . $endpoint;
+		$url = rtrim(ONEMAP_API_URL, '/') . '/' . ltrim($endpoint, '/');
+
 		$access_token = Zippy_Utils_Core::decrypt_data_input(get_option(ONEMAP_ACCESS_TOKEN_KEY));
 
-		if (!$access_token) {
+		if (empty($access_token)) {
 			return ['error' => 'Access token not found'];
 		}
 
-		$response = self::sendRequest($method, $url, $params, $access_token);
 
-		// Check if token is expired
-		if ((isset($response['status']) && $response['status'] == 401) || $response['message'] == "Unauthorized" || (isset($response['error']) && $response['error'] == 'Authentication token expired. Token are valid for 3 days. Please implement automatic renewal to ensure your token remains valid.')) {
-			$new_token = self::refreshAccessToken();
+		try {
+			$response = self::sendRequest($method, $url, $params, $access_token);
 
-			if (isset($new_token['error'])) {
-				return $new_token; // Return the error
+			if ((isset($response['status']) && $response['status'] == 401) ||
+				$response['message'] == "Unauthorized" ||
+				(isset($response['error']))
+			) {
+
+				// Try refreshing token
+				$new_token_data = self::refreshAccessToken();
+
+				if (!empty($new_token_data['access_token'])) {
+					$new_token = trim(preg_replace('/\s+/', '', $new_token_data['access_token']));
+
+					return self::sendRequest($method, $url, $params, $new_token);
+				}
+
+				return ['error' => 'Token refresh failed'];
 			}
 
-			$response = self::sendRequest($method, $url, $params, $new_token['access_token']);
+			return $response;
+		} catch (Exception $e) {
+			return [
+				'error' => 'Exception: ' . $e->getMessage(),
+			];
 		}
-
-		return $response;
 	}
 
-	/**
-	 * Send the actual cURL request
-	 */
+
 	private static function sendRequest(string $method, string $url, array $params, string $access_token)
 	{
-		$curl = curl_init();
 
-		$curl_opts = [
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_ENCODING => '',
-			CURLOPT_MAXREDIRS => 10,
-			CURLOPT_TIMEOUT => self::TIMEOUT,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-			CURLOPT_CUSTOMREQUEST => $method,
-			CURLOPT_HTTPHEADER => [
-				"Authorization: Bearer $access_token",
-				"Content-Type: application/json"
+		$token = trim(preg_replace('/\s+/', '', $access_token));
+		$client = new Client([
+			'timeout' => self::TIMEOUT,
+			'http_errors' => false,
+			'headers' => [
+				'Authorization' => $token,
+				'Content-Type'  => 'application/json',
 			],
-		];
+		]);
 
-		// Add params based on method
-		switch (strtoupper($method)) {
-			case 'POST':
-			case 'PUT':
-			case 'DELETE':
-				$curl_opts[CURLOPT_POSTFIELDS] = json_encode($params);
-				break;
+		try {
 
-			case 'GET':
-				if (!empty($params)) {
-					$url .= '?' . http_build_query($params);
-				}
-				break;
+			$options = [];
+
+			switch (strtoupper($method)) {
+				case 'POST':
+				case 'PUT':
+				case 'DELETE':
+					$options['json'] = $params;
+					break;
+
+				case 'GET':
+					if (!empty($params)) {
+						$options['query'] = $params;
+					}
+					break;
+			}
+
+			// Send the request
+			$response = $client->request($method, $url, $options);
+			// Decode the JSON response
+			$body = (string) $response->getBody();
+			$data = json_decode($body, true);
+
+			return $data ?: ['error' => 'Invalid JSON response'];
+		} catch (RequestException $e) {
+			return [
+				'error' => 'Request failed',
+				'message' => $e->getMessage(),
+				'response' => $e->hasResponse() ? (string) $e->getResponse()->getBody() : null,
+			];
+		} catch (\Exception $e) {
+
+			return [
+				'error' => 'Unexpected error',
+				'message' => $e->getMessage(),
+			];
 		}
-
-		$curl_opts[CURLOPT_URL] = $url;
-		curl_setopt_array($curl, $curl_opts);
-
-		$response = curl_exec($curl);
-		$error = curl_error($curl);
-		curl_close($curl);
-
-		if ($error) {
-			return ['error' => 'cURL Error: ' . $error];
-		}
-
-		return json_decode($response, true);
 	}
 
 	/**
@@ -121,22 +141,30 @@ class One_Map_Api
 	 */
 	public static function authenticate(array $credentials)
 	{
-		$url = ONEMAP_API_URL . self::AUTH_ENDPOINT;
-
-		$curl = curl_init();
-		curl_setopt_array($curl, [
-			CURLOPT_URL => $url,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_CUSTOMREQUEST => 'POST',
-			CURLOPT_POSTFIELDS => json_encode($credentials),
-			CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-			CURLOPT_TIMEOUT => self::TIMEOUT,
+		$client = new Client([
+			'base_uri' => ONEMAP_API_URL,
+			'timeout'  => self::TIMEOUT,
+			'headers'  => [
+				'Content-Type' => 'application/json',
+			],
 		]);
 
-		$response = curl_exec($curl);
-		curl_close($curl);
+		try {
+			$response = $client->post(self::AUTH_ENDPOINT, [
+				'json' => $credentials,
+			]);
 
-		return json_decode($response, true);
+			$body = $response->getBody()->getContents();
+			return json_decode($body, true);
+		} catch (RequestException $e) {
+			return [
+				'error' => true,
+				'message' => $e->getMessage(),
+				'response' => $e->hasResponse()
+					? (string) $e->getResponse()->getBody()
+					: null,
+			];
+		}
 	}
 
 	/**

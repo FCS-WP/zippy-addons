@@ -43,6 +43,8 @@ class Zippy_Admin_Settings
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'get_one_map_access_token'));
 
+    register_deactivation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'remove_one_map_credentials'));
+
     add_shortcode('admin_order_table', array($this, 'generate_admin_order_table_div'));
   }
 
@@ -50,16 +52,15 @@ class Zippy_Admin_Settings
   {
     $version = time();
     $current_user_id = get_current_user_id();
-    $day_limited = get_option( 'zippy_day_limited', '' );
+    $day_limited = get_option('zippy_day_limited', '');
     //lib
-    // wp_enqueue_style('admin-jquery-ui-css', ZIPPY_ADDONS_URL . 'assets/libs/jquery-ui/jquery-ui.min.css', [], $version);
     // Pass the user ID to the script
     wp_enqueue_script('admin-booking-js', ZIPPY_ADDONS_URL . '/assets/dist/js/admin.min.js', [], $version, true);
     wp_enqueue_style('booking-css', ZIPPY_ADDONS_URL . '/assets/dist/css/admin.min.css', [], $version);
 
     wp_localize_script('admin-booking-js', 'admin_data', array(
       'userID' => $current_user_id,
-      'day_limited' => $day_limited 
+      'day_limited' => $day_limited
     ));
   }
 
@@ -67,12 +68,7 @@ class Zippy_Admin_Settings
   {
     add_menu_page('Zippy Add-ons', 'Zippy Add-ons', 'manage_options', 'zippy-bookings', array($this, 'store_render'), 'dashicons-list-view', 6);
     // SubPage
-    // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
-    // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
-    // add_submenu_page('zippy-bookings', 'Store', 'Store', 'manage_options', 'store', array($this, 'store_render'));
     add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
-    // add_submenu_page('zippy-bookings', 'Bookings', 'Bookings', 'manage_options', 'bookings', array($this, 'bookings_render'));
-    // add_submenu_page('zippy-bookings', 'Calendar', 'Calendar', 'manage_options', 'calendar', array($this, 'calendar_render'));
     add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
   }
@@ -160,10 +156,19 @@ class Zippy_Admin_Settings
 
       $credentials = [
         "email" => "dev@zippy.sg",
-        "password" => Zippy_Utils_Core::encrypt_data_input("Zippy12345678@"),
+        "password" => Zippy_Utils_Core::encrypt_data_input("dev@zippysgnhale@2025"),
       ];
 
       add_option(ONEMAP_META_KEY, Zippy_Utils_Core::encrypt_data_input(json_encode($credentials), true));
+    }
+  }
+
+  function remove_one_map_credentials()
+  {
+    if (!empty(get_option(ONEMAP_META_KEY))) {
+
+      delete_option(ONEMAP_META_KEY);
+      delete_option(ONEMAP_ACCESS_TOKEN_KEY);
     }
   }
   function get_one_map_access_token()
@@ -186,14 +191,15 @@ class Zippy_Admin_Settings
     }
   }
 
-  function generate_admin_order_table_div($atts) {
+  function generate_admin_order_table_div($atts)
+  {
     $atts = shortcode_atts([
-        'order_id' => 0,
+      'order_id' => 0,
     ], $atts, 'admin_order_table');
 
     $order_id = intval($atts['order_id']);
     if (!$order_id) {
-        return '';
+      return '';
     }
 
     return '<div id="admin-table-order" data-order-id="' . esc_attr($order_id) . '"></div>';
