@@ -21,15 +21,13 @@ const ProductDetails = ({
   addAddonProduct,
   handleRemoveProduct,
   disabledRemove,
+  setDisabledRemove,
 }) => {
   const orderIDParam = orderID.orderID;
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
 
-  useEffect(() => {
-    console.log("ADDED PRODUCTS:", addedProducts);
-  }, [addedProducts]);
   /**
    * Fetch product addons
    */
@@ -238,6 +236,7 @@ const ProductDetails = ({
 
   const handleAddProducts = async (selected, quantity) => {
     addAddonProduct(productID, quantity, packingInstructions, selected);
+    setDisabledRemove(false);
   };
 
   return (

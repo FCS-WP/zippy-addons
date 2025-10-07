@@ -119,7 +119,7 @@ const CustomTableRow = ({
         setShowCollapse(true);
       }
     }
-  }, [addedProducts, row.productID, minOrder]);
+  }, [row.productID, minOrder]);
 
   const ActionGroup = () => (
     <Stack
@@ -263,6 +263,7 @@ const CustomTableRow = ({
           addAddonProduct={addAddonProduct}
           handleRemoveProduct={handleRemoveProduct}
           disabledRemove={disabledRemove}
+          setDisabledRemove={setDisabledRemove}
         />
       </Collapse>
     </TableCell>
