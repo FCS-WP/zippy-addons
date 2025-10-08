@@ -113,13 +113,14 @@ const CustomTableRow = ({
 
       if (Object.keys(row.ADDONS || {}).length == 0) {
         setShowCollapsePackingInstruction(true);
+        setDisabled(true);
       }
 
       if (Object.keys(row.ADDONS || {}).length > 0) {
         setShowCollapse(true);
       }
     }
-  }, [addedProducts, row.productID, minOrder]);
+  }, [row.productID, minOrder]);
 
   const ActionGroup = () => (
     <Stack
@@ -263,6 +264,7 @@ const CustomTableRow = ({
           addAddonProduct={addAddonProduct}
           handleRemoveProduct={handleRemoveProduct}
           disabledRemove={disabledRemove}
+          setDisabledRemove={setDisabledRemove}
         />
       </Collapse>
     </TableCell>
