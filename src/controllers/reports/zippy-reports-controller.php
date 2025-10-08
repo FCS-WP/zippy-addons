@@ -7,6 +7,7 @@ use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
 
 defined('ABSPATH') or die();
 
@@ -97,8 +98,9 @@ class Zippy_Reports_Controller
       $order_id     = $order->get_id();
       $phone        = $order->get_billing_phone();
       $mode         = $order->get_meta(BILLING_METHOD);
+      $payment_method = $order->get_payment_method_title();
 
-      if (empty($mode)) {
+      if (empty($mode) || empty($payment_method)) {
         continue;
       }
 
@@ -250,7 +252,7 @@ class Zippy_Reports_Controller
     $current_order_id = null;
     foreach ($order_rows as $row) {
       if ($row['order_number'] !== $current_order_id) {
-        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], self::format_payment_status($row['payment_status'], $row['payment_method'], true)], ',');
+        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], self::format_payment_status($row['payment_method'], true)], ',');
         $current_order_id = $row['order_number'];
       } else {
         fputcsv($output, ['', '', '', '', $row['item'], $row['quantity'], $row['total_price']], ',');
@@ -329,7 +331,7 @@ class Zippy_Reports_Controller
                         <td>' . esc_html($row['item']) . '</td>
                         <td>' . esc_html($row['quantity']) . '</td>
                         <td>' . esc_html($row['total_price']) . '</td>
-                        <td>' . self::format_payment_status($row['payment_status'], $row['payment_method']) . '</td>
+                        <td>' . self::format_payment_status($row['payment_method']) . '</td>
                       </tr>';
         $current_order_id = $row['order_number'];
       } else {
@@ -385,16 +387,19 @@ class Zippy_Reports_Controller
     return  preg_replace('/^From\s+/i', '', $slot);
   }
 
-  private static function format_payment_status($status, $method, $forCsv = false)
+  private static function format_payment_status($method, $forCsv = false)
   {
-    if ($status === 'pending') {
-      return $forCsv ? 'Pending' : '<span style="color:red;font-weight:bold;">Pending</span>';
+    if (empty($method)) {
+      return null;
     }
 
-    if ($status === 'processing') {
-      return $forCsv ? 'Processing (' . esc_html($method) . ')' : '<span>Processing (' . esc_html($method) . ')</span>';
+    switch ($method) {
+      case Zippy_Woo_Manual_Order::CASH_ON_DELIVERY:
+        return $forCsv ? 'Pay On Delivery' : '<span style="color:red;font-weight:bold;">Pay On Delivery</span>';
+      case Zippy_Woo_Manual_Order::PAID_UPON_COLLECTION:
+        return $forCsv ? 'Pay Upon Collection' : '<span style="color:green;font-weight:bold;">Pay Upon Collection</span>';
+      default:
+        return esc_html($method);
     }
-
-    return esc_html($status);
   }
 }

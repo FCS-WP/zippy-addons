@@ -15,6 +15,7 @@ class Zippy_Woo_Manual_Order
 
   protected static $_instance = null;
 
+  const CASH_ON_DELIVERY = 'Cash on delivery';
   const PAID_UPON_COLLECTION = 'Paid Upon Collection';
   /**
    * Singleton instance
