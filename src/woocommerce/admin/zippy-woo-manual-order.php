@@ -9,12 +9,14 @@ namespace Zippy_Booking\Src\Woocommerce\Admin;
 defined('ABSPATH') or exit;
 
 use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
+use Zippy_Booking\Src\Woocommerce\Admin\Payments\Zippy_Gateway_Paid_Upon_Collection;
 
 class Zippy_Woo_Manual_Order
 {
 
   protected static $_instance = null;
 
+  const CASH_ON_DELIVERY = 'Cash on delivery';
   const PAID_UPON_COLLECTION = 'Paid Upon Collection';
   /**
    * Singleton instance
@@ -44,7 +46,17 @@ class Zippy_Woo_Manual_Order
   {
     add_action('woocommerce_new_order', [$this, 'maybe_handle_manual_order'], 20, 2);
     add_action('woocommerce_order_item_shipping_after_calculate_taxes', [$this, 'remove_tax_from_shipping_fee'], 10, 2);
-    add_action('woocommerce_order_status_pending_to_processing', [$this, 'handle_change_status_pending_to_processing'], 10, 2);
+    add_filter('woocommerce_payment_gateways', [$this, 'add_payment_gateway']);
+  }
+
+  public function add_payment_gateway($methods)
+  {
+    if (!is_admin()) {
+      return $methods;
+    }
+
+    $methods[] = new Zippy_Gateway_Paid_Upon_Collection();
+    return $methods;
   }
 
   /**
@@ -102,20 +114,6 @@ class Zippy_Woo_Manual_Order
       'total'    => array(),
       'subtotal' => array(),
     ]);
-  }
-
-  public function handle_change_status_pending_to_processing($order_id, $order)
-  {
-    if (! $order instanceof \WC_Order) {
-      return;
-    }
-
-    if ($order->get_meta('is_manual_order') !== 'yes') {
-      return;
-    }
-
-    $order->set_payment_method_title(self::PAID_UPON_COLLECTION);
-    $order->save();
   }
 
   private function add_order_meta_data_manual($order)
