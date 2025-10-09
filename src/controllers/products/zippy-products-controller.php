@@ -247,7 +247,7 @@ class Zippy_Products_Controller
       $category = !empty($request['category']);
       $args = self::sanitize_products($request);
       $page = max(1, intval($request['page']));
-      $per_page = 20;
+      $per_page = 50;
 
       [$products, $total, $max_pages] = self::sort_and_paginate_products($args, $category, $page, $per_page);
 
