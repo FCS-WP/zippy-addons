@@ -397,7 +397,7 @@ class Zippy_Reports_Controller
       case Zippy_Woo_Manual_Order::CASH_ON_DELIVERY:
         return $forCsv ? 'Pay On Delivery' : '<span style="color:red;font-weight:bold;">Pay On Delivery</span>';
       case Zippy_Woo_Manual_Order::PAID_UPON_COLLECTION:
-        return $forCsv ? 'Pay Upon Collection' : '<span style="color:green;font-weight:bold;">Pay Upon Collection</span>';
+        return $forCsv ? 'Pay Upon Collection' : '<span style="color:red;font-weight:bold;">Pay Upon Collection</span>';
       default:
         return esc_html($method);
     }
