@@ -81,7 +81,7 @@ class Zippy_Reports_Controller
       'orderby'      => 'meta_value',
       'meta_key'     => BILLING_TIME,
       'order'        => 'ASC',
-      'status'       => ['pending', 'processing']
+      'status'       => ['pending', 'processing', 'on-hold', 'completed'],
     ];
     return wc_get_orders($args);
   }
@@ -98,9 +98,8 @@ class Zippy_Reports_Controller
       $order_id     = $order->get_id();
       $phone        = $order->get_billing_phone();
       $mode         = $order->get_meta(BILLING_METHOD);
-      $payment_method = $order->get_payment_method_title();
 
-      if (empty($mode) || empty($payment_method)) {
+      if (empty($mode)) {
         continue;
       }
 
@@ -247,12 +246,12 @@ class Zippy_Reports_Controller
 
     // Table 1: Orders
     fputcsv($output, ['Fulfilment Date :' . $fulfilment_date], ',');
-    fputcsv($output, ['Order Number', 'Phone', 'Mode', 'Time', 'Items', 'Quantity', 'Total $', 'Payment Status'], ',');
+    fputcsv($output, ['Order Number', 'Phone', 'Mode', 'Time', 'Items', 'Quantity', 'Total $', 'Order Status', 'Payment Method'], ',');
 
     $current_order_id = null;
     foreach ($order_rows as $row) {
       if ($row['order_number'] !== $current_order_id) {
-        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], self::format_payment_status($row['payment_method'], true)], ',');
+        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], $row['payment_status'], self::format_payment_status($row['payment_method'], true)], ',');
         $current_order_id = $row['order_number'];
       } else {
         fputcsv($output, ['', '', '', '', $row['item'], $row['quantity'], $row['total_price']], ',');
@@ -315,6 +314,7 @@ class Zippy_Reports_Controller
                     <th>Items</th>
                     <th>Quantity</th>
                     <th>Total $</th>
+                    <th>Order Status</th>
                     <th>Payment Status</th>
                   </tr>
                 </thead>
@@ -331,6 +331,7 @@ class Zippy_Reports_Controller
                         <td>' . esc_html($row['item']) . '</td>
                         <td>' . esc_html($row['quantity']) . '</td>
                         <td>' . esc_html($row['total_price']) . '</td>
+                        <td>' . esc_html($row['payment_status']) . '</td>
                         <td>' . self::format_payment_status($row['payment_method']) . '</td>
                       </tr>';
         $current_order_id = $row['order_number'];
@@ -340,6 +341,7 @@ class Zippy_Reports_Controller
                         <td>' . esc_html($row['item']) . '</td>
                         <td>' . esc_html($row['quantity']) . '</td>
                         <td>' . esc_html($row['total_price']) . '</td>
+                        <td></td>
                         <td></td>
                       </tr>';
       }
@@ -397,7 +399,7 @@ class Zippy_Reports_Controller
       case Zippy_Woo_Manual_Order::CASH_ON_DELIVERY:
         return $forCsv ? 'Pay On Delivery' : '<span style="color:red;font-weight:bold;">Pay On Delivery</span>';
       case Zippy_Woo_Manual_Order::PAID_UPON_COLLECTION:
-        return $forCsv ? 'Pay Upon Collection' : '<span style="color:green;font-weight:bold;">Pay Upon Collection</span>';
+        return $forCsv ? 'Pay Upon Collection' : '<span style="color:red;font-weight:bold;">Pay Upon Collection</span>';
       default:
         return esc_html($method);
     }

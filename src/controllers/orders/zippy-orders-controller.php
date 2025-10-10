@@ -443,7 +443,7 @@ class Zippy_Orders_Controller
                 }
             }
 
-            $item_id = $order->add_coupon($coupon_code);
+            $item_id = $order->apply_coupon($coupon_code);
             if (is_wp_error($item_id)) {
                 return Zippy_Response_Handler::error('Failed to apply coupon to order.');
             }
@@ -557,15 +557,6 @@ class Zippy_Orders_Controller
         Zippy_Handle_Shipping::process_free_shipping($order_id);
     }
 
-
-    private static function get_tax($total)
-    {
-        $tax = get_tax_percent();
-        $tax_rate = floatval($tax->tax_rate);
-        $shipping_tax = $total - $total / (1 + $tax_rate / 100);
-        return Zippy_Wc_Calculate_Helper::round_price_wc($shipping_tax);
-    }
-
     private static function get_products_info($items)
     {
         $products = [];
@@ -623,8 +614,9 @@ class Zippy_Orders_Controller
 
         foreach ($shipping_items as $ship_id => $item) {
             $amount = floatval($item->get_total());
-            $taxItem = self::get_tax($amount);
+            $taxItem = Zippy_Wc_Calculate_Helper::get_tax_by_price_exclude_tax($amount);
 
+            $amount += $taxItem;
             $shipping[] = [
                 'method'       => $item->get_name(),
                 'total'        => $amount,
@@ -646,8 +638,9 @@ class Zippy_Orders_Controller
 
         foreach ($fee_items as $fee_id => $item) {
             $amount = floatval($item->get_total());
-            $taxItem = self::get_tax($amount);
+            $taxItem = Zippy_Wc_Calculate_Helper::get_tax_by_price_exclude_tax($amount);
 
+            $amount += $taxItem;
             $fees[] = [
                 'name'     => $item->get_name(),
                 'total'    => $amount,
