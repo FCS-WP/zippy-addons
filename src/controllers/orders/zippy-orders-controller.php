@@ -443,8 +443,7 @@ class Zippy_Orders_Controller
                 }
             }
 
-            $discount = $coupon->get_amount();
-            $item_id = $order->add_coupon($coupon_code, $discount);
+            $item_id = $order->apply_coupon($coupon_code);
             if (is_wp_error($item_id)) {
                 return Zippy_Response_Handler::error('Failed to apply coupon to order.');
             }
