@@ -103,6 +103,7 @@ class Zippy_Woo_Manual_Order
     // Add shipping / extra fees
     Zippy_Handle_Shipping::process_add_shipping_fee($order_new, $config);
     Zippy_Handle_Shipping::process_add_extra_fee($order_new, $config);
+
     // New order calculate
     $order_new->save();
   }
@@ -148,6 +149,11 @@ class Zippy_Woo_Manual_Order
     }
     if (isset($_POST['is_manual_order'])) {
       $order->update_meta_data('is_manual_order', sanitize_text_field($_POST['is_manual_order']));
+    }
+
+    $user_id = get_current_user_id();
+    if ($user_id) {
+      $order->update_meta_data('_created_by_admin', $user_id);
     }
   }
 }
