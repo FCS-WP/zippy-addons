@@ -6,6 +6,7 @@ use WC_Order;
 use WC_Tax;
 use WC_Order_Item_Shipping;
 use WC_Order_Item_Fee;
+use Zippy_Booking\Utils\Zippy_Wc_Calculate_Helper;
 
 class Zippy_Handle_Shipping
 {
@@ -139,30 +140,44 @@ class Zippy_Handle_Shipping
 
   public static function add_shipping_item($order, $method_title, $total)
   {
+    $tax = Zippy_Wc_Calculate_Helper::get_tax($total);
+
     $shipping = new WC_Order_Item_Shipping();
     $shipping->set_method_title($method_title);
     $shipping->set_method_id('flat_rate');
-    $shipping->set_taxes(array('total' => array()));
-    $shipping->set_tax_status('none'); // No tax
-    $shipping->set_total(floatval($total));
+
+    $shipping->set_total(floatval(value: $total - $tax));
+
+    $taxes = array(
+      'total'    => array(1 => $tax),
+      'subtotal' => array(1 => $tax),
+    );
+    $shipping->set_taxes($taxes);
 
     $order->add_item($shipping);
   }
 
-
-
-
-
-  private static function add_fee_item($order,  $name,  $amount)
+  private static function add_fee_item($order, $name, $amount)
   {
+    $tax       = Zippy_Wc_Calculate_Helper::get_tax($amount);
+    $subtotal  = $amount - $tax;
+
     $fee = new WC_Order_Item_Fee();
     $fee->set_name($name);
-    $fee->set_total(floatval($amount));
-    $fee->set_tax_class(''); // No tax
-    $fee->set_tax_status('none'); // No tax
+    $fee->set_total($subtotal);
+    $fee->set_total_tax($tax);
+
+    $taxes = array();
+    if ($tax > 0) {
+      $taxes[1] = $tax;
+    }
+
+    $fee->set_taxes(array(
+      'total' => $taxes,
+    ));
+
     $order->add_item($fee);
   }
-
 
   private static function add_free_shipping($order)
   {
