@@ -66,7 +66,6 @@ class Zippy_Woo_Orders
 
   public function add_created_by_admin_col($columns)
   {
-    // Chèn cột vào sau "order_status"
     $new_columns = [];
 
     foreach ($columns as $key => $column) {
