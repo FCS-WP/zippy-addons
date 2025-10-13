@@ -68,12 +68,7 @@ class Zippy_Booking_Web
     $reservation_fee = get_option('zippy_prices_reservation_fee', null);
     if (!$reservation_fee || $cart->is_empty()) return;
 
-    $total_quantity = 0;
-    foreach ($cart->get_cart() as $cart_item) {
-      $total_quantity += $cart_item['quantity'];
-    }
-
-    $total_fee = floatval($reservation_fee) * $total_quantity;
+    $total_fee = floatval($reservation_fee);
     $cart->add_fee(__('Reservation Fee', 'your-text-domain'), $total_fee, false);
   }
 
