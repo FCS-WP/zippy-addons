@@ -26,7 +26,7 @@ class Zippy_Handle_Product_Add_On
         $sub_product_id = $sub_product['product']->ID;
         $min_qty        = intval($sub_product['minimum_quantity'] ?? 0);
 
-        $prod    = wc_get_product($sub_product_id);
+        $prod      = wc_get_product($sub_product_id);
         $image_url = wp_get_attachment_image_url($prod->get_image_id(), 'thumbnail');
 
         $max_qty = $prod ? intval($prod->get_stock_quantity()) : 0;
@@ -37,19 +37,19 @@ class Zippy_Handle_Product_Add_On
           }
         }
 
-        $addons[$sub_product_id] = [
-          'name' => get_the_title($sub_product_id),
-          'sku'  => $prod ? $prod->get_sku() : '',
+        $addons[] = [
+          'id'    => $sub_product_id,
+          'name'  => get_the_title($sub_product_id),
+          'sku'   => $prod ? $prod->get_sku() : '',
           'image' => $image_url,
-          'min' => $min_qty,
-          'max' => $max_qty,
+          'min'   => $min_qty,
+          'max'   => $max_qty,
         ];
       }
     }
 
     return $addons;
   }
-
 
 
   /**

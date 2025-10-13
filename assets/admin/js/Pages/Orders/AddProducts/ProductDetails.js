@@ -88,14 +88,14 @@ const ProductDetails = ({
 
   const convertRows = (rows) =>
     Object.entries(rows.addons).map(([key, value]) => ({
-      ID: key,
+      ID: value.id,
       NAME: value.name,
       SKU: value.sku,
       IMAGE: value.image || "",
       MIN: value.min,
       MAX: value.max,
       QUANTITY: value.min ?? 0,
-      isGrouped: rows.grouped_addons.product_ids.includes(Number(key)),
+      isGrouped: rows.grouped_addons.product_ids.includes(Number(value.id)),
     }));
 
   /**
