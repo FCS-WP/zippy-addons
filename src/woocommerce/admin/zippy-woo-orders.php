@@ -71,11 +71,10 @@ class Zippy_Woo_Orders
     foreach ($columns as $key => $column) {
       $new_columns[$key] = $column;
 
-      if ($key === 'order_status') {
-        $new_columns['created_by_admin'] = __('Created By', 'woocommerce');
+      if ($key === 'order_total') {
+        $new_columns['created_by_admin'] = __('Origin', 'woocommerce');
       }
     }
-
     return $new_columns;
   }
   public function created_by_admin_order_items_column($column, $order)
