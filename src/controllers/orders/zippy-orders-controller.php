@@ -315,7 +315,8 @@ class Zippy_Orders_Controller
         [$result['fees'], $totalFee, $taxFee] = self::get_fees_info($fee);
         [$result['coupons'], $totalCoupon] = self::get_coupons_info($coupon_items);
 
-        $taxTotal = Zippy_Wc_Calculate_Helper::round_price_wc($taxTotalOrder + $taxShipping + $taxFee);
+        $taxTotal = Zippy_Wc_Calculate_Helper::get_tax($subtotalOrder) + $taxShipping + $taxFee;
+        $taxTotal = Zippy_Wc_Calculate_Helper::round_price_wc($taxTotal);
         $totalCalculated = Zippy_Wc_Calculate_Helper::round_price_wc(
             ($subtotalOrder + $totalShipping + $totalFee - $totalCoupon)
         );
