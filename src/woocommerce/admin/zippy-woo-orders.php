@@ -40,6 +40,7 @@ class Zippy_Woo_Orders
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_billing_time_col'));
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_payment_method_col'));
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_phone_col'));
+    add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_created_by_admin_col'));
 
     add_filter('woocommerce_order_query_args', array($this, 'add_meta_billing_date_query'));
 
@@ -47,6 +48,7 @@ class Zippy_Woo_Orders
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_date_order_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_time_order_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'payment_method_order_items_column'), 25, 2);
+    add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'created_by_admin_order_items_column'), 25, 2);
 
     //add customer parameter for API Report
     add_filter('woocommerce_order_data_store_cpt_get_orders_query', array($this, 'handle_fulfilment_query_var'), 10, 2);
@@ -62,6 +64,37 @@ class Zippy_Woo_Orders
     echo '<div style="display:inline-flex" id="zippy_order_filter" data-name=' . BILLING_DATE . ' data-value=' . $date . '></div>';
   }
 
+  public function add_created_by_admin_col($columns)
+  {
+    $new_columns = [];
+
+    foreach ($columns as $key => $column) {
+      $new_columns[$key] = $column;
+
+      if ($key === 'order_status') {
+        $new_columns['created_by_admin'] = __('Created By', 'woocommerce');
+      }
+    }
+
+    return $new_columns;
+  }
+
+  public function created_by_admin_order_items_column($column, $order)
+  {
+    if ($column === 'created_by_admin') {
+      $created_by_admin = $order->get_meta('_created_by_admin');
+      if ($created_by_admin) {
+        $user = get_user_by('id', $created_by_admin);
+        if ($user) {
+          echo esc_html($user->user_email);
+        } else {
+          echo '<em>' . __('User not found', 'your-text-domain') . '</em>';
+        }
+      } else {
+        echo '<em>' . __('customer') . '</em>';
+      }
+    }
+  }
 
   public function add_phone_col($columns)
   {
@@ -258,7 +291,7 @@ class Zippy_Woo_Orders
     }
 
     if (!empty($_GET[BILLING_DATE])) {
-      $args['status'] = ['pending', 'processing'];
+      $args['status'] = ['pending', 'processing', 'on-hold', 'completed'];
     }
 
     return $args;

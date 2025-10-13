@@ -1,5 +1,10 @@
 <?php
+
+use Zippy_Booking\Utils\Zippy_Wc_Calculate_Helper;
+
 $item_totals       = $order->get_order_item_totals();
+$shippingPriceIncludeTax = Zippy_Wc_Calculate_Helper::get_total_price_including_tax($order->get_shipping_total());
+$feePriceIncludeTax = Zippy_Wc_Calculate_Helper::get_total_price_including_tax($order->get_total_fees());
 ?>
 <table width="100%" bgcolor="#ffffff" border="0" cellspacing="0" cellpadding="0" style="font-family:'Open Sans',Arial,Helvetica,sans-serif;border-collapse:collapse!important">
 	<tbody>
@@ -24,7 +29,7 @@ $item_totals       = $order->get_order_item_totals();
 					</strong>
 				</td>
 				<td width="200" align="right" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
-					<?php echo wc_price($order->get_shipping_total()); ?>
+					<?php echo $shippingPriceIncludeTax; ?>
 				</td>
 			</tr>
 			<?php if ($order->get_total_fees() > 0): ?>
@@ -36,7 +41,7 @@ $item_totals       = $order->get_order_item_totals();
 						</strong>
 					</td>
 					<td width="200" align="right" valign="top" bgcolor="#ffffff" style="font-size:12px;color:#1c2c3a;line-height:14px">
-						<?php echo wc_price($order->get_total_fees()); ?>
+						<?php echo $feePriceIncludeTax; ?>
 					</td>
 				</tr>
 			<?php endif; ?>
