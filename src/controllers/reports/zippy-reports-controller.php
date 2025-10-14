@@ -331,7 +331,7 @@ class Zippy_Reports_Controller
                         <td>' . esc_html($row['item']) . '</td>
                         <td>' . esc_html($row['quantity']) . '</td>
                         <td>' . esc_html($row['total_price']) . '</td>
-                        <td>' . esc_html($row['payment_status']) . '</td>
+                        <td>' . self::format_order_status($row['payment_status']) . '</td>
                         <td>' . self::format_payment_status($row['payment_method']) . '</td>
                       </tr>';
         $current_order_id = $row['order_number'];
@@ -402,6 +402,22 @@ class Zippy_Reports_Controller
         return $forCsv ? 'Pay Upon Collection' : '<span style="color:red;font-weight:bold;">Pay Upon Collection</span>';
       default:
         return esc_html($method);
+    }
+  }
+
+  private static function format_order_status($order_status, $forCsv = false)
+  {
+    if (empty($order_status)) {
+      return null;
+    }
+
+    switch ($order_status) {
+      case Zippy_Woo_Manual_Order::PENDING:
+        return $forCsv ? 'Pay On Delivery' : '<span style="color:red;font-weight:bold;">Pedding</span>';
+      case Zippy_Woo_Manual_Order::ON_HOLD:
+        return $forCsv ? 'On-hold' : '<span style="color:red;font-weight:bold;">On-hold</span>';
+      default:
+        return esc_html($order_status);
     }
   }
 }

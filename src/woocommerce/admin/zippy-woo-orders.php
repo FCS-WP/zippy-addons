@@ -72,28 +72,51 @@ class Zippy_Woo_Orders
     foreach ($columns as $key => $column) {
       $new_columns[$key] = $column;
 
-      if ($key === 'order_status') {
-        $new_columns['created_by_admin'] = __('Created By', 'woocommerce');
+      if ($key === 'order_total') {
+        $new_columns['created_by_admin'] = __('Origin', 'woocommerce');
       }
     }
-
     return $new_columns;
   }
-
   public function created_by_admin_order_items_column($column, $order)
   {
-    if ($column === 'created_by_admin') {
-      $created_by_admin = $order->get_meta('_created_by_admin');
-      if ($created_by_admin) {
-        $user = get_user_by('id', $created_by_admin);
-        if ($user) {
-          echo esc_html($user->user_email);
+    if ($column !== 'created_by_admin') {
+      return;
+    }
+
+    $created_via = $order->get_created_via(); // usually 'admin' or 'checkout'
+
+    if ($created_via === 'admin') {
+      $admin_user_id = $order->get_meta('_created_by_admin');
+
+      if (!empty($admin_user_id)) {
+        $admin = get_user_by('id', (int) $admin_user_id);
+
+        if ($admin) {
+          printf(
+            '<span class="created-by-admin" title="%s">%s</span>',
+            esc_attr($admin->display_name),
+            esc_html($admin->user_email)
+          );
         } else {
-          echo '<em>' . __('User not found', 'your-text-domain') . '</em>';
+          echo '<em>' . esc_html__('Admin user not found', ZIPPY_ADDONS_PREFIX) . '</em>';
         }
       } else {
-        echo '<em>' . __('customer') . '</em>';
+        $post = get_post($order->get_id());
+        $author = get_user_by('id', $post->post_author);
+
+        if ($author && user_can($author, 'manage_woocommerce')) {
+          printf(
+            '<span class="created-by-admin" title="%s">%s</span>',
+            esc_attr($author->user_email),
+            esc_html($author->display_name)
+          );
+        } else {
+          echo '<em>' . esc_html__('Created by Admin (Unknown)', ZIPPY_ADDONS_PREFIX) . '</em>';
+        }
       }
+    } else {
+      echo '<em>' . esc_html__('Customer', ZIPPY_ADDONS_PREFIX) . '</em>';
     }
   }
 
