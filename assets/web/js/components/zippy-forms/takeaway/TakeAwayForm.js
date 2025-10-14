@@ -59,6 +59,12 @@ const TakeAwayForm = ({ onChangeMode }) => {
       return false;
     }
 
+    document.body.dispatchEvent(
+      new Event("wc_fragment_refresh", {
+        bubbles: true,
+      })
+    );
+
     showAlert("success", "Success", response.message, 2000);
 
     setTimeout(() => {

@@ -53,6 +53,7 @@ class Zippy_Woo_Orders
     //add customer parameter for API Report
     add_filter('woocommerce_order_data_store_cpt_get_orders_query', array($this, 'handle_fulfilment_query_var'), 10, 2);
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'rename_order_status_column'));
+    add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'handle_render_in_billing_address'), 10, 1);
   }
 
   public function show_filter_by_billing_date()
@@ -94,6 +95,13 @@ class Zippy_Woo_Orders
         echo '<em>' . __('customer') . '</em>';
       }
     }
+  }
+
+  public function handle_render_in_billing_address($order)
+  {
+    $payment_method_title = $order->get_payment_method_title();
+    $contentPaymentMethod = !empty($payment_method_title) ? $payment_method_title : 'Not selected yet';
+    echo '<p><strong>' . __('Payment Method:', 'woocommerce') . '</strong> ' . esc_html($contentPaymentMethod) . '</p>';
   }
 
   public function add_phone_col($columns)
