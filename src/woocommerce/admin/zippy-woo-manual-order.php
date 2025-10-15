@@ -19,7 +19,8 @@ class Zippy_Woo_Manual_Order
   const CASH_ON_DELIVERY = 'Cash on delivery';
   const PAID_UPON_COLLECTION = 'Paid Upon Collection';
   const PENDING = 'pending';
-  const ON_HOLD = 'on-hold ';
+  const ON_HOLD = 'on-hold';
+  const PROCESSING = 'processing';
   /**
    * Singleton instance
    *

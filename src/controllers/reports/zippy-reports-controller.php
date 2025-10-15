@@ -251,7 +251,21 @@ class Zippy_Reports_Controller
     $current_order_id = null;
     foreach ($order_rows as $row) {
       if ($row['order_number'] !== $current_order_id) {
-        fputcsv($output, [$row['order_number'], $row['phone'], $row['mode'], $row['time'], $row['item'], $row['quantity'], $row['total_price'], $row['payment_status'], self::format_payment_status($row['payment_method'], true)], ',');
+        fputcsv(
+          $output,
+          [
+            $row['order_number'],
+            $row['phone'],
+            $row['mode'],
+            $row['time'],
+            $row['item'],
+            $row['quantity'],
+            $row['total_price'],
+            self::format_order_status($row['payment_status'], true),
+            self::format_payment_status($row['payment_status'], $row['payment_method'], true)
+          ],
+          ','
+        );
         $current_order_id = $row['order_number'];
       } else {
         fputcsv($output, ['', '', '', '', $row['item'], $row['quantity'], $row['total_price']], ',');
@@ -332,7 +346,7 @@ class Zippy_Reports_Controller
                         <td>' . esc_html($row['quantity']) . '</td>
                         <td>' . esc_html($row['total_price']) . '</td>
                         <td>' . self::format_order_status($row['payment_status']) . '</td>
-                        <td>' . self::format_payment_status($row['payment_method']) . '</td>
+                        <td>' . self::format_payment_status($row['payment_status'], $row['payment_method']) . '</td>
                       </tr>';
         $current_order_id = $row['order_number'];
       } else {
@@ -389,9 +403,19 @@ class Zippy_Reports_Controller
     return  preg_replace('/^From\s+/i', '', $slot);
   }
 
-  private static function format_payment_status($method, $forCsv = false)
+  /**
+   * Format Payment method before render
+   * @param mixed $order_status
+   * @param mixed $method
+   * @param mixed $forCsv
+   */
+  private static function format_payment_status($order_status, $method, $forCsv = false)
   {
     if (empty($method)) {
+      if (!empty($order_status) && $order_status == Zippy_Woo_Manual_Order::PENDING) {
+        return $forCsv ? 'Pending Payment' : '<span style="color:red;font-weight:bold;">Pending Payment</span>';
+      }
+
       return null;
     }
 
@@ -405,6 +429,11 @@ class Zippy_Reports_Controller
     }
   }
 
+  /**
+   * Format Order status before render
+   * @param mixed $order_status
+   * @param mixed $forCsv
+   */
   private static function format_order_status($order_status, $forCsv = false)
   {
     if (empty($order_status)) {
@@ -415,7 +444,9 @@ class Zippy_Reports_Controller
       case Zippy_Woo_Manual_Order::PENDING:
         return $forCsv ? 'Pending' : '<span style="color:red;font-weight:bold;">Pending</span>';
       case Zippy_Woo_Manual_Order::ON_HOLD:
-        return $forCsv ? 'On-hold' : '<span style="color:red;font-weight:bold;">On-hold</span>';
+        return $forCsv ? 'On hold' : '<span style="color:red;font-weight:bold;">On hold</span>';
+      case Zippy_Woo_Manual_Order::PROCESSING:
+        return 'Processing';
       default:
         return esc_html($order_status);
     }
