@@ -226,10 +226,18 @@ class Zippy_Woo_Orders
       $order = $order_or_order_id instanceof \WC_Order ? $order_or_order_id : wc_get_order($order_or_order_id);
 
       if ($order) {
-        echo esc_html($order->get_payment_method_title());
+        $payment_method_title = $order->get_payment_method_title();
+
+        if (trim($payment_method_title) === Zippy_Woo_Manual_Order::PAID_UPON_COLLECTION) {
+          echo '<span style="color: red; font-weight: 600;">' . esc_html($payment_method_title) . '</span>';
+          return;
+        }
+
+        echo esc_html($payment_method_title);
       }
     }
   }
+
 
   public function billing_time_order_items_column($column_name, $order_or_order_id)
   {
