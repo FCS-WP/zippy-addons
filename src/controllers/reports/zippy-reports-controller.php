@@ -413,7 +413,7 @@ class Zippy_Reports_Controller
 
     switch ($order_status) {
       case Zippy_Woo_Manual_Order::PENDING:
-        return $forCsv ? 'Pay On Delivery' : '<span style="color:red;font-weight:bold;">Pedding</span>';
+        return $forCsv ? 'Pending' : '<span style="color:red;font-weight:bold;">Pending</span>';
       case Zippy_Woo_Manual_Order::ON_HOLD:
         return $forCsv ? 'On-hold' : '<span style="color:red;font-weight:bold;">On-hold</span>';
       default:
