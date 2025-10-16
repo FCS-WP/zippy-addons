@@ -20,7 +20,7 @@ import {
 import ProductFilterbyCategories from "../../../Components/Products/ProductFilterByCategories";
 import { toast } from "react-toastify";
 
-const AddProductsDialog = ({ onClose, open, orderID }) => {
+const AddProductsDialog = ({ onClose, open, orderID, userID }) => {
   const [data, setData] = useState([]);
   const [pagination, setPagination] = useState({
     page: 0,
@@ -120,14 +120,15 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
   );
 
   const submitProducts = useCallback(async () => {
-    if (!orderID?.orderID) {
+    if (!orderID) {
       toast.error("Order ID is missing");
       return;
     }
 
     const payload = {
-      order_id: orderID.orderID,
+      order_id: orderID,
       products: Object.values(addedProducts),
+      user_id: userID,
     };
 
     await callAddProductsToOrder(payload);
