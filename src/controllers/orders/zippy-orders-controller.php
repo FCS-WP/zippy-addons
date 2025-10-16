@@ -175,6 +175,7 @@ class Zippy_Orders_Controller
     public static function add_product_to_order(WP_REST_Request $request)
     {
         $order_id = intval($request->get_param('order_id'));
+        $user_id = intval($request->get_param('user_id'));
         $order    = wc_get_order($order_id);
         if (!$order) {
             return Zippy_Response_Handler::error('Order not found.');
@@ -187,7 +188,7 @@ class Zippy_Orders_Controller
 
         $added_items = [];
         foreach ($products as $product) {
-            $added_item = self::add_single_product_to_order($order, $product);
+            $added_item = self::add_single_product_to_order($order, $product, $user_id);
             if (!empty($added_item)) {
                 $added_items[] = $added_item;
             }
@@ -202,7 +203,7 @@ class Zippy_Orders_Controller
         ]);
     }
 
-    private static function add_single_product_to_order($order, $product)
+    private static function add_single_product_to_order($order, $product, $user_id)
     {
         $added_items = [];
         $product_id = intval($product['parent_product_id'] ?? 0);
@@ -215,7 +216,7 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('Product not found.');
         }
 
-        $product_price = get_product_pricing_rules($product, 1);
+        $product_price = get_product_pricing_rules($product, 1, $user_id);
 
         // Add product to order
         $item_id = $order->add_product($product, $quantity);
@@ -370,6 +371,7 @@ class Zippy_Orders_Controller
         $item_id  = $request->get_param('item_id');
         $quantity = $request->get_param('quantity');
         $addons   = $request->get_param('addons');
+        $user_id  = $request->get_param('user_id');
 
         if (empty($order_id) || empty($item_id) || !is_numeric($quantity)) {
             return Zippy_Response_Handler::error('Missing or invalid parameters.');
@@ -393,7 +395,7 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('Product not found.');
         }
 
-        $product_price = get_product_pricing_rules($product, 1);
+        $product_price = get_product_pricing_rules($product, 1, $user_id);
 
         $addon_meta = [];
         if (!empty($addons) && is_array($addons)) {

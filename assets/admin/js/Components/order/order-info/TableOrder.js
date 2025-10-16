@@ -19,7 +19,7 @@ import OrderProductRow from "./OrderProductRow";
 import OrderSummary from "./OrderSummary";
 import { roundUp2dp } from "../../../utils/tableHelper";
 
-const TableOrder = ({ orderId }) => {
+const TableOrder = ({ orderId, userId }) => {
   const [orderInfo, setOrderInfo] = useState(null);
   const [editingItemId, setEditingItemId] = useState(null);
   const [tempQuantity, setTempQuantity] = useState(0);
@@ -143,6 +143,7 @@ const TableOrder = ({ orderId }) => {
                 orderId={orderId}
                 refreshOrderInfo={getOrderInfo}
                 handleDeleteItem={handleDeleteItem}
+                userId={userId}
               />
             ))}
           </TableBody>
@@ -160,7 +161,7 @@ const TableOrder = ({ orderId }) => {
 
       <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
         <ApplyCouponButton onApply={handleApplyCoupon} />
-        <ButtonAddProducts orderID={orderId} />
+        <ButtonAddProducts orderID={orderId} userID={userId} />
       </Box>
     </Box>
   );

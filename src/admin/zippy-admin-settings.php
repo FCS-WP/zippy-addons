@@ -195,13 +195,16 @@ class Zippy_Admin_Settings
   {
     $atts = shortcode_atts([
       'order_id' => 0,
+      'user_id'  => 0,
     ], $atts, 'admin_order_table');
 
     $order_id = intval($atts['order_id']);
+    $user_id  = intval($atts['user_id']);
+
     if (!$order_id) {
       return '';
     }
 
-    return '<div id="admin-table-order" data-order-id="' . esc_attr($order_id) . '"></div>';
+    return '<div id="admin-table-order" data-order-id="' . esc_attr($order_id) . '" data-user-id="' . esc_attr($user_id) . '"></div>';
   }
 }
