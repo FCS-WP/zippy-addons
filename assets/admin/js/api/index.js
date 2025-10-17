@@ -134,4 +134,7 @@ export const Api = {
   async getCustomers(params) {
     return await makeRequest("/get-list-customers", params);
   },
+  async updatePriceProductByUser(params) {
+    return await makeRequest("/update-price-product-by-user", params);
+  },
 };
