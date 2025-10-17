@@ -19,7 +19,7 @@ import OrderProductRow from "./OrderProductRow";
 import OrderSummary from "./OrderSummary";
 import { roundUp2dp } from "../../../utils/tableHelper";
 
-const TableOrder = ({ orderId }) => {
+const TableOrder = ({ orderId, enableEdit }) => {
   const [orderInfo, setOrderInfo] = useState(null);
   const [editingItemId, setEditingItemId] = useState(null);
   const [tempQuantity, setTempQuantity] = useState(0);
@@ -27,36 +27,19 @@ const TableOrder = ({ orderId }) => {
 
   useEffect(() => {
     if (orderId) {
-      getOrderInfoData();
+      getOrderInfo();
     }
   }, [orderId]);
 
-  const getOrderInfoData = async () => {
-    try {
-      setLoading(true);
-      await updatePriceProductByUser();
-      await getOrderInfo();
-    } catch (error) {
-      console.error("Error in fetchData:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const getOrderInfo = async () => {
     try {
+      setLoading(true);
       const { data: res } = await Api.getOrderInfo({ order_id: orderId });
       if (res.status === "success") setOrderInfo(res.data);
     } catch (error) {
       console.error("Error fetching order info:", error);
-    }
-  };
-
-  const updatePriceProductByUser = async () => {
-    try {
-      await Api.updatePriceProductByUser({ order_id: orderId });
-    } catch (error) {
-      console.error("Error updating price product by user:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -162,6 +145,7 @@ const TableOrder = ({ orderId }) => {
                 orderId={orderId}
                 refreshOrderInfo={getOrderInfo}
                 handleDeleteItem={handleDeleteItem}
+                enableEdit={enableEdit}
               />
             ))}
           </TableBody>
@@ -177,10 +161,25 @@ const TableOrder = ({ orderId }) => {
         total={total}
       />
 
-      <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-        <ApplyCouponButton onApply={handleApplyCoupon} />
-        <ButtonAddProducts orderID={orderId} />
-      </Box>
+      {enableEdit ? (
+        <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+          <ApplyCouponButton onApply={handleApplyCoupon} />
+          <ButtonAddProducts orderID={orderId} />
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            p: 2,
+            textAlign: "center",
+            color: "text.secondary",
+            fontStyle: "italic",
+            borderTop: "1px solid #eee",
+          }}
+        >
+          This order cannot be edited because its status does not allow
+          modifications.
+        </Box>
+      )}
     </Box>
   );
 };

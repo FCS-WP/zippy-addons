@@ -119,8 +119,12 @@ export const Api = {
   async removeOrderItem(params) {
     return await makeRequest("/remove-item-order", params, "POST");
   },
-  async updateOrderItemMetaData(params) {
-    return await makeRequest("/update-meta-data-order-item", params, "POST");
+  async updateOrderItemMetaData(orderId, action, params) {
+    return await makeRequest(
+      `/update-meta-data-order-item?order_id=${orderId}&action=${action}`,
+      params,
+      "POST"
+    );
   },
   async applyCouponToOrder(params) {
     return await makeRequest("/apply_coupon_to_order", params, "POST");

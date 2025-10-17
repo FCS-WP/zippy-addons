@@ -115,11 +115,12 @@ function initializeApp() {
   if (zippyOrderTable) {
     const root = ReactDOM.createRoot(zippyOrderTable);
     const orderId = zippyOrderTable.getAttribute("data-order-id");
+    const enableEdit = zippyOrderTable.getAttribute("data-enable-edit");
 
     root.render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <TableOrder orderId={orderId} />
+        <TableOrder orderId={orderId} enableEdit={enableEdit} />
       </ThemeProvider>
     );
   }
@@ -158,11 +159,14 @@ function initializeApp() {
       customerWrapper.parentNode.appendChild(customDiv);
     }
 
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("id");
+
     const root = ReactDOM.createRoot(customDiv);
     root.render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <CustomerSelect />
+        <CustomerSelect orderId={orderId} />
       </ThemeProvider>
     );
   }

@@ -21,6 +21,7 @@ const OrderProductRow = ({
   orderId,
   refreshOrderInfo,
   handleDeleteItem,
+  enableEdit,
 }) => {
   const unitPriceInclTax = roundUp2dp(
     parseFloat(item.price_per_item) + parseFloat(item.tax_per_item)
@@ -33,12 +34,16 @@ const OrderProductRow = ({
         item_id: a.addon_id,
         quantity: a.quantity / oldItemQuantity,
       }));
-      const { data: res } = await Api.updateOrderItemMetaData({
-        order_id: orderId,
-        item_id,
-        quantity: tempQuantity,
-        addons,
-      });
+      const { data: res } = await Api.updateOrderItemMetaData(
+        orderId,
+        "admin_edit_order",
+        {
+          order_id: orderId,
+          item_id,
+          quantity: tempQuantity,
+          addons,
+        }
+      );
       if (res.status === "success") refreshOrderInfo();
       else console.error(res.message);
     } catch (err) {
@@ -185,24 +190,40 @@ const OrderProductRow = ({
       </TableCell>
       <TableCell>${(unitPriceInclTax * item.quantity).toFixed(2)}</TableCell>
       <TableCell>
-        {editingItemId === item_id ? (
-          <IconButton color="success" onClick={saveQuantity}>
-            <SaveIcon />
-          </IconButton>
-        ) : (
+        <>
+          {editingItemId === item_id ? (
+            <IconButton
+              color={enableEdit ? "success" : "default"}
+              onClick={enableEdit ? saveQuantity : undefined}
+              disabled={!enableEdit}
+            >
+              <SaveIcon />
+            </IconButton>
+          ) : (
+            <IconButton
+              color={enableEdit ? "primary" : "default"}
+              onClick={
+                enableEdit
+                  ? () => {
+                      setEditingItemId(item_id);
+                      setTempQuantity(item.quantity);
+                    }
+                  : undefined
+              }
+              disabled={!enableEdit}
+            >
+              <EditIcon />
+            </IconButton>
+          )}
+
           <IconButton
-            color="primary"
-            onClick={() => {
-              setEditingItemId(item_id);
-              setTempQuantity(item.quantity);
-            }}
+            color={enableEdit ? "error" : "default"}
+            onClick={enableEdit ? () => handleDeleteItem(item_id) : undefined}
+            disabled={!enableEdit}
           >
-            <EditIcon />
+            <DeleteIcon />
           </IconButton>
-        )}
-        <IconButton color="error" onClick={() => handleDeleteItem(item_id)}>
-          <DeleteIcon />
-        </IconButton>
+        </>
       </TableCell>
     </TableRow>
   );

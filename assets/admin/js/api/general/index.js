@@ -19,7 +19,7 @@ export const generalAPI = {
   async categories(params) {
     return await makeRequest("/categories", params, "GET");
   },
-  async addProductsToOrder(params) {
-    return await makeRequest("/add-items-order", params, "POST");
+  async addProductsToOrder(order_id, action, params) {
+    return await makeRequest(`/add-items-order?order_id=${order_id}&action=${action}`, params, "POST");
   },
 };
