@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@mui/material";
 import AddProductsDialog from "./AddProductsDialog";
 
-const ButtonAddProducts = ({ orderID, userID }) => {
+const ButtonAddProducts = ({ orderID }) => {
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
@@ -26,7 +26,6 @@ const ButtonAddProducts = ({ orderID, userID }) => {
           open={open}
           orderID={orderID}
           onClose={handleClose}
-          userID={userID}
         />
       )}
     </>

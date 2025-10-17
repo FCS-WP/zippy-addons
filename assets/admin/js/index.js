@@ -115,12 +115,11 @@ function initializeApp() {
   if (zippyOrderTable) {
     const root = ReactDOM.createRoot(zippyOrderTable);
     const orderId = zippyOrderTable.getAttribute("data-order-id");
-    const userId = zippyOrderTable.getAttribute("data-user-id");
 
     root.render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <TableOrder orderId={orderId} userId={userId} />
+        <TableOrder orderId={orderId} />
       </ThemeProvider>
     );
   }

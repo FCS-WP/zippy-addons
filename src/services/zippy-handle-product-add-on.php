@@ -76,7 +76,7 @@ class Zippy_Handle_Product_Add_On
   }
 
 
-  public static function build_addon_data($addons = [], $quantity = 1)
+  public static function build_addon_data($addons = [], $quantity = 1, $user_id = null)
   {
     $data = [];
     if (!empty($addons) && is_array($addons)) {
@@ -90,7 +90,7 @@ class Zippy_Handle_Product_Add_On
         if ($qty > 0) {
           $product = wc_get_product($addon_id);
 
-          $data[$addon_id] = [$qty, get_product_pricing_rules($product, 1)]; // [0 -> quantity , 1 -> price]
+          $data[$addon_id] = [$qty, get_product_pricing_rules($product, 1, $user_id)]; // [0 -> quantity , 1 -> price]
         }
       }
     }

@@ -19,25 +19,44 @@ import OrderProductRow from "./OrderProductRow";
 import OrderSummary from "./OrderSummary";
 import { roundUp2dp } from "../../../utils/tableHelper";
 
-const TableOrder = ({ orderId, userId }) => {
+const TableOrder = ({ orderId }) => {
   const [orderInfo, setOrderInfo] = useState(null);
   const [editingItemId, setEditingItemId] = useState(null);
   const [tempQuantity, setTempQuantity] = useState(0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getOrderInfo();
+    if (orderId) {
+      getOrderInfoData();
+    }
   }, [orderId]);
+
+  const getOrderInfoData = async () => {
+    try {
+      setLoading(true);
+      await updatePriceProductByUser();
+      await getOrderInfo();
+    } catch (error) {
+      console.error("Error in fetchData:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getOrderInfo = async () => {
     try {
-      setLoading(true);
       const { data: res } = await Api.getOrderInfo({ order_id: orderId });
       if (res.status === "success") setOrderInfo(res.data);
     } catch (error) {
       console.error("Error fetching order info:", error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const updatePriceProductByUser = async () => {
+    try {
+      await Api.updatePriceProductByUser({ order_id: orderId });
+    } catch (error) {
+      console.error("Error updating price product by user:", error);
     }
   };
 
@@ -143,7 +162,6 @@ const TableOrder = ({ orderId, userId }) => {
                 orderId={orderId}
                 refreshOrderInfo={getOrderInfo}
                 handleDeleteItem={handleDeleteItem}
-                userId={userId}
               />
             ))}
           </TableBody>
@@ -161,7 +179,7 @@ const TableOrder = ({ orderId, userId }) => {
 
       <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
         <ApplyCouponButton onApply={handleApplyCoupon} />
-        <ButtonAddProducts orderID={orderId} userID={userId} />
+        <ButtonAddProducts orderID={orderId} />
       </Box>
     </Box>
   );

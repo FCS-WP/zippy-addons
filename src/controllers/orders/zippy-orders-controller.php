@@ -175,12 +175,12 @@ class Zippy_Orders_Controller
     public static function add_product_to_order(WP_REST_Request $request)
     {
         $order_id = intval($request->get_param('order_id'));
-        $user_id = intval($request->get_param('user_id'));
         $order    = wc_get_order($order_id);
         if (!$order) {
             return Zippy_Response_Handler::error('Order not found.');
         }
 
+        $user_id = $order->get_user_id() ?? 0;
         $products = $request->get_param('products');
         if (empty($products) || !is_array($products)) {
             return Zippy_Response_Handler::error('No products provided.');
@@ -217,6 +217,9 @@ class Zippy_Orders_Controller
         }
 
         $product_price = get_product_pricing_rules($product, 1, $user_id);
+        if (is_null($product_price)) {
+            return Zippy_Response_Handler::error('Failed to get product pricing by user.');
+        }
 
         // Add product to order
         $item_id = $order->add_product($product, $quantity);
@@ -330,6 +333,60 @@ class Zippy_Orders_Controller
         return Zippy_Response_Handler::success($result);
     }
 
+    public static function update_price_product_by_user(WP_REST_Request $request)
+    {
+        $required_fields = [
+            "order_id" => ["required" => true, "data_type" => "integer"],
+        ];
+
+        $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+        if (!empty($validate)) {
+            return Zippy_Response_Handler::error($validate);
+        }
+
+        $order_id = intval($request->get_param('order_id'));
+        $order    = wc_get_order($order_id);
+        if (empty($order)) {
+            return Zippy_Response_Handler::error('Order not found.');
+        }
+
+        $items = $order->get_items();
+        $user_id = $order->get_user_id();
+
+        foreach ($items as $item_id => $item) {
+            $product = $item->get_product();
+            $quantity = $item->get_quantity();
+
+            $product_price = get_product_pricing_rules($product, 1, $user_id);
+            if (is_null($product_price)) {
+                return Zippy_Response_Handler::error('Failed to get product pricing by user.');
+            }
+
+            $akk_selected = maybe_unserialize($item->get_meta('akk_selected', true));
+            $addons = [];
+            if (!empty($akk_selected)) {
+                foreach ($akk_selected as $addon_id => $values) {
+                    $addons[] = [
+                        'item_id' => $addon_id,
+                        'quantity' => $values[0] / $quantity,
+                    ];
+                }
+            }
+
+            if (!empty($addons) && is_array($addons)) {
+                $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity, $user_id);
+                self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
+            } else {
+                // Set tax for simple product
+                Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
+            }
+        }
+
+        self::handle_free_shipping($order_id);
+
+        return Zippy_Response_Handler::success(['status' => 'success'], 'Update price product by user successfully.');
+    }
+
     public static function remove_order_item(WP_REST_Request $request)
     {
         $required_fields = [
@@ -371,7 +428,6 @@ class Zippy_Orders_Controller
         $item_id  = $request->get_param('item_id');
         $quantity = $request->get_param('quantity');
         $addons   = $request->get_param('addons');
-        $user_id  = $request->get_param('user_id');
 
         if (empty($order_id) || empty($item_id) || !is_numeric($quantity)) {
             return Zippy_Response_Handler::error('Missing or invalid parameters.');
@@ -382,6 +438,7 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('Order not found.');
         }
 
+        $user_id = $order->get_user_id() ?? 0;
         $item = $order->get_item($item_id);
         if (empty($item)) {
             return Zippy_Response_Handler::error('Order item not found.');
@@ -396,10 +453,13 @@ class Zippy_Orders_Controller
         }
 
         $product_price = get_product_pricing_rules($product, 1, $user_id);
+        if (is_null($product_price)) {
+            return Zippy_Response_Handler::error('Failed to get product pricing by user.');
+        }
 
         $addon_meta = [];
         if (!empty($addons) && is_array($addons)) {
-            $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity);
+            $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity, $user_id);
             self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
         } else {
             // Set tax for simple product

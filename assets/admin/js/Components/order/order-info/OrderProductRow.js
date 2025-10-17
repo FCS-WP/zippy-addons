@@ -21,7 +21,6 @@ const OrderProductRow = ({
   orderId,
   refreshOrderInfo,
   handleDeleteItem,
-  userId,
 }) => {
   const unitPriceInclTax = roundUp2dp(
     parseFloat(item.price_per_item) + parseFloat(item.tax_per_item)
@@ -39,7 +38,6 @@ const OrderProductRow = ({
         item_id,
         quantity: tempQuantity,
         addons,
-        user_id: userId,
       });
       if (res.status === "success") refreshOrderInfo();
       else console.error(res.message);
