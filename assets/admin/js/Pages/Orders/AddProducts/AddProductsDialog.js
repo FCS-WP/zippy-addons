@@ -69,7 +69,11 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
   const callAddProductsToOrder = async (payload) => {
     try {
       setLoading(true);
-      const { data } = await generalAPI.addProductsToOrder(payload);
+      const { data } = await generalAPI.addProductsToOrder(
+        orderID,
+        "admin_edit_order",
+        payload
+      );
       if (data?.status === "success") {
         toast.success("Products added to order successfully");
         return data;
@@ -128,6 +132,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     const payload = {
       order_id: orderID,
       products: Object.values(addedProducts),
+      action: "admin_edit_order",
     };
 
     await callAddProductsToOrder(payload);

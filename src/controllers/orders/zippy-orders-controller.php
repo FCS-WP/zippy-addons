@@ -11,6 +11,8 @@ use Zippy_Booking\Src\Services\Zippy_Handle_Product_Tax;
 use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
 use WC_Coupon;
 use WC_Tax;
+use Zippy_Booking\Src\Services\Zippy_Datetime_Helper;
+use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
 use Zippy_Booking\Utils\Zippy_Wc_Calculate_Helper;
 
 defined('ABSPATH') or die();
@@ -333,10 +335,12 @@ class Zippy_Orders_Controller
         return Zippy_Response_Handler::success($result);
     }
 
-    public static function update_price_product_by_user(WP_REST_Request $request)
+    public static function update_user_id_and_price_product(WP_REST_Request $request)
     {
         $required_fields = [
             "order_id" => ["required" => true, "data_type" => "integer"],
+            "user_id"  => ["required" => true, "data_type" => "integer"],
+            "action"   => ["required" => true, "data_type" => "string"],
         ];
 
         $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
@@ -350,9 +354,16 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('Order not found.');
         }
 
-        $items = $order->get_items();
-        $user_id = $order->get_user_id();
+        //Update Customer ID To Order
+        $user_id = $request->get_param('user_id');
+        self::updateCustomerForOrder($order, $user_id);
 
+        if (!self::validate_condition_update_price_by_user($order)) {
+            return Zippy_Response_Handler::success([], 'Not enough conditions to update price by user.');
+        }
+
+        // Update price again
+        $items = $order->get_items();
         foreach ($items as $item_id => $item) {
             $product = $item->get_product();
             $quantity = $item->get_quantity();
@@ -385,6 +396,44 @@ class Zippy_Orders_Controller
         self::handle_free_shipping($order_id);
 
         return Zippy_Response_Handler::success(['status' => 'success'], 'Update price product by user successfully.');
+    }
+
+    public static function validate_condition_update_price_by_user($order)
+    {
+        if ($order->get_meta('is_manual_order') !== 'yes') {
+            return false;
+        }
+
+        $status = $order->get_status();
+        if (!in_array($status, [Zippy_Woo_Manual_Order::ON_HOLD, Zippy_Woo_Manual_Order::PENDING])) {
+            return false;
+        }
+
+        $billing_date = $order->get_meta(BILLING_DATE);
+        if (empty($billing_date)) {
+            return false;
+        }
+
+        $billing_date = Zippy_Datetime_Helper::convert_to_singapore_timestamp_from_date_string($billing_date);
+        $current_time = current_time('timestamp');
+
+        if ($billing_date < $current_time) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static function updateCustomerForOrder($order, $user_id)
+    {
+        if (empty($order)) {
+            return false;
+        }
+
+        $order->set_customer_id($user_id);
+        $order->save();
+
+        return true;
     }
 
     public static function remove_order_item(WP_REST_Request $request)

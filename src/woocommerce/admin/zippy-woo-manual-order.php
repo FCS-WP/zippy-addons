@@ -21,6 +21,10 @@ class Zippy_Woo_Manual_Order
   const PENDING = 'pending';
   const ON_HOLD = 'on-hold';
   const PROCESSING = 'processing';
+
+  //Action
+  const ACTION_ADMIN_EDIT_ORDER = 'admin_edit_order';
+
   /**
    * Singleton instance
    *

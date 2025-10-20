@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, act } from "react";
 import {
   TextField,
   Autocomplete,
@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { Api } from "../../api";
 
-export default function CustomerSelect() {
+export default function CustomerSelect({ orderId }) {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedRole, setSelectedRole] = useState("");
@@ -61,7 +61,19 @@ export default function CustomerSelect() {
     });
   }, [customers, selectedRole]);
 
-  const handleChange = (event, value) => {
+  const handleChange = async (event, value) => {
+    if (!value) {
+      setSelectedCustomer(null);
+      return;
+    }
+
+    if (selectedCustomer && value.id !== selectedCustomer.id) {
+      const confirmed = window.confirm(
+        "Changing the customer may update product prices based on their pricing rules. Do you want to continue?"
+      );
+      if (!confirmed) return;
+    }
+
     setSelectedCustomer(value);
 
     const originalSelect = document.getElementById("customer_user");
@@ -92,6 +104,22 @@ export default function CustomerSelect() {
         bubbles: true,
       });
       inputEl.dispatchEvent(customEvent);
+    }
+
+    await updateUserIdAndPriceProduct(value?.id);
+  };
+
+  const updateUserIdAndPriceProduct = async (userId) => {
+    try {
+      await Api.updatePriceProductByUser({
+        order_id: orderId,
+        user_id: userId || 0,
+        action: "admin_edit_order",
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating price product by user:", error);
     }
   };
 
