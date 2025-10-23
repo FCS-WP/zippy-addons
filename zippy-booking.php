@@ -3,7 +3,7 @@
 Plugin Name: Zippy Woocommerce Add-ons
 Plugin URI: https://zippy.sg/
 Description: Booking System, Manage Oder, Monthly Payment...
-Version: 1.0 Author: Zippy SG
+Version: 2.0 Author: Zippy SG
 Author URI: https://zippy.sg/
 License: GNU General Public
 License v3.0 License
