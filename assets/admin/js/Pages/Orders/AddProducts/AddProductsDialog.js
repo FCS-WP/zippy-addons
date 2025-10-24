@@ -200,11 +200,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
     () =>
       data.map((row) => ({
         ...row,
-        ID: (
-          <Link href={row.LINK} target="_blank" underline="hover">
-            {`${row.ID} (${row.SKU})`}
-          </Link>
-        ),
+        ID: `${row.ID} (${row.SKU})`,
         IMAGE: row.IMAGE ? (
           <img
             src={row.IMAGE}
