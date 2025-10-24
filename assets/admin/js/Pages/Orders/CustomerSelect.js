@@ -106,7 +106,9 @@ export default function CustomerSelect({ orderId }) {
       inputEl.dispatchEvent(customEvent);
     }
 
-    await updateUserIdAndPriceProduct(value?.id);
+    if (orderId) {
+      await updateUserIdAndPriceProduct(value?.id);
+    }
   };
 
   const updateUserIdAndPriceProduct = async (userId) => {
