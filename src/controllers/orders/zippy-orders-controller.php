@@ -11,6 +11,7 @@ use Zippy_Booking\Src\Services\Zippy_Handle_Product_Tax;
 use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
 use WC_Coupon;
 use WC_Tax;
+use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 use Zippy_Booking\Src\Services\Zippy_Datetime_Helper;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
 use Zippy_Booking\Utils\Zippy_Wc_Calculate_Helper;
@@ -721,30 +722,9 @@ class Zippy_Orders_Controller
         $taxSubtotal = Zippy_Wc_Calculate_Helper::get_tax($subtotal);
         $subtotal = Zippy_Wc_Calculate_Helper::round_price_wc($subtotal);
 
-        $products = self::sort_products_by_category($products);
+        $products = Zippy_Booking_Helper::sort_products_by_category($products);
 
         return [$products, $subtotal, $taxSubtotal];
-    }
-
-    private static function sort_products_by_category($products)
-    {
-        usort($products, function ($a, $b) {
-            $product_a = wc_get_product($a['product_id']);
-            $product_b = wc_get_product($b['product_id']);
-            $a_terms = wp_get_post_terms($product_a->get_id(), 'product_cat', ['orderby' => 'name']);
-            $b_terms = wp_get_post_terms($product_b->get_id(), 'product_cat', ['orderby' => 'name']);
-
-            $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
-            $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
-
-            $cmp = strcmp($a_cat, $b_cat);
-            if ($cmp !== 0) {
-                return $cmp;
-            }
-            return $product_a->get_menu_order() <=> $product_b->get_menu_order();
-        });
-
-        return $products;
     }
 
     private static function get_shipping_info($shipping_items)

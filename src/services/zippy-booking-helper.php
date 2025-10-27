@@ -354,7 +354,7 @@ class Zippy_Booking_Helper
 
     public static function sort_cart_items_by_product_category($cart_items)
     {
-        usort($cart_items, function ($a, $b) {
+        uasort($cart_items, function ($a, $b) {
             $productA = $a['data'];
             $productB = $b['data'];
 
@@ -372,6 +372,6 @@ class Zippy_Booking_Helper
             return $productA->get_menu_order() <=> $productB->get_menu_order();
         });
 
-        return $cart_items;
+        return $cart_items; // key gốc vẫn còn
     }
 }
