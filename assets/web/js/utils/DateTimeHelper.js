@@ -29,6 +29,30 @@ const DateTimeHelper = {
 
     return `${year}-${month}-${day}`;
   },
+  /**
+   * Get current time in Singapore (HH:mm)
+   * @returns {string} Time string in format "HH:mm"
+   */
+  getSingaporeTime() {
+    const now = new Date();
+    const options = {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Singapore",
+    };
+    return new Intl.DateTimeFormat("en-GB", options).format(now);
+  },
+
+  /**
+   * Convert time string "HH:mm" to total minutes
+   * @param {*} timeStr
+   * @returns {number}
+   */
+  timeToMinutes(timeStr) {
+    const [h, m] = timeStr.split(":").map(Number);
+    return h * 60 + m;
+  },
 };
 
 export default DateTimeHelper;

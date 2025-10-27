@@ -23,6 +23,7 @@ import { convertTime24to12 } from "../../../../admin/js/utils/dateHelper";
 import OutletContext from "../../contexts/OutletContext";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { getSelectProductId } from "../../helper/booking";
+import DateTimeHelper from "../../utils/DateTimeHelper";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -62,13 +63,6 @@ const OutletSelect = ({
   const [isLoading, setIsLoading] = useState(false);
   const [donaSelectedOutlet, setDonaSelectedOutlet] =
     useState(customOutletSelected);
-
-  useEffect(() => {
-    if (selectedDate) {
-      const deliveryTimes = getDeliveryTimes();
-      setTimes(deliveryTimes);
-    }
-  }, [selectedDate]);
 
   // Get delivery times based on selected date
   const getDeliveryTimes = () => {
@@ -120,7 +114,9 @@ const OutletSelect = ({
         }
 
         const deliverySlots = await handleCheckSlot();
-        setTimes(deliverySlots);
+        const availableTimes = getAvailableDeliveryTimesSlot(deliverySlots);
+
+        setTimes(availableTimes);
         break;
       default:
         break;
@@ -128,6 +124,23 @@ const OutletSelect = ({
     setSelectedTime("");
     setIsLoading(false);
     // setTimes(configTime);
+  };
+
+  /**
+   * Get available delivery time slots (exclude past time slots)
+   * @param {*} deliverySlots
+   * @returns {Array}
+   */
+  const getAvailableDeliveryTimesSlot = (deliverySlots) => {
+    const timeSG = DateTimeHelper.getSingaporeTime();
+    const nowTotalMinutes = DateTimeHelper.timeToMinutes(timeSG);
+
+    const availableTimes = deliverySlots.filter((slot) => {
+      const toTotalMinutes = DateTimeHelper.timeToMinutes(slot.to);
+      return toTotalMinutes > nowTotalMinutes;
+    });
+
+    return availableTimes;
   };
 
   const clearOldData = () => {
