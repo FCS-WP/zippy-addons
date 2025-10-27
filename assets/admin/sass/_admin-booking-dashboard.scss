@@ -209,3 +209,59 @@
     }
   }
 }
+
+.woocommerce_page_wc-orders .wp-list-table thead {
+  @media screen and (max-width: 782px) {
+    th#_billing_time,
+    th#order_status,
+    th#payment_method,
+    th#_billing_date {
+      display: table-cell;
+    }
+    th#order_number {
+      width: 20ch !important;
+    }
+  }
+}
+.woocommerce_page_wc-orders .wp-list-table {
+  @media screen and (max-width: 782px) {
+    overflow-x: auto;
+    display: block;
+    thead,
+    tbody,
+    tfoot {
+      width: 800px;
+    }
+  }
+}
+.woocommerce_page_wc-orders .wp-list-table tbody {
+  @media screen and (max-width: 782px) {
+    td {
+      padding: 5px !important;
+      &::before {
+        display: none !important;
+      }
+    }
+    td._billing_time,
+    td.payment_method,
+    td._billing_date,
+    td.order_status {
+      display: table-cell !important;
+    }
+    td.order_number {
+      .order_status,
+      .toggle-row,
+      .order-preview {
+        display: none !important;
+      }
+    }
+
+    td.order_number {
+      display: flex;
+      flex-direction: column;
+      * {
+        width: 100% !important;
+      }
+    }
+  }
+}
