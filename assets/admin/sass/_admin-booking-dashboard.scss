@@ -202,5 +202,10 @@
         }
       }
     }
+    .order_data_column {
+      @media screen and (max-width: 782px) {
+        width: 100% !important;
+      }
+    }
   }
 }

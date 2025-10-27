@@ -32,8 +32,6 @@ class Zippy_Booking_Web
 
   public function __construct()
   {
-    /* Set timezone SG */
-    date_default_timezone_set('Asia/Singapore');
 
     /* Init Function */
     add_action('wp_head', array($this, 'zippy_lightbox_flatsome'));
