@@ -5,6 +5,7 @@ namespace Zippy_Booking\Src\Controllers\Products;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
+use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Add_On;
 
 defined('ABSPATH') or die();
@@ -310,7 +311,7 @@ class Zippy_Products_Controller
         return [[], 0, 0];
       }
 
-      $products  = self::sort_products_by_category($results->products);
+      $products  = Zippy_Booking_Helper::sort_products_by_category($results->products);
       $total     = $results->total;
       $max_pages = $results->max_num_pages;
     } else {
@@ -322,7 +323,7 @@ class Zippy_Products_Controller
         return [[], 0, 0];
       }
 
-      $all_products = self::sort_products_by_category($all_products);
+      $all_products = Zippy_Booking_Helper::sort_products_by_category($all_products);
 
       $total     = count($all_products);
       $max_pages = ceil($total / $per_page);
@@ -332,26 +333,6 @@ class Zippy_Products_Controller
 
     return [$products, $total, $max_pages];
   }
-
-  private static function sort_products_by_category($products)
-  {
-    usort($products, function ($a, $b) {
-      $a_terms = wp_get_post_terms($a->get_id(), 'product_cat', ['orderby' => 'name']);
-      $b_terms = wp_get_post_terms($b->get_id(), 'product_cat', ['orderby' => 'name']);
-
-      $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
-      $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
-
-      $cmp = strcmp($a_cat, $b_cat);
-      if ($cmp !== 0) {
-        return $cmp;
-      }
-      return $a->get_menu_order() <=> $b->get_menu_order();
-    });
-
-    return $products;
-  }
-
 
   public static function get_product(WP_REST_Request $request)
   {

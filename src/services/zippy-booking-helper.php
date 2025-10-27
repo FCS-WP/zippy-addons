@@ -332,4 +332,23 @@ class Zippy_Booking_Helper
 
         return $isDisabled;
     }
+
+    public static function sort_products_by_category($products)
+    {
+        usort($products, function ($a, $b) {
+            $a_terms = wp_get_post_terms($a->get_id(), 'product_cat', ['orderby' => 'name']);
+            $b_terms = wp_get_post_terms($b->get_id(), 'product_cat', ['orderby' => 'name']);
+
+            $a_cat = !empty($a_terms) ? $a_terms[0]->name : '';
+            $b_cat = !empty($b_terms) ? $b_terms[0]->name : '';
+
+            $cmp = strcmp($a_cat, $b_cat);
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+            return $a->get_menu_order() <=> $b->get_menu_order();
+        });
+
+        return $products;
+    }
 }
