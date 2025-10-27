@@ -372,6 +372,6 @@ class Zippy_Booking_Helper
             return $productA->get_menu_order() <=> $productB->get_menu_order();
         });
 
-        return $cart_items; // key gốc vẫn còn
+        return $cart_items;
     }
 }
