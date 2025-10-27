@@ -17,6 +17,7 @@
  */
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 
 defined('ABSPATH') || exit;
 
@@ -25,7 +26,24 @@ $margin_side = is_rtl() ? 'left' : 'right';
 $email_improvements_enabled = FeaturesUtil::feature_is_enabled('email_improvements');
 $price_text_align           = $email_improvements_enabled ? 'right' : 'left';
 
-foreach ($items as $item_id => $item) :
+$products = array_map(function ($item) {
+	return $item->get_product();
+}, $items);
+
+$products = Zippy_Booking_Helper::sort_products_by_category($products);
+
+$sorted_items = [];
+
+foreach ($products as $product) {
+	foreach ($items as $item_id => $item) {
+		if ($item->get_product() && $item->get_product()->get_id() === $product->get_id()) {
+			$sorted_items[$item_id] = $item;
+			break;
+		}
+	}
+}
+
+foreach ($sorted_items as $item_id => $item) :
 	$product       = $item->get_product();
 	$sku           = '';
 	$purchase_note = '';
