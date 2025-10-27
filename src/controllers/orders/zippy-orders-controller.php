@@ -414,10 +414,16 @@ class Zippy_Orders_Controller
             return false;
         }
 
-        $billing_date = Zippy_Datetime_Helper::convert_to_singapore_timestamp_from_date_string($billing_date);
+        $billing_time = $order->get_meta(BILLING_TIME);
+
+        if (!empty($billing_time)) {
+            $billing_date = Zippy_Datetime_Helper::merge_date_and_time($billing_date, $billing_time);
+        }
+
+        $billing_timestamp = Zippy_Datetime_Helper::convert_to_singapore_timestamp_from_date_string($billing_date);
         $current_time = current_time('timestamp');
 
-        if ($billing_date < $current_time) {
+        if ($billing_timestamp < $current_time) {
             return false;
         }
 
