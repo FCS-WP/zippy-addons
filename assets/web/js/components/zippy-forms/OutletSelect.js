@@ -136,6 +136,10 @@ const OutletSelect = ({
    * @returns {Array}
    */
   const getAvailableDeliveryTimesSlot = (deliverySlots) => {
+    if (!DateTimeHelper.isToday(selectedDate)) {
+      return deliverySlots;
+    }
+
     const timeSG = DateTimeHelper.getSingaporeTime();
     const nowTotalMinutes = DateTimeHelper.timeToMinutes(timeSG);
 

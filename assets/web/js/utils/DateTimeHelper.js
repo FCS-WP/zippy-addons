@@ -53,6 +53,13 @@ const DateTimeHelper = {
     const [h, m] = timeStr.split(":").map(Number);
     return h * 60 + m;
   },
+
+  isToday(date, offsetHours = 8) {
+    const dateStr = DateTimeHelper.getDateWithOffset(date, offsetHours);
+    const todayStr = DateTimeHelper.getToday(offsetHours);
+
+    return dateStr == todayStr;
+  },
 };
 
 export default DateTimeHelper;
