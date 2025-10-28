@@ -35,6 +35,7 @@ const Settings = () => {
   const [holidays, setHolidays] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
+  const [copySlots, setCopySlots] = useState(null);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -273,13 +274,31 @@ const Settings = () => {
     );
   };
 
-  const handleAddDeliveryTimeSlot = (day) => {
+  const pasteDeliveryTimeSlots = (day) => {
+    if (!copySlots) return;
+
     setdeliveryTimeSlots((prev) =>
       prev.map((item) =>
         item.day === day
-          ? { ...item, slots: [...item.slots, { from: "", to: "" }] }
+          ? {
+              ...item,
+              slots: copySlots.slots,
+            }
           : item
       )
+    );
+  };
+
+  const handleAddDeliveryTimeSlot = (day, slotIndex) => {
+    setdeliveryTimeSlots((prev) =>
+      prev.map((item) => {
+        if (item.day !== day) return item;
+
+        const newSlots = [...item.slots];
+        newSlots.splice(slotIndex + 1, 0, { from: "", to: "" });
+
+        return { ...item, slots: newSlots };
+      })
     );
   };
 
@@ -405,6 +424,8 @@ const Settings = () => {
                     handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
                     duration={duration}
                     disabled={stores.length === 0}
+                    setCopySlots={setCopySlots}
+                    pasteDeliveryTimeSlots={pasteDeliveryTimeSlots}
                   />
                   {holidayEnabled && (
                     <HolidayTable

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   TableCell,
   TableRow,
@@ -33,7 +33,7 @@ const DeliverySlotRow = ({
   };
 
   const handleAdd = () => {
-    handleAddDeliveryTimeSlot(day, tempDeliveryText[day]);
+    handleAddDeliveryTimeSlot(day, slotIndex);
     setTempDeliveryText((prev) => ({
       ...prev,
       [day]: "",
@@ -41,12 +41,21 @@ const DeliverySlotRow = ({
   };
 
   return (
-    <TableRow className={className} sx={{backgroundColor: "#f9f9f9",  border: "none" }}>
+    <TableRow
+      className={className}
+      sx={{ backgroundColor: "#f9f9f9", border: "none" }}
+    >
       <TableCell />
       {/* From - To TimePickers in one TableCell */}
       <TableCell colSpan={2} sx={{ width: "40%" }}>
         <Box display="flex" alignItems="center" justifyContent="start" gap={1}>
-          <Box sx={{ border: "1px solid", borderRadius: "5px" , borderColor:theme.palette.info.main }}>
+          <Box
+            sx={{
+              border: "1px solid",
+              borderRadius: "5px",
+              borderColor: theme.palette.info.main,
+            }}
+          >
             <TimePicker
               selectedTime={parseTime(slot.from)}
               onChange={(time) =>
@@ -58,7 +67,13 @@ const DeliverySlotRow = ({
           <Typography variant="body2" mx={1}>
             to
           </Typography>
-          <Box sx={{  border: "1px solid", borderRadius: "5px" , borderColor:theme.palette.info.main  }}>
+          <Box
+            sx={{
+              border: "1px solid",
+              borderRadius: "5px",
+              borderColor: theme.palette.info.main,
+            }}
+          >
             <TimePicker
               selectedTime={parseTime(slot.to)}
               onChange={(time) =>
@@ -73,7 +88,7 @@ const DeliverySlotRow = ({
       {/* Slot input + Add button */}
       {deliveryTimeEnabled[day] ? (
         <TableCell>
-          <Box display="flex" alignItems="center" gap={1} >
+          <Box display="flex" alignItems="center" gap={1}>
             <TextField
               type="number"
               size="small"
@@ -91,7 +106,12 @@ const DeliverySlotRow = ({
                   e.target.value
                 )
               }
-              sx={{ flexGrow: 1 , border: "1px solid", borderRadius: "5px" , borderColor:theme.palette.info.main }}
+              sx={{
+                flexGrow: 1,
+                border: "1px solid",
+                borderRadius: "5px",
+                borderColor: theme.palette.info.main,
+              }}
               className="delivery-slot-input"
             />
 

@@ -7,8 +7,11 @@ import {
   FormControlLabel,
   Switch,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import TimePicker from "../../DatePicker/TimePicker";
 import { parseTime } from "../../../utils/dateHelper";
 import DeliverySlotRow from "./DeliverySlotRow";
@@ -29,8 +32,21 @@ const TimeSlotRow = ({
   tempDeliveryText,
   setTempDeliveryText,
   handleAddDeliveryTimeSlot,
+  setCopySlots,
+  pasteDeliveryTimeSlots,
 }) => {
   const hasSubrows = !!deliveryTimeEnabled[item.day];
+
+  const handleCopy = () => {
+    setCopySlots({
+      day: item.day,
+      slots: deliverySlots,
+    });
+  };
+
+  const handlePaste = () => {
+    pasteDeliveryTimeSlots(item.day);
+  };
 
   return (
     <>
@@ -40,7 +56,9 @@ const TimeSlotRow = ({
         sx={{ borderRadius: "8px" }}
       >
         <TableCell sx={{ width: "20%" }}>
-          <Typography fontWeight="bold" fontSize="14px">{item.day}</Typography>
+          <Typography fontWeight="bold" fontSize="14px">
+            {item.day}
+          </Typography>
         </TableCell>
 
         <TableCell colSpan={2} width={"40%"}>
@@ -50,7 +68,13 @@ const TimeSlotRow = ({
             justifyContent="start"
             gap={1}
           >
-            <Box sx={{ border: "1px solid ", borderRadius: "5px", borderColor: theme.palette.info.main }}>
+            <Box
+              sx={{
+                border: "1px solid ",
+                borderRadius: "5px",
+                borderColor: theme.palette.info.main,
+              }}
+            >
               <TimePicker
                 selectedTime={parseTime(slot.from)}
                 onChange={(time) =>
@@ -62,7 +86,13 @@ const TimeSlotRow = ({
             <Typography variant="body2" mx={1}>
               to
             </Typography>
-            <Box sx={{ border: "1px solid", borderRadius: "5px" , borderColor: theme.palette.info.main }}>
+            <Box
+              sx={{
+                border: "1px solid",
+                borderRadius: "5px",
+                borderColor: theme.palette.info.main,
+              }}
+            >
               <TimePicker
                 selectedTime={parseTime(slot.to)}
                 onChange={(time) =>
@@ -74,7 +104,7 @@ const TimeSlotRow = ({
           </Box>
         </TableCell>
 
-        <TableCell sx={{ width: "30%" }}>
+        <TableCell sx={{ width: "20%" }}>
           <FormControlLabel
             control={
               <Switch
@@ -85,10 +115,23 @@ const TimeSlotRow = ({
           />
         </TableCell>
 
-        <TableCell sx={{ width: "10%" }}>
+        <TableCell sx={{ width: "20%" }}>
+          {/* Remove btn */}
           <IconButton onClick={() => handleRemoveTimeSlot(item.day, slotIndex)}>
             <RemoveCircleOutlineIcon color="error" />
           </IconButton>
+          {/* Copy btn */}
+          <Tooltip title="Copy" arrow placement="top">
+            <IconButton onClick={handleCopy} sx={{ color: "#1976d2" }}>
+              <ContentCopyIcon />
+            </IconButton>
+          </Tooltip>
+          {/* Paste btn */}
+          <Tooltip title="Paste" arrow placement="top">
+            <IconButton onClick={handlePaste} sx={{ color: "#1976d2" }}>
+              <ContentPasteIcon />
+            </IconButton>
+          </Tooltip>
         </TableCell>
       </TableRow>
 
@@ -111,6 +154,7 @@ const TimeSlotRow = ({
               tempDeliveryText={tempDeliveryText}
               setTempDeliveryText={setTempDeliveryText}
               handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
+              setCopySlots={setCopySlots}
             />
           );
         })}

@@ -27,6 +27,8 @@ const WeekdayTable = ({
   handleAddDeliveryTimeSlot,
   duration,
   disabled = false,
+  setCopySlots,
+  pasteDeliveryTimeSlots,
 }) => {
   const [tempDeliveryText, setTempDeliveryText] = useState({});
 
@@ -67,11 +69,11 @@ const WeekdayTable = ({
                 >
                   Time
                 </TableCell>
-                <TableCell sx={{ ...tableHeadCellStyle, width: "30%" }}>
+                <TableCell sx={{ ...tableHeadCellStyle, width: "20%" }}>
                   Delivery
                 </TableCell>
                 <TableCell
-                  sx={{ ...tableHeadCellStyle, width: "10%" }}
+                  sx={{ ...tableHeadCellStyle, width: "20%" }}
                 ></TableCell>
               </TableRow>
             </TableHead>
@@ -108,6 +110,8 @@ const WeekdayTable = ({
                         setTempDeliveryText={setTempDeliveryText}
                         handleAddDeliveryTimeSlot={handleAddDeliveryTimeSlot}
                         disabled={disabled}
+                        setCopySlots={setCopySlots}
+                        pasteDeliveryTimeSlots={pasteDeliveryTimeSlots}
                       />
                     ))
                   )}
