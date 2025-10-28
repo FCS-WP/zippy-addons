@@ -24,6 +24,7 @@ import OutletContext from "../../contexts/OutletContext";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { getSelectProductId } from "../../helper/booking";
 import DateTimeHelper from "../../utils/DateTimeHelper";
+import { SHOP_TYPE } from "../../consts/consts";
 
 const CustomSelect = styled(Select)({
   padding: "5px",
@@ -109,13 +110,16 @@ const OutletSelect = ({
           }
         }
 
-        if (cartType != "popup-reservation") {
-          break;
+        let deliveryTimes = [];
+        if (cartType == SHOP_TYPE.RETAIL) {
+          deliveryTimes = getDeliveryTimes();
         }
 
-        const deliverySlots = await handleCheckSlot();
-        const availableTimes = getAvailableDeliveryTimesSlot(deliverySlots);
+        if (cartType == SHOP_TYPE.POPUP_RESERVATION) {
+          deliveryTimes = await handleCheckSlot();
+        }
 
+        const availableTimes = getAvailableDeliveryTimesSlot(deliveryTimes);
         setTimes(availableTimes);
         break;
       default:
