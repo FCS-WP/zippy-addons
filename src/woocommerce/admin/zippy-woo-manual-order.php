@@ -162,5 +162,9 @@ class Zippy_Woo_Manual_Order
     if ($user_id) {
       $order->update_meta_data('_created_by_admin', $user_id);
     }
+
+    if (isset($_POST['name_admin_created_order'])) {
+      $order->update_meta_data('name_admin_created_order', sanitize_text_field($_POST['name_admin_created_order']));
+    }
   }
 }

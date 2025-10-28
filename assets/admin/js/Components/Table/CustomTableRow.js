@@ -265,6 +265,7 @@ const CustomTableRow = ({
           handleRemoveProduct={handleRemoveProduct}
           disabledRemove={disabledRemove}
           setDisabledRemove={setDisabledRemove}
+          type={row.type}
         />
       </Collapse>
     </TableCell>

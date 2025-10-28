@@ -263,11 +263,13 @@ class Zippy_Products_Controller
         $groups            = get_field('products_group', $product->get_id()) ?: [];
         $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
 
-        $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons(
-          $list_sub_products,
-          $is_composite_product,
-          $grouped_addons
-        );
+        $addons_rules = $product->get_type() == 'variable'
+          ? self::get_variable_product($product)
+          : Zippy_Handle_Product_Add_On::get_list_addons(
+            $list_sub_products,
+            $is_composite_product,
+            $grouped_addons
+          );
 
         $data[] = [
           'id'    => $product->get_id(),
@@ -301,6 +303,27 @@ class Zippy_Products_Controller
     } catch (\Exception $e) {
       return Zippy_Response_Handler::error('Empty products', 500);
     }
+  }
+
+  private static function get_variable_product($product)
+  {
+    $addons_rules = [];
+    $available_variations = $product->get_available_variations();
+
+    foreach ($available_variations as $variation) {
+      $variation_id = $variation['variation_id'];
+
+      $addons_rules[] = [
+        'id'    => $variation_id,
+        'name' => html_entity_decode(get_the_title($variation_id), ENT_QUOTES, 'UTF-8'),
+        'sku'   => $variation['sku'],
+        'image' => wp_get_attachment_image_url($variation['image_id'], 'thumbnail'),
+        'min'   => 0,
+        'max'   => null,
+      ];
+    }
+
+    return $addons_rules;
   }
 
   private static function sort_and_paginate_products($args, $has_category, $page, $per_page)
@@ -357,7 +380,12 @@ class Zippy_Products_Controller
       $min_order         = get_post_meta($results->get_id(), '_custom_minimum_order_qty', true) ?: 0;
       $groups            = get_field('products_group', $results->get_id()) ?: [];
       $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
-      $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons);
+
+      if ($results->get_type() == 'variable') {
+        $addons_rules = self::get_variable_product($results);
+      } else {
+        $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons);
+      }
 
       $product_data = array(
         'id'    => $results->get_id(),
