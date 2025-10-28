@@ -8,6 +8,8 @@ use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
+use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
+
 
 defined('ABSPATH') or die();
 
@@ -102,8 +104,9 @@ class Zippy_Reports_Controller
       if (empty($mode)) {
         continue;
       }
+      $items = Zippy_Booking_Helper::sort_order_items_by_product_category($order->get_items());
 
-      foreach ($order->get_items() as $item) {
+      foreach ($items as $item) {
         // Handle parent product
         [$row, $product_summary] = self::process_item($order, $item, $phone, $mode, $product_summary);
         $order_rows[] = $row;
