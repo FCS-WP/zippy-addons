@@ -18,6 +18,7 @@ import ButtonAddProducts from "./Pages/Orders/AddProducts/ButtonAddProducts";
 import TableOrder from "./Components/order/order-info/TableOrder";
 import BulkAction from "./Pages/Orders/BulkAction";
 import CustomerSelect from "./Pages/Orders/CustomerSelect";
+import InputAdminCreatedOrder from "./Pages/Orders/InputAdminCreatedOrder";
 
 function initializeApp() {
   const zippyBookings = document.getElementById("root_app");
@@ -33,6 +34,9 @@ function initializeApp() {
     "body.woocommerce_page_wc-orders .bulkactions"
   );
   const customerWrapper = document.querySelector("p.wc-customer-user");
+  const zippyInputAdminCreatedOrder = document.getElementById(
+    "input-admin-created-order"
+  );
 
   if (zippyCreateOrder) {
     const root = ReactDOM.createRoot(zippyCreateOrder);
@@ -167,6 +171,18 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <CustomerSelect orderId={orderId} />
+      </ThemeProvider>
+    );
+  }
+
+  if (zippyInputAdminCreatedOrder) {
+    const root = ReactDOM.createRoot(zippyInputAdminCreatedOrder);
+    const orderId = zippyOrderTable.getAttribute("data-order-id");
+
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <InputAdminCreatedOrder orderId={orderId} />
       </ThemeProvider>
     );
   }

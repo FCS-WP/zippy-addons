@@ -154,6 +154,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
       ADDONS: item.addons || {},
       packingInstructions: "",
       quantity: item.min_order,
+      type: item.type,
     }));
 
   /**

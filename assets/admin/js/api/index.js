@@ -141,4 +141,7 @@ export const Api = {
   async updatePriceProductByUser(params) {
     return await makeRequest("/update-price-product-by-user", params);
   },
+  async getAdminNameFromOrder(params) {
+    return await makeRequest("/admin-name-from-order", params);
+  },
 };

@@ -41,6 +41,7 @@ class Zippy_Woo_Orders
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_payment_method_col'));
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_phone_col'));
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_created_by_admin_col'));
+    add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_name_admin_created_order_col'));
 
     add_filter('woocommerce_order_query_args', array($this, 'add_meta_billing_date_query'));
 
@@ -49,11 +50,13 @@ class Zippy_Woo_Orders
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'billing_time_order_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'payment_method_order_items_column'), 25, 2);
     add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'created_by_admin_order_items_column'), 25, 2);
+    add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'name_admin_created_order_items_column'), 25, 2);
 
     //add customer parameter for API Report
     add_filter('woocommerce_order_data_store_cpt_get_orders_query', array($this, 'handle_fulfilment_query_var'), 10, 2);
     add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'rename_order_status_column'));
     add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'handle_render_in_billing_address'), 10, 1);
+    add_action('woocommerce_admin_order_data_after_order_details', array($this, 'render_input_admin_name_created_order'), 10, 1);
   }
 
   public function show_filter_by_billing_date()
@@ -72,12 +75,33 @@ class Zippy_Woo_Orders
     foreach ($columns as $key => $column) {
       $new_columns[$key] = $column;
 
-      if ($key === 'order_total') {
+      if ($key === 'payment_method') {
         $new_columns['created_by_admin'] = __('Origin', 'woocommerce');
       }
     }
     return $new_columns;
   }
+
+  public function add_name_admin_created_order_col($columns)
+  {
+    $new_columns = [];
+
+    foreach ($columns as $key => $column) {
+      $new_columns[$key] = $column;
+
+      if ($key === 'created_by_admin') {
+        $new_columns['name_admin_created_order'] = __('Created By', 'woocommerce');
+      }
+    }
+
+    return $new_columns;
+  }
+
+  public function render_input_admin_name_created_order($order)
+  {
+    echo '<div id="input-admin-created-order" data-order-id="' . esc_attr($order->get_id()) . '"></div>';
+  }
+
   public function created_by_admin_order_items_column($column, $order)
   {
     if ($column !== 'created_by_admin') {
@@ -117,6 +141,30 @@ class Zippy_Woo_Orders
       }
     } else {
       echo '<em>' . esc_html__('Customer', ZIPPY_ADDONS_PREFIX) . '</em>';
+    }
+  }
+
+  public function name_admin_created_order_items_column($column, $order)
+  {
+    if ($column !== 'name_admin_created_order') {
+      return;
+    }
+
+    $name_admin = $order->get_meta('name_admin_created_order');
+    $created_via = $order->get_created_via();
+
+    if ($created_via !== 'admin') {
+      echo '<em>' . esc_html__('Customer', ZIPPY_ADDONS_PREFIX) . '</em>';
+      return;
+    }
+
+    if (!empty($name_admin)) {
+      printf(
+        '<span class="name-admin-created-order">%s</span>',
+        esc_html($name_admin)
+      );
+    } else {
+      echo '<em>' . esc_html__('N/A', ZIPPY_ADDONS_PREFIX) . '</em>';
     }
   }
 

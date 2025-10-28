@@ -75,5 +75,9 @@ class Zippy_Orders_Router
       'methods' => 'GET',
       'callback' => [Zippy_Orders_Controller::class, 'update_user_id_and_price_product'],
     ));
+    register_rest_route(ZIPPY_BOOKING_API_NAMESPACE, '/admin-name-from-order', array(
+      'methods' => 'GET',
+      'callback' => [Zippy_Orders_Controller::class, 'get_admin_name_from_order'],
+    ));
   }
 }

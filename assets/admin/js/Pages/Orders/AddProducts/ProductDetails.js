@@ -22,12 +22,14 @@ const ProductDetails = ({
   handleRemoveProduct,
   disabledRemove,
   setDisabledRemove,
+  type,
 }) => {
   const orderIDParam = orderID.orderID;
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
   const [hasChanges, setHasChanges] = useState(false);
+  const [variableSelectedId, setVariableSelectedId] = useState(null);
 
   /**
    * Fetch product addons
@@ -105,6 +107,24 @@ const ProductDetails = ({
     const newValue = Math.max(0, Number(value));
 
     setData((prev) => {
+      if (type === "variable") {
+        let newSelectedId = null;
+        const updated = prev.map((r) => {
+          if (r.ID === id) {
+            if (variableSelectedId !== id) {
+              newSelectedId = id;
+              return { ...r, QUANTITY: 1 };
+            } else {
+              return { ...r, QUANTITY: 0 };
+            }
+          }
+          return { ...r, QUANTITY: 0 };
+        });
+
+        setVariableSelectedId(newSelectedId);
+        return updated;
+      }
+
       const updated = prev.map((row) => {
         if (row.ID !== id) return row;
         let clamped = Math.min(Math.max(newValue, row.MIN), row.MAX);
@@ -146,40 +166,51 @@ const ProductDetails = ({
     ) : (
       "No Image"
     ),
-    "ADDON ACTIONS": (
-      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <span
-          style={{
-            fontSize: "20px",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={() =>
-            handleQuantityChange(row.ID, Math.max(0, (row.QUANTITY || 0) - 1))
-          }
-        >
-          –
-        </span>
-        <input
-          name="quantity"
-          min={row.MIN}
-          max={row.MAX}
-          value={row.QUANTITY || 0}
-          onChange={(e) => handleQuantityChange(row.ID, e.target.value)}
-          className={`custom-input`}
-        />
-        <span
-          style={{
-            fontSize: "20px",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={() => handleQuantityChange(row.ID, (row.QUANTITY || 0) + 1)}
-        >
-          +
-        </span>
-      </div>
-    ),
+    "ADDON ACTIONS":
+      type === "variable" ? (
+        <div style={{ display: "flex", justifyContent: "center", gap: "6px" }}>
+          <input
+            type="checkbox"
+            checked={row.ID === variableSelectedId}
+            onChange={(e) => handleQuantityChange(row.ID, 1)}
+          />
+        </div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span
+            style={{
+              fontSize: "20px",
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+            onClick={() =>
+              handleQuantityChange(row.ID, Math.max(0, (row.QUANTITY || 0) - 1))
+            }
+          >
+            –
+          </span>
+          <input
+            name="quantity"
+            min={row.MIN}
+            max={row.MAX}
+            value={row.QUANTITY || 0}
+            onChange={(e) => handleQuantityChange(row.ID, e.target.value)}
+            className={`custom-input`}
+          />
+          <span
+            style={{
+              fontSize: "20px",
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+            onClick={() =>
+              handleQuantityChange(row.ID, (row.QUANTITY || 0) + 1)
+            }
+          >
+            +
+          </span>
+        </div>
+      ),
   }));
 
   useEffect(() => {
@@ -243,6 +274,11 @@ const ProductDetails = ({
     setHasChanges(false);
   };
 
+  const handleUnSelectVariable = () => {
+    if (type !== "variable") return;
+    setVariableSelectedId(null);
+  };
+
   return (
     <Box>
       <ToastContainer
@@ -269,7 +305,10 @@ const ProductDetails = ({
               <Button
                 variant="outlined"
                 size="small"
-                onClick={handleRemoveProduct}
+                onClick={() => {
+                  handleRemoveProduct();
+                  handleUnSelectVariable();
+                }}
                 disabled={disabledRemove}
                 sx={{ borderColor: "red", color: "red" }}
               >
