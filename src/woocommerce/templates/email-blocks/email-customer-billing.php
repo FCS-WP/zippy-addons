@@ -17,7 +17,7 @@
 								<td><br><strong>Shop:</strong> JI XIANG ANG KU KUEH PTE LTD</td>
 							</tr>
 							<tr>
-								<td><strong>Shop Address:</strong> Block1 Everton Park 081001 01-33</td>
+								<td><strong>Shop Address:</strong> Block1 Everton Park 01-33 081001</td>
 							</tr>
 							<tr>
 								<td><strong>Shop Telephone:</strong> 6223 1631 WhatsApps: 9270 0510</td>

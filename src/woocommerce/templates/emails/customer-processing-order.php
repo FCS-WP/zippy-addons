@@ -124,7 +124,7 @@
 															</tr>
 															<tr>
 																<td style="font-size:12px;color:#333;line-height:12px">
-																	Block1 Everton Park 081001 01-33 <br>
+																	Block1 Everton Park 01-33 081001 <br>
 																	<br>
 																	<span style="color:#333;font-family:'Open Sans',Arial,Helvetica,sans-serif">JI XIANG ANG KU KUEH PTE LTD © 2025</span>
 																</td>
