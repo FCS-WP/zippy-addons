@@ -52,7 +52,7 @@ class Zippy_Admin_Booking_Product_Controller
             $type = $_product->get_type();
 
             if ($type == 'grouped' || $type == 'variable') {
-                return Zippy_Response_Handler::success($session_data, "Product added to cart");
+                return Zippy_Response_Handler::success($session_data, "Store selected successfully");
             } else {
                 $cart->add_to_cart($_product->get_id(), $min_qty);
                 return Zippy_Response_Handler::success($session_data, "Product added to cart");

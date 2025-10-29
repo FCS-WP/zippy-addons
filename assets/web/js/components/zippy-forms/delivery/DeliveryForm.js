@@ -49,7 +49,7 @@ const DeliveryForm = ({ onChangeMode }) => {
       setIsLoading(false);
       return false;
     }
-    showAlert("success", "Success", "Product added to cart.", 2000);
+    showAlert("success", "Success", response.data.message, 2000);
 
     setTimeout(() => {
       document.body.dispatchEvent(
