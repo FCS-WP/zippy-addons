@@ -380,6 +380,7 @@ class Zippy_Products_Controller
       $min_order         = get_post_meta($results->get_id(), '_custom_minimum_order_qty', true) ?: 0;
       $groups            = get_field('products_group', $results->get_id()) ?: [];
       $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
+      $minMaxOptions     = get_field('min_max_options', $results->get_id());
 
       if ($results->get_type() == 'variable') {
         $addons_rules = self::get_variable_product($results);
@@ -399,6 +400,7 @@ class Zippy_Products_Controller
         'addons' => $addons_rules,
         'grouped_addons' => $grouped_addons,
         'is_composite_product' => $is_composite_product,
+        'min_max_options' => $minMaxOptions,
       );
 
 
