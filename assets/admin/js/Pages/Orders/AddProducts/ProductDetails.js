@@ -249,10 +249,11 @@ const ProductDetails = ({
 
     if (
       selectedMinMaxOption &&
-      selected.reduce((sum, r) => sum + r.quantity, 0) < selectedMinMaxOption
+      selectedMinMaxOption?.toLowerCase() !== "others" &&
+      selected.reduce((sum, r) => sum + r.quantity, 0) != selectedMinMaxOption
     ) {
       toast.error(
-        `Minimum addons required for selected option: ${selectedMinMaxOption}. Currently selected: ${selected.reduce(
+        `Quantity addons required for selected option: ${selectedMinMaxOption}. Currently selected: ${selected.reduce(
           (sum, r) => sum + r.quantity,
           0
         )}`
