@@ -8,6 +8,9 @@ import {
   Typography,
   Button,
   TextField,
+  FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -30,6 +33,8 @@ const ProductDetails = ({
   const [groupTotal, setGroupTotal] = useState(0);
   const [hasChanges, setHasChanges] = useState(false);
   const [variableSelectedId, setVariableSelectedId] = useState(null);
+  const [minMaxOptions, setMinMaxOptions] = useState(null);
+  const [selectedMinMaxOption, setSelectedMinMaxOption] = useState("");
 
   /**
    * Fetch product addons
@@ -45,6 +50,7 @@ const ProductDetails = ({
         converted = convertRows(data.data);
         setData(mergeAddedProducts(converted, addedProducts, productID));
         setGroupTotal(data.data.grouped_addons?.quantity_products_group || 0);
+        setMinMaxOptions(data.data.min_max_options || null);
       } else {
         setData([]);
         setGroupTotal(0);
@@ -104,6 +110,11 @@ const ProductDetails = ({
    * Handle quantity changes with group validation
    */
   const handleQuantityChange = (id, value) => {
+    if (minMaxOptions && !selectedMinMaxOption) {
+      toast.error("Please select an option before adjusting quantities.");
+      return;
+    }
+
     const newValue = Math.max(0, Number(value));
 
     setData((prev) => {
@@ -235,6 +246,20 @@ const ProductDetails = ({
       toast.warn("Please select at least one addon with quantity.");
       return;
     }
+
+    if (
+      selectedMinMaxOption &&
+      selected.reduce((sum, r) => sum + r.quantity, 0) < selectedMinMaxOption
+    ) {
+      toast.error(
+        `Minimum addons required for selected option: ${selectedMinMaxOption}. Currently selected: ${selected.reduce(
+          (sum, r) => sum + r.quantity,
+          0
+        )}`
+      );
+      return;
+    }
+
     if (
       addonMinOrder &&
       selected.reduce((sum, r) => sum + r.quantity, 0) < addonMinOrder
@@ -293,6 +318,32 @@ const ProductDetails = ({
         </Box>
       ) : data.length > 0 ? (
         <>
+          {/* select Options min max */}
+          {minMaxOptions && (
+            <Box mb={2} display="flex" alignItems="center" gap={2}>
+              <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
+                Select Option:
+              </Typography>
+
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <Select
+                  value={selectedMinMaxOption}
+                  onChange={(e) => setSelectedMinMaxOption(e.target.value)}
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>None</em>
+                  </MenuItem>
+                  {minMaxOptions.map((opt, idx) => (
+                    <MenuItem key={idx} value={opt.value}>
+                      {opt.value}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
+
           <TableView
             hideCheckbox
             cols={addProducts}
