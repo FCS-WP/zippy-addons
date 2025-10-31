@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, TextField } from "@mui/material";
 import { Api } from "../../api";
+import HiddenData from "../../Components/order/HiddenData";
+import OrderProvider from "../../providers/OrderProvider";
 
 export default function InputAdminCreatedOrder({ orderId }) {
   const [adminName, setAdminName] = useState("");
@@ -40,27 +42,34 @@ export default function InputAdminCreatedOrder({ orderId }) {
   }
 
   return (
-    <Box sx={{ mt: 3 }}>
-      <TextField
-        name="name_admin_created_order"
-        value={adminName}
-        multiline
-        rows={1.5}
-        variant="outlined"
-        onChange={onChange}
-        label="Staff Name"
-        sx={{
-          width: "100%",
-          "& .MuiInputBase-input::placeholder": {
-            fontSize: "0.8rem",
-          },
-          "& .MuiOutlinedInput-root": {
-            padding: "8px !important",
-          },
-        }}
-      />
+    <OrderProvider>
+      <Box sx={{ mt: 3 }}>
+        <TextField
+          name="name_admin_created_order"
+          value={adminName}
+          multiline
+          rows={1.5}
+          variant="outlined"
+          onChange={onChange}
+          label="Staff Name"
+          sx={{
+            width: "100%",
+            "& .MuiInputBase-input::placeholder": {
+              fontSize: "0.8rem",
+            },
+            "& .MuiOutlinedInput-root": {
+              padding: "8px !important",
+            },
+          }}
+        />
 
-      <input type="hidden" name="name_admin_created_order" value={adminName} />
-    </Box>
+        <input
+          type="hidden"
+          name="name_admin_created_order"
+          value={adminName}
+        />
+        <HiddenData />
+      </Box>
+    </OrderProvider>
   );
 }

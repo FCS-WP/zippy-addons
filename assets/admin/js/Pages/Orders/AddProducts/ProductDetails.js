@@ -323,7 +323,7 @@ const ProductDetails = ({
           {minMaxOptions && (
             <Box mb={2} display="flex" alignItems="center" gap={2}>
               <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
-                Select Option:
+                Select Pieces:
               </Typography>
 
               <FormControl size="small" sx={{ minWidth: 120 }}>

@@ -54,6 +54,7 @@ class Zippy_Woo_Manual_Order
     add_action('woocommerce_new_order', [$this, 'maybe_handle_manual_order'], 20, 2);
     add_action('woocommerce_order_item_shipping_after_calculate_taxes', [$this, 'remove_tax_from_shipping_fee'], 10, 2);
     add_filter('woocommerce_payment_gateways', [$this, 'add_payment_gateway']);
+    add_action('woocommerce_update_order', [$this, 'maybe_handle_update_manual_order'], 20, 2);
   }
 
   public function add_payment_gateway($methods)
@@ -113,6 +114,32 @@ class Zippy_Woo_Manual_Order
 
     // New order calculate
     $order_new->save();
+  }
+
+  public function maybe_handle_update_manual_order($order_id)
+  {
+    if (! is_admin()) {
+      return;
+    }
+
+    $order = wc_get_order($order_id);
+    if (! $order instanceof \WC_Order) {
+      return;
+    }
+
+    if (! $_POST['is_manual_order']) {
+      return;
+    }
+
+    $this->update_order_meta_data_manual($order);
+    $order->save_meta_data();
+  }
+
+  public function update_order_meta_data_manual($order)
+  {
+    if (isset($_POST['name_admin_created_order'])) {
+      $order->update_meta_data('name_admin_created_order', sanitize_text_field($_POST['name_admin_created_order']));
+    }
   }
 
   public function remove_tax_from_shipping_fee($shipping_item)
