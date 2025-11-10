@@ -61,6 +61,7 @@ export default function InputAdminCreatedOrder({ orderId }) {
               padding: "8px !important",
             },
           }}
+          required
         />
 
         <input
