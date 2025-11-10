@@ -99,7 +99,8 @@ class Zippy_Woo_Orders
 
   public function render_input_admin_name_created_order($order)
   {
-    echo '<div id="input-admin-created-order" data-order-id="' . esc_attr($order->get_id()) . '"></div>';
+    $is_manual_order = $order->get_meta('is_manual_order');
+    echo '<div id="input-admin-created-order" data-order-id="' . esc_attr($order->get_id()) . '" data-is-manual-order="' . esc_attr($is_manual_order) . '"></div>';
   }
 
   public function created_by_admin_order_items_column($column, $order)

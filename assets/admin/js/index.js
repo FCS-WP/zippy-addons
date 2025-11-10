@@ -178,6 +178,13 @@ function initializeApp() {
   if (zippyInputAdminCreatedOrder) {
     const root = ReactDOM.createRoot(zippyInputAdminCreatedOrder);
     const orderId = zippyOrderTable.getAttribute("data-order-id");
+    const isManualOrder = zippyInputAdminCreatedOrder.getAttribute(
+      "data-is-manual-order"
+    );
+
+    if (!isManualOrder) {
+      return;
+    }
 
     root.render(
       <ThemeProvider theme={theme}>
