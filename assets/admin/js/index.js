@@ -189,10 +189,7 @@ function initializeApp() {
     root.render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <InputAdminCreatedOrder
-          orderId={orderId}
-          isManualOrder={isManualOrder}
-        />
+        <InputAdminCreatedOrder orderId={orderId} />
       </ThemeProvider>
     );
   }
