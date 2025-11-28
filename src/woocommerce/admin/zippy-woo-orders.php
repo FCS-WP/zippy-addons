@@ -116,7 +116,6 @@ class Zippy_Woo_Orders
 
       if (!empty($admin_user_id)) {
         $admin = get_user_by('id', (int) $admin_user_id);
-
         if ($admin) {
           printf(
             '<span class="created-by-admin" title="%s">%s</span>',
@@ -141,7 +140,17 @@ class Zippy_Woo_Orders
         }
       }
     } else {
-      echo '<em>' . esc_html__('Customer', ZIPPY_ADDONS_PREFIX) . '</em>';
+      $customer = $order->get_user();
+      if ($customer) {
+        printf(
+          '<span class="created-by-admin" title="%s">%s</span>',
+          esc_attr($customer->display_name),
+          esc_html($customer->user_email)
+        );
+      } else {
+
+        echo '<em>' . esc_html__('N/A', ZIPPY_ADDONS_PREFIX) . '</em>';
+      }
     }
   }
 
@@ -151,22 +160,30 @@ class Zippy_Woo_Orders
       return;
     }
 
-    $name_admin = $order->get_meta('name_admin_created_order');
-    $created_via = $order->get_created_via();
-
-    if ($created_via !== 'admin') {
-      echo '<em>' . esc_html__('Customer', ZIPPY_ADDONS_PREFIX) . '</em>';
-      return;
-    }
-
-    if (!empty($name_admin)) {
+    // $name_admin = $order->get_meta('name_admin_created_order');
+    // $created_via = $order->get_created_via();
+    $customer = $order->get_user();
+    if ($customer) {
+      $roles = $customer->roles;
+      global $wp_roles;
+      $role_name = $wp_roles->get_names()[$roles[0]];
       printf(
-        '<span class="name-admin-created-order">%s</span>',
-        esc_html($name_admin)
+        '<span class="created-by-admin" title="%s">%s</span>',
+        esc_attr($customer->display_name),
+        esc_html($role_name)
       );
     } else {
       echo '<em>' . esc_html__('N/A', ZIPPY_ADDONS_PREFIX) . '</em>';
     }
+
+    // if (!empty($name_admin)) {
+    //   printf(
+    //     '<span class="name-admin-created-order">%s</span>',
+    //     esc_html($name_admin)
+    //   );
+    // } else {
+    //   echo '<em>' . esc_html__('N/A', ZIPPY_ADDONS_PREFIX) . '</em>';
+    // }
   }
 
   public function handle_render_in_billing_address($order)
