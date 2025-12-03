@@ -191,7 +191,7 @@ const OutletSelect = ({
     if (!response || response.status !== "success") {
       return [];
     }
-    if (response.data?.pricing_rule) {
+    if (response.data?.pricing_rule && response.data?.pricing_rule?.data?.total.value) {
       const confirm = await productPricingRule({
         handleConfirm: handleConfirmPricingRule,
         date: {

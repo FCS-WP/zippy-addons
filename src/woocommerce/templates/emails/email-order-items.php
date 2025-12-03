@@ -36,7 +36,9 @@ $sorted_items = [];
 
 foreach ($products as $product) {
 	foreach ($items as $item_id => $item) {
-		if ($item->get_product() && $item->get_product()->get_id() === $product->get_id()) {
+
+		if ($item->get_product()->get_id() === $product->get_id() && empty($sorted_items[$item_id])) {
+
 			$sorted_items[$item_id] = $item;
 			break;
 		}
