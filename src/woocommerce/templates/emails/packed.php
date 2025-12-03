@@ -17,7 +17,7 @@ $order_id = $order->get_id();
 	<tbody>
 		<tr>
 			<td align="center" bgcolor="#ffffff" style="padding:40px 0 30px 0;color:#153643;font-size:28px;font-weight:bold;font-family:Arial,sans-serif">
-				<img src="https://ci3.googleusercontent.com/meips/ADKq_NYG1-mhVM-phyMXN_b8W-2FoKfra2xDkbu4X1eN2CNdi7OhqEJPn3G25B04FGoXZUF1BLC5HGf5ZjGD8xxmCp1R8d-gIfYe9npMMYETdTsM_0bZIKzvTUGS2B8T2QbrOzQcVaLtpwC-n8XAu-ACfGf74riPamu1FopTQcygAXw=s0-d-e1-ft#https://jixiangeverton.com.sg//image/catalog/Ji%20Xiang/Logo%20and%20Banner/ji-xiang-logo-for-website.png" style="display:block;width:150px" class="CToWUd a6T" data-bit="iit" tabindex="0">
+				<img src="https://jixiangeverton.com.sg/wp-content/uploads/2025/05/ji-xiang-logo-for-website.png" style="display:block;width:150px" class="CToWUd a6T" data-bit="iit" tabindex="0">
 			</td>
 		</tr>
 		<tr>

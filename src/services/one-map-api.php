@@ -32,7 +32,7 @@ class One_Map_Api
 			$response = self::sendRequest($method, $url, $params, $access_token);
 
 			if ((isset($response['status']) && $response['status'] == 401) ||
-				$response['message'] == "Unauthorized" ||
+				isset($response['message']) &&	$response['message'] == "Unauthorized" ||
 				(isset($response['error']))
 			) {
 

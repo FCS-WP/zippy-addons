@@ -4,13 +4,13 @@
 				<td style="vertical-align:top">
 					<table style="display:inline-block;border-collapse:collapse!important;float:left!important;width:286px!important;color:#1c2c3a;font-size:12px">
 						<tbody>
-
+							<?php $address = !empty($order->get_meta(BILLING_DELIVERY)) ? $order->get_meta(BILLING_DELIVERY) : $order->get_billing_address_1(); ?>
 							<tr>
 								<td>
 									<b>Customer Name: </b><?php echo $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); ?><br>
 									<b>Billing Email: </b><a href="mailto: <?php echo $order->get_billing_email(); ?>" target="_blank"> <?php echo $order->get_billing_email(); ?></a><br>
 									<b>Billing Telephone: </b><?php echo $order->get_billing_phone(); ?><br>
-									<b>Billing Address: </b><?php echo $order->get_billing_address_1(); ?>
+									<b>Billing Address: </b><?php echo $address; ?>
 								</td>
 							</tr>
 							<tr>

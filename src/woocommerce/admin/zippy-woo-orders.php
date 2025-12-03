@@ -160,8 +160,6 @@ class Zippy_Woo_Orders
       return;
     }
 
-    // $name_admin = $order->get_meta('name_admin_created_order');
-    // $created_via = $order->get_created_via();
     $customer = $order->get_user();
     if ($customer) {
       $roles = $customer->roles;
@@ -173,17 +171,19 @@ class Zippy_Woo_Orders
         esc_html($role_name)
       );
     } else {
-      echo '<em>' . esc_html__('N/A', ZIPPY_ADDONS_PREFIX) . '</em>';
-    }
+      $name_admin = $order->get_meta('name_admin_created_order');
 
-    // if (!empty($name_admin)) {
-    //   printf(
-    //     '<span class="name-admin-created-order">%s</span>',
-    //     esc_html($name_admin)
-    //   );
-    // } else {
-    //   echo '<em>' . esc_html__('N/A', ZIPPY_ADDONS_PREFIX) . '</em>';
-    // }
+      if (!empty($name_admin)) {
+        printf(
+          '<span class="created-by-admin" title="%s">%s</span>',
+          esc_attr($name_admin) . '(staff)',
+          esc_attr($name_admin)
+
+        );
+      } else {
+        echo '<em>' . esc_html__('N/A', ZIPPY_ADDONS_PREFIX) . '</em>';
+      }
+    }
   }
 
   public function handle_render_in_billing_address($order)
