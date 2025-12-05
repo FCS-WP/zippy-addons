@@ -10,6 +10,7 @@ defined('ABSPATH') or exit;
 
 use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
 use Zippy_Booking\Src\Woocommerce\Admin\Payments\Zippy_Gateway_Paid_Upon_Collection;
+use Zippy_Booking\Src\Woocommerce\Admin\Payments\Zippy_Gateway_Cash;
 
 class Zippy_Woo_Manual_Order
 {
@@ -18,6 +19,7 @@ class Zippy_Woo_Manual_Order
 
   const CASH_ON_DELIVERY = 'Cash on delivery';
   const PAID_UPON_COLLECTION = 'Paid Upon Collection';
+  const CASH = 'Cash';
   const PENDING = 'pending';
   const ON_HOLD = 'on-hold';
   const PROCESSING = 'processing';
@@ -64,6 +66,7 @@ class Zippy_Woo_Manual_Order
     }
 
     $methods[] = new Zippy_Gateway_Paid_Upon_Collection();
+    $methods[] = new Zippy_Gateway_Cash();
     return $methods;
   }
 
