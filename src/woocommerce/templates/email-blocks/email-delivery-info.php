@@ -1,3 +1,4 @@
+	<?php $order_date = !empty($order->get_meta('_billing_date')) ? $order->get_meta('_billing_date') : ''; ?>
 	<table width="286" border="0" align="center" cellpadding="0" cellspacing="0" style="width:286px!important;color:#1c2c3a;font-size:12px;text-decoration:none;outline:none" bgcolor="#ffffff">
 		<tbody>
 			<tr>
@@ -5,10 +6,10 @@
 			</tr>
 			<tr>
 			<tr>
-				<td align="right" valign="top"><strong>Order Date:</strong> <?php echo $order->get_date_created()->date('Y-m-d'); ?></td>
+				<td align="right" valign="top"><strong>Order Date:</strong> <?php echo $order->get_date_created()->date('D, j M Y'); ?></td>
 			</tr>
 			<tr>
-				<td align="right" valign="top"><strong>Delivery Date: </strong> <?php echo $order->get_meta('_billing_date'); ?></td>
+				<td align="right" valign="top"><strong>Delivery Date: </strong> <?php echo  date("D, j M Y", strtotime($order_date)) ?></td>
 			</tr>
 			<tr>
 				<td align="right" valign="top"><strong>Delivery Time: </strong> <?php echo $order->get_meta('_billing_time'); ?></td>
