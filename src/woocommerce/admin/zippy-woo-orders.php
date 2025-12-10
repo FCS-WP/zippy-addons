@@ -420,7 +420,7 @@ class Zippy_Woo_Orders
 
     if (BILLING_DATE === $column_name) {
       $fulfilment_date = $order->get_meta(BILLING_DATE) ?? '';
-      $converted =  date("M j, Y", strtotime($fulfilment_date));
+      $converted =  date("D, j M Y", strtotime($fulfilment_date));
       echo  '<time datetime="' . $fulfilment_date . '" title="converted">'  . $converted . '</time>';
     }
   }
