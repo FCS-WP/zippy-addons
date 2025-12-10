@@ -1,90 +1,119 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Typography, Button, Stack, Box } from "@mui/material";
-import ListItem from "@mui/material";
 import TableView from "../../Components/TableView";
 import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
+import { format } from "date-fns";
+import AddPriceBookModal from "./AddPriceBookModal";
+import {
+  MOCK_API_DATA,
+  MOCK_ROLES,
+  priceBooksColumns,
+  columnWidths,
+} from "./data";
 
-export const priceBooksColumns = [
-  "NAME",
-  "ROLE",
-  "START DATE",
-  "END DATE",
-  "STATUS",
-  "",
-];
-
-const data = [
-  {
-    id: 101,
-    name: "Laptop",
-    role: 1200.5,
-    start_date: "2024",
-    end_date: "2025",
-  },
-  {
-    id: 102,
-    name: "Mouse",
-    role: 25.99,
-    start_date: "2024",
-    end_date: "2025",
-  },
-  {
-    id: 103,
-    name: "Keyboard",
-    role: 75.0,
-    start_date: "2024",
-    end_date: "2025",
-  },
-];
-const handleConvertData = (rows) =>
-  rows.map((value) => ({
-    ID: value.id,
-    NAME: value.name,
-    ROLE: value.name,
-    "START DATE": value.name || "",
-    "END DATE": value.name,
-    STATUS: value.role,
-  }));
-
-const dataConverted = handleConvertData(data);
-
-const columnWidths = {
-  NAME: "auto",
-  ROLE: "20%",
+const getRoleDisplayName = (slug) => {
+  const role = MOCK_ROLES.find((r) => r.slug === slug);
+  return role ? role.name : slug;
 };
 
-const rowsWithIcon = dataConverted.map((row) => ({
-  ...row,
-  "": <ModeEditOutlineIcon />,
-}));
-
+const handleConvertData = (rows) => {
+  return rows.map((value) => ({
+    ID: value.id,
+    NAME: value.name,
+    ROLE: getRoleDisplayName(value.role),
+    "START DATE": value.start_date
+      ? format(new Date(value.start_date), "MMM dd, yyyy")
+      : "N/A",
+    "END DATE": value.end_date
+      ? format(new Date(value.end_date), "MMM dd, yyyy")
+      : "N/A",
+    STATUS: (
+      <span style={{ color: value.status === "active" ? "green" : "red" }}>
+        {value.status.toUpperCase()}
+      </span>
+    ),
+    "": (
+      <Button
+        startIcon={<ModeEditOutlineIcon />}
+        size="small"
+        onClick={() => console.log(`Edit Price Book ID: ${value.id}`)}
+      >
+        Edit
+      </Button>
+    ),
+  }));
+};
 const PriceBooks = () => {
+  const [priceBooks, setPriceBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
+
+  const handleOpen = () => setOpenModal(true);
+  const handleClose = () => setOpenModal(false);
+
+  // Handles the data submitted from the modal
+  const handleSavePriceBook = (data) => {
+    console.log("Received data from modal, ready to save to API:", data);
+    // 1. CallAPI
+    // 2. On success, refetch the priceBooks list
+    handleClose();
+  };
+
+  // Data Fetching logic
+  useEffect(() => {
+    // Call api
+    setTimeout(() => {
+      const convertedData = handleConvertData(MOCK_API_DATA);
+      setPriceBooks(convertedData);
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
   return (
-    <Container maxWidth="100" mt={2}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+    <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
+      {/* Header and Add Button */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={4}
+      >
         <Box>
-          <Typography variant="h5" style={{ marginBottom: 10 }}>
-            Price Books
+          <Typography variant="h4" sx={{ mb: 1 }}>
+            Price Books Management
           </Typography>
-          <Typography variant="body" style={{ marginBottom: 20 }}>
-            Price Books will be apply for member by role.
+          <Typography variant="body1" color="text.secondary">
+            Define role-specific pricing and product visibility rules.
           </Typography>
         </Box>
         <Box>
-          <Button variant="contained">Add Price Book</Button>
+          <Button variant="contained" onClick={handleOpen}>
+            Add Price Book
+          </Button>
         </Box>
       </Stack>
-      {/* Filter function here  */}
-      {/* Table View  */}
-      <Stack mt={5}>
-        <TableView
-          hideCheckbox={true}
-          cols={priceBooksColumns}
-          columnWidths={columnWidths}
-          rows={dataConverted}
-          className="table-priceBook"
-        />
-      </Stack>
+
+      {/* Table Section */}
+      <Box sx={{ mt: 5 }}>
+        {isLoading ? (
+          <Typography>Loading Price Books...</Typography>
+        ) : (
+          <TableView
+            hideCheckbox={true}
+            cols={priceBooksColumns}
+            columnWidths={columnWidths}
+            rows={priceBooks}
+            className="table-priceBook"
+          />
+        )}
+      </Box>
+
+      {/* The Add Price Book Modal */}
+      <AddPriceBookModal
+        open={openModal}
+        handleClose={handleClose}
+        onSave={handleSavePriceBook}
+      />
     </Container>
   );
 };
