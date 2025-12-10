@@ -104,6 +104,7 @@ const SubTableBody = (props) => {
             isSubtableRow={true}
             hover={true}
             key={rowIndex}
+            isTableProduct
             row={row}
             cols={cols}
             columnWidths={columnWidths}
