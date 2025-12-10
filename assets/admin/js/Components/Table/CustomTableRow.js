@@ -24,7 +24,6 @@ const CustomTableRow = ({
   columnWidths,
   onChangeCheckbox,
   isSubtableRow = false,
-  isTableProduct = false,
   showCollapseProp = false,
   onAddProduct, // callback for adding product
   onSubTableChange, // callback for updating sub row table [quantity, packing instructions]
@@ -269,7 +268,7 @@ const CustomTableRow = ({
     </TableCell>
   );
 
-  return isTableProduct ? (
+  return !isSubtableRow && !hideCheckbox ? (
     <TableRow
       hover={hover}
       key={rowIndex}
