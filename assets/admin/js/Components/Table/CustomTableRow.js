@@ -4,13 +4,10 @@ import {
   Button,
   TableCell,
   TableRow,
-  TextField,
-  Box,
+  Checkbox,
+  FormControlLabel,
   Stack,
-  IconButton,
   Collapse,
-  InputLabel,
-  FormControl,
 } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import theme from "../../../theme/theme";
@@ -27,6 +24,7 @@ const CustomTableRow = ({
   columnWidths,
   onChangeCheckbox,
   isSubtableRow = false,
+  isTableProduct = false,
   showCollapseProp = false,
   onAddProduct, // callback for adding product
   onSubTableChange, // callback for updating sub row table [quantity, packing instructions]
@@ -271,7 +269,35 @@ const CustomTableRow = ({
     </TableCell>
   );
 
-  return (
+  return isTableProduct ? (
+    <TableRow
+      hover={hover}
+      key={rowIndex}
+      sx={{ borderColor: theme.palette.primary.main }}
+    >
+      {!isSubtableRow && !hideCheckbox && (
+        <TableCell padding="checkbox" style={{ textAlign: "center" }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectedRows[rowIndex] || false}
+                onChange={() => onChangeCheckbox(rowIndex)}
+              />
+            }
+            style={{ marginRight: 0 }}
+          />
+        </TableCell>
+      )}
+      {cols.map((col, colIndex) => (
+        <TableCell
+          key={colIndex}
+          style={{ width: columnWidths[col] || "auto" }}
+        >
+          {row[col]}
+        </TableCell>
+      ))}
+    </TableRow>
+  ) : (
     <>
       <TableRow
         hover={hover}
