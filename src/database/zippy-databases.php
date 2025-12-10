@@ -225,4 +225,54 @@ class Zippy_Databases
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
   }
+
+  public function create_pricebook_tables()
+  {
+    global $wpdb;
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $containers_table_name = $wpdb->prefix . 'pricebook_containers';
+
+    $sql_containers = "CREATE TABLE $containers_table_name (
+        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        role_id VARCHAR(60) NOT NULL,
+        start_date DATETIME DEFAULT NULL,
+        end_date DATETIME DEFAULT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'active',
+        priority INT(3) UNSIGNED NOT NULL DEFAULT 10,
+
+        PRIMARY KEY (id),
+        KEY role_id (role_id),
+        KEY active_period (start_date, end_date)
+    ) $charset_collate;";
+
+    dbDelta($sql_containers);
+
+    // Price Book Product Relations Table
+
+    $relations_table_name = $wpdb->prefix . 'pricebook_product_relations';
+
+    $sql_relations = "CREATE TABLE $relations_table_name (
+        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+        pricebook_id BIGINT(20) UNSIGNED NOT NULL,
+        product_id BIGINT(20) UNSIGNED NOT NULL,
+        price_type VARCHAR(20) NOT NULL,
+        price_value DECIMAL(10,2) NOT NULL,
+        visibility VARCHAR(10) NOT NULL DEFAULT 'show',
+
+        PRIMARY KEY (id),
+        KEY pricebook_id (pricebook_id),
+        KEY product_id (product_id),
+        UNIQUE KEY book_product_unique (pricebook_id, product_id)
+
+        -- FOREIGN KEY (pricebook_id) REFERENCES {$containers_table_name}(id) 
+        -- ON DELETE CASCADE
+    ) $charset_collate;";
+
+    dbDelta($sql_relations);
+
+    add_option( 'pricebook_db_version', '1.0' );
+  }
 }
