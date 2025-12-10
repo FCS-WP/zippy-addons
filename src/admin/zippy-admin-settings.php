@@ -71,6 +71,7 @@ class Zippy_Admin_Settings
     add_submenu_page('zippy-bookings', 'Shipping', 'Shipping', 'manage_options', 'shipping', array($this, 'shipping_render'));
     add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
+    add_submenu_page('zippy-bookings', 'Price Books', 'Price Books', 'manage_options', 'price_books', array($this, 'price_books_render'));
   }
 
   public function render()
@@ -85,6 +86,10 @@ class Zippy_Admin_Settings
   public function settings_render()
   {
     echo Zippy_Utils_Core::get_template('settings.php', [], dirname(__FILE__), '/templates');
+  }
+  public function price_books_render()
+  {
+    echo Zippy_Utils_Core::get_template('price_books.php', [], dirname(__FILE__), '/templates');
   }
   public function menus_render()
   {
@@ -109,7 +114,8 @@ class Zippy_Admin_Settings
       'zippy-bookings_page_bookings',
       'zippy-bookings_page_calendar',
       'zippy-add-ons_page_store',
-      'zippy-bookings_page_customize'
+      'zippy-bookings_page_customize',
+      'zippy-add-ons_page_price_books'
     ];
 
     if (in_array($handle, $apply_urls)) {
