@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import { Box, Button, Input } from "@mui/material";
 import { format } from "date-fns";
+import { webApi } from "../../api";
 
 const CustomShippingTime = () => {
   let today = new Date();
   const minDate = new Date(today);
   minDate.setDate(today.getDate() + 2);
 
-
-  // if minDate = Sunday => +1 to be Monday
   if (minDate.getDay() === 0) {
     minDate.setDate(minDate.getDate() + 1);
   }
@@ -35,8 +34,6 @@ const CustomShippingTime = () => {
       case 3:
         setDeliveryTime("12-04");
         break;
-      default:
-        break;
     }
   };
 
@@ -55,30 +52,45 @@ const CustomShippingTime = () => {
   };
 
   const isClosedDate = (date) => {
-    if (date.getDay() === 0) { // Disable Sundays
+    if (date.getDay() === 0) {
       return true;
     }
     if (!closedDates || closedDates.length === 0) {
       return false;
     }
-    const check = closedDates.find((item) => isInRangeDate(date, item.value));
+    const check = closedDates.find((item) =>
+      isInRangeDate(date, item.value)
+    );
     return !!check;
   };
 
   useEffect(() => {
     if (selectedDate) {
       const day = selectedDate.getDay();
-      // If weekday (Mon-Fri) and "12PM - 4PM" is selected, reset
       if (day >= 1 && day <= 5 && selectedBtn === 3) {
         setSelectedBtn("");
         setDeliveryTime("");
-      }
-      // If Saturday and "12PM - 6PM" is selected, reset
-      else if (day === 6 && selectedBtn === 2) {
+      } else if (day === 6 && selectedBtn === 2) {
         setSelectedBtn("");
         setDeliveryTime("");
       }
     }
+
+
+    const fetchClosedDates = async () => {
+      try {
+        const { data: response } = await webApi.getStores();
+
+        if (response?.data?.length > 0) {
+          const firstStore = response.data[0];
+          
+          setClosedDates(firstStore.closed_dates || []);
+        }
+      } catch (error) {
+        console.log("Missing outlets");
+      }
+    };
+    fetchClosedDates();
   }, [selectedDate, selectedBtn]);
 
   return (
@@ -107,6 +119,7 @@ const CustomShippingTime = () => {
           />
         </div>
       </Box>
+
       <Box my={3} className="preferred-delivery-time">
         <h4>Preferred Delivery Time</h4>
         <Box display={"flex"} flexWrap={"wrap"} gap={3}>
@@ -119,19 +132,24 @@ const CustomShippingTime = () => {
           </Button>
         </Box>
       </Box>
+
       <Box my={3} className="preferred-pickup-time">
         <h4>Preferred Pickup Time</h4>
-        {selectedDate && selectedDate.getDay() >= 1 && selectedDate.getDay() <= 5 && (
-          <Box display={"flex"} flexWrap={"wrap"} gap={3}>
-            <Button
-              onClick={() => handleChangeSelectedBtn(2)}
-              variant={selectedBtn === 2 ? "contained" : "outlined"}
-              className={selectedBtn === 2 ? "btn-time active" : "btn-time"}
-            >
-              12PM - 6PM
-            </Button>
-          </Box>
-        )}
+
+        {selectedDate &&
+          selectedDate.getDay() >= 1 &&
+          selectedDate.getDay() <= 5 && (
+            <Box display={"flex"} flexWrap={"wrap"} gap={3}>
+              <Button
+                onClick={() => handleChangeSelectedBtn(2)}
+                variant={selectedBtn === 2 ? "contained" : "outlined"}
+                className={selectedBtn === 2 ? "btn-time active" : "btn-time"}
+              >
+                12PM - 6PM
+              </Button>
+            </Box>
+          )}
+
         {selectedDate && selectedDate.getDay() === 6 && (
           <Box display={"flex"} flexWrap={"wrap"} gap={3}>
             <Button
@@ -144,16 +162,17 @@ const CustomShippingTime = () => {
           </Box>
         )}
       </Box>
-      <p style={{color: "red"}}>
-        Our store will be closed on <b>25 December</b>. All orders placed or deliveries scheduled on this date will be processed the next working day.
+
+      <p style={{ color: "red", marginBottom: "10px" }}>
+        Our store will be closed on <b>25 December</b>. All orders placed or
+        deliveries scheduled on this date will be processed the next working day.
       </p>
+
       <p>
         <i>
           *On the eve of and on PH, deliveries will be scheduled between{" "}
-          <b>1PM – 8PM</b> due to expected traffic conditions.
-          <br />
-          *For specific delivery timing requests, please contact us directly via
-          WhatsApp or phone to make arrangements.
+          <b>1PM – 8PM</b>.
+          <br />*For specific delivery timing requests, contact us directly.
         </i>
       </p>
     </div>
