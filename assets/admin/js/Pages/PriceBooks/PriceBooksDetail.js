@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Typography,
@@ -20,89 +20,53 @@ import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DatePicker from "react-datepicker";
-import AddProductRuleModal from "./Modals/AddProductRuleModal";
 import { format } from "date-fns";
+import { toast, ToastContainer } from "react-toastify";
 
-import { MOCK_ROLES, columnWidths } from "./data";
-
-const MOCK_DETAIL_DATA = {
-  id: 1,
-  name: "Wholesale Q4 2025",
-  role: "wholesale_customer",
-  startDate: new Date("2025-10-01T00:00:00Z"), // Dates as JS objects for DatePicker
-  endDate: new Date("2025-12-31T23:59:59Z"),
+// Assuming these are available
+import { MOCK_ROLES } from "./data";
+import { priceBooksAPI } from "../../api/priceBooks";
+import AddProductRuleModal from "./Modals/AddProductRuleModal";
+import { rulesColumns } from "./data";
+const getPriceBookIdFromUrl = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get("id");
+  return id === "new" ? "new" : id && !isNaN(Number(id)) ? Number(id) : null;
+};
+const INITIAL_INFO = {
+  name: "New Price Book",
+  role: "customer",
+  startDate: new Date(),
+  endDate: null,
   status: "active",
-  rules: [
-    {
-      product_id: 54,
-      product_name: "Product A - Large Widget",
-      price_type: "fixed",
-      price_value: 75.0,
-      visibility: "show",
-    },
-    {
-      product_id: 68,
-      product_name: "Product B - Small Gizmo",
-      price_type: "percent_off",
-      price_value: 15.0,
-      visibility: "show",
-    },
-    {
-      product_id: 101,
-      product_name: "Product C - Restricted Item",
-      price_type: "fixed",
-      price_value: 12.99,
-      visibility: "hide",
-    },
-  ],
 };
 
-// --- Product Rules Table Columns ---
-const rulesColumns = [
-  "PRODUCT NAME",
-  "PRICING METHOD",
-  "PRICE/VALUE",
-  "VISIBILITY",
-  "",
-];
+const formatDateForAPI = (date) => {
+  return date ? format(date, "yyyy-MM-dd") : null;
+};
 
-const PriceBookDetails = (priceBooksId) => {
-  // State for the Price Book container information
-  const [info, setInfo] = useState(MOCK_DETAIL_DATA);
-  // State for the list of product rules
-  const [rules, setRules] = useState(MOCK_DETAIL_DATA.rules);
-  const [isSavingInfo, setIsSavingInfo] = useState(false);
+const PriceBookDetails = () => {
+  const priceBookId = getPriceBookIdFromUrl();
+  const isEditMode = priceBookId !== "new";
 
+  const [info, setInfo] = useState(INITIAL_INFO);
+  const [rules, setRules] = useState([]);
+  const [isLoading, setIsLoading] = useState(isEditMode);
+  const [isSaving, setIsSaving] = useState(false);
   const [openRuleModal, setOpenRuleModal] = useState(false);
 
-  const handleOpenRuleModal = () => setOpenRuleModal(true);
-  const handleCloseRuleModal = () => setOpenRuleModal(false);
+  // Function to fetch the product rules list
+  const fetchProductRules = useCallback(async (id) => {
+    if (!id || id === "new") return;
+    try {
+      const response = await priceBooksAPI.getProductRules(id);
+      setRules(response.data?.data || []);
+    } catch (error) {
+      toast.error("Failed to load product rules.");
+      console.error("Fetch Rules Error:", error);
+    }
+  }, []);
 
-  // In a real app, useEffect fetches MOCK_DETAIL_DATA based on URL ID
-  useEffect(() => {
-    // 1. Get ID from URL query string (e.g., window.location.search)
-    // 2. Fetch data from /wp-json/your-plugin/v1/pricebooks/1
-    console.log(`Fetching details for Price Book ID: ${info.id}`);
-  }, [info.id]);
-
-  const handleSaveProductRule = (newRuleData) => {
-    console.log("New Rule Data received, ready to save to API:", newRuleData);
-
-    // 1. TODO: API call to POST data to the wp_pricebook_product_relations table
-
-    // 2. Mock: Add new rule to state immediately for visual feedback
-    const newRule = {
-      product_id: newRuleData.productId,
-      product_name: newRuleData.product_name,
-      price_type: newRuleData.priceType,
-      price_value: newRuleData.priceValue,
-      visibility: newRuleData.visibility,
-    };
-    setRules([...rules, newRule]);
-
-    handleCloseRuleModal();
-  };
-  // Handle changes to the main Price Book info (Name, Role, Dates)
   const handleInfoChange = (e) => {
     setInfo({ ...info, [e.target.name]: e.target.value });
   };
@@ -111,69 +75,190 @@ const PriceBookDetails = (priceBooksId) => {
     setInfo({ ...info, [name]: date });
   };
 
-  const mapRulesToTable = (rulesData) => {
-    return rulesData.map((rule) => ({
-      ID: rule.product_id,
-      "PRODUCT NAME": rule.product_name,
-      "PRICING METHOD":
-        rule.price_type === "fixed"
-          ? "Fixed Price"
-          : rule.price_type === "percent_off"
-          ? "Percent Off"
-          : rule.price_type,
-      "PRICE/VALUE":
-        rule.price_type === "percent_off"
-          ? `${rule.price_value}%`
-          : `$${rule.price_value.toFixed(2)}`,
-      VISIBILITY: (
-        <span
-          style={{
-            color: rule.visibility === "hide" ? "red" : "green",
-            fontWeight: "bold",
-          }}
-        >
-          {rule.visibility.toUpperCase()}
-        </span>
-      ),
-      "": (
-        <Stack direction="row" spacing={1}>
-          <IconButton
-            size="small"
-            onClick={() => console.log("Edit Rule:", rule.product_id)}
+  const handleOpenRuleModal = () => setOpenRuleModal(true);
+  const handleCloseRuleModal = () => setOpenRuleModal(false);
+
+  // Handler to save the product rule (called from the modal)
+  const handleSaveProductRule = async (newRuleData) => {
+    try {
+      const response = await priceBooksAPI.createProductRule(
+        priceBookId,
+        newRuleData
+      );
+      toast.success(
+        response.data?.data?.message || "Product Rule added successfully!"
+      );
+      await fetchProductRules(priceBookId); // Refresh the rules table
+      handleCloseRuleModal();
+    } catch (error) {
+      toast.error("Failed to save product rule.");
+      console.error("Save Rule Error:", error);
+    }
+  };
+
+  // Handler to delete a product rule
+  const handleDeleteRule = async (ruleId) => {
+    if (!window.confirm("Are you sure you want to delete this product rule?")) {
+      return;
+    }
+    try {
+      const response = await priceBooksAPI.deleteProductRule(
+        priceBookId,
+        ruleId
+      );
+      toast.success(
+        response.data?.data?.message || "Rule deleted successfully."
+      );
+      await fetchProductRules(priceBookId); // Refresh the rules table
+    } catch (error) {
+      toast.error("Failed to delete product rule.");
+      console.error("Delete Rule Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchDetails = async () => {
+      try {
+        const response = await priceBooksAPI.getPriceBook(priceBookId);
+        const fetchedData = response.data?.data;
+
+        if (fetchedData) {
+          setInfo({
+            ...fetchedData,
+            startDate: fetchedData.start_date
+              ? new Date(fetchedData.start_date)
+              : null,
+            endDate: fetchedData.end_date
+              ? new Date(fetchedData.end_date)
+              : null,
+            role: fetchedData.role_id,
+          });
+          // TODO: Fetch rules data here once that API endpoint is implemented
+          await fetchProductRules(priceBookId);
+          // const rulesResponse = await priceBooksAPI.getProductRules(priceBookId);
+          // setRules(rulesResponse.data?.data || []);
+        } else {
+          toast.error("Price Book not found.");
+          // Optionally redirect to the list page here
+        }
+      } catch (error) {
+        toast.error("Failed to load Price Book details.");
+        console.error("Fetch Details Error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [isEditMode, priceBookId]);
+
+  const mapRulesToTable = useCallback(
+    (rulesData) => {
+      return rulesData.map((rule) => ({
+        ID: rule.rule_id, // Use rule_id from the backend response
+        "PRODUCT NAME": rule.product_name,
+        "PRICING METHOD":
+          rule.price_type === "fixed"
+            ? "Fixed Price"
+            : rule.price_type === "percent_off"
+            ? "Percent Off"
+            : rule.price_type,
+        "PRICE/VALUE":
+          rule.price_type === "percent_off"
+            ? `${rule.price_value}%`
+            : `$${rule.price_value.toFixed(2)}`,
+        VISIBILITY: (
+          <span
+            style={{
+              color: rule.visibility === "hide" ? "red" : "green",
+              fontWeight: "bold",
+            }}
           >
-            <ModeEditOutlineIcon fontSize="inherit" />
-          </IconButton>
-          <IconButton
-            size="small"
-            color="error"
-            onClick={() => console.log("Delete Rule:", rule.product_id)}
-          >
-            <DeleteIcon fontSize="inherit" />
-          </IconButton>
-        </Stack>
-      ),
-    }));
-  };
+            {rule.visibility.toUpperCase()}
+          </span>
+        ),
+        ACTIONS: (
+          <Stack direction="row" spacing={1}>
+            <IconButton
+              size="small"
+              onClick={() => console.log("Edit Rule:", rule.rule_id)}
+            >
+              <ModeEditOutlineIcon fontSize="inherit" />
+            </IconButton>
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => handleDeleteRule(rule.rule_id)}
+            >
+              <DeleteIcon fontSize="inherit" />
+            </IconButton>
+          </Stack>
+        ),
+      }));
+    },
+    [handleDeleteRule]
+  );
 
-  const handleSaveInfo = () => {
-    setIsSavingInfo(true);
-    // TODO: API call to update wp_pricebook_containers
-    console.log("Saving container info:", info);
-    setTimeout(() => setIsSavingInfo(false), 1000);
-  };
+  if (isLoading) {
+    return (
+      <Container sx={{ mt: 5 }}>
+        <Typography>Loading Price Book details...</Typography>
+      </Container>
+    );
+  }
 
-  // Placeholder for product rule table widths
-  const rulesColumnWidths = {
-    "PRODUCT NAME": "auto",
-    "PRICING METHOD": "15%",
-    "PRICE/VALUE": "15%",
-    VISIBILITY: "10%",
-    "": "10%",
-  };
+  const isReadyToSave = info.name && info.role;
 
+  const handleSaveInfo = async () => {
+    setIsSaving(true);
+    try {
+      const dataToSubmit = {
+        ...info,
+        startDate: formatDateForAPI(info.startDate),
+        endDate: formatDateForAPI(info.endDate),
+        role: info.role,
+      };
+
+      let response;
+      if (isEditMode) {
+        response = await priceBooksAPI.updatePriceBook(
+          priceBookId,
+          dataToSubmit
+        );
+      } else {
+        response = await priceBooksAPI.createPriceBook(dataToSubmit);
+
+        if (response.data?.data?.id) {
+          toast.success(
+            response.data.data.message || "Price Book created successfully!"
+          );
+          window.location.href = `?page=price_books&id=${response.data.data.id}`;
+          return;
+        }
+      }
+
+      toast.success(
+        response.data?.data?.message || "Price Book saved successfully!"
+      );
+      setInfo({ ...info, name: dataToSubmit.name });
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to save Price Book.";
+      toast.error(errorMessage);
+      console.error("Save Info Error:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   return (
     <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
-      {/* --- SECTION 1: HEADER & CONTAINER INFO --- */}
+      <ToastContainer />
+
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -182,10 +267,14 @@ const PriceBookDetails = (priceBooksId) => {
       >
         <Box>
           <Typography variant="h4" sx={{ mb: 1 }}>
-            {`Editing Price Book: ${info.name}`}
+            {isEditMode
+              ? `Editing Price Book: ${info.name}`
+              : "Create New Price Book"}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Manage core details and the list of included product rules.
+            {isEditMode
+              ? `ID: ${priceBookId}`
+              : "Enter the core information for your new Price Book."}
           </Typography>
         </Box>
         <Box>
@@ -193,19 +282,23 @@ const PriceBookDetails = (priceBooksId) => {
             variant="contained"
             color="success"
             onClick={handleSaveInfo}
-            disabled={isSavingInfo}
+            disabled={isSaving || !isReadyToSave}
           >
-            {isSavingInfo ? "Saving..." : "Save Price Book Info"}
+            {isSaving
+              ? "Saving..."
+              : isEditMode
+              ? "Save Changes"
+              : "Create Price Book"}
           </Button>
         </Box>
       </Stack>
 
+      {/* Core Details Form */}
       <Paper elevation={1} sx={{ p: 4, mb: 5 }}>
         <Typography variant="h6" gutterBottom>
           Price Book's Info
         </Typography>
         <Grid container spacing={3}>
-          {/* Name */}
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
@@ -215,8 +308,6 @@ const PriceBookDetails = (priceBooksId) => {
               onChange={handleInfoChange}
             />
           </Grid>
-
-          {/* Role */}
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel id="role-select-label">Target User Role</InputLabel>
@@ -235,8 +326,8 @@ const PriceBookDetails = (priceBooksId) => {
               </Select>
             </FormControl>
           </Grid>
-
           {/* Start Date */}
+
           <Grid item xs={12} md={2}>
             <FormControl fullWidth>
               <InputLabel shrink htmlFor="start-date-picker">
@@ -257,9 +348,8 @@ const PriceBookDetails = (priceBooksId) => {
                 isClearable
               />
             </FormControl>
+            {/* End Date */}
           </Grid>
-
-          {/* End Date */}
           <Grid item xs={12} md={2}>
             <FormControl fullWidth>
               <InputLabel shrink htmlFor="end-date-picker">
@@ -285,41 +375,41 @@ const PriceBookDetails = (priceBooksId) => {
         </Grid>
       </Paper>
 
-      {/* --- SECTION 2: PRODUCT RULES MANAGEMENT --- */}
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        Product Pricing Rules
-      </Typography>
-      <Divider sx={{ mb: 3 }} />
+      {isEditMode && (
+        <Box>
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            Product Pricing Rules
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
 
-      {/* Product Rules Header/Add Button */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="subtitle1" color="text.secondary">
-          Total Products in this Price Book: {rules.length}
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpenRuleModal}
-        >
-          Add Product Rule
-        </Button>
-      </Stack>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
+            <Typography variant="subtitle1" color="text.secondary">
+              Total Products in this Price Book: {rules.length}
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleOpenRuleModal}
+            >
+              Add Product Rule
+            </Button>
+          </Stack>
 
-      {/* Product Rules Table */}
-      <Box sx={{ mt: 3 }}>
-        <TableView
-          hideCheckbox={true}
-          cols={rulesColumns}
-          columnWidths={rulesColumnWidths}
-          rows={mapRulesToTable(rules)}
-          className="table-pricebook-rules"
-        />
-      </Box>
+          <Box sx={{ mt: 3 }}>
+            <TableView
+              hideCheckbox={true}
+              cols={rulesColumns}
+              rows={mapRulesToTable(rules)}
+            />
+          </Box>
+        </Box>
+      )}
+
       <AddProductRuleModal
         open={openRuleModal}
         handleClose={handleCloseRuleModal}

@@ -19,7 +19,7 @@ class Zippy_Price_Books_Model
   public static function get_args()
   {
     return array(
-      'store_id' => array(
+      'id' => array(
         'required' => true,
         'validate_callback' => function ($param, $request, $key) {
           return is_numeric($param);

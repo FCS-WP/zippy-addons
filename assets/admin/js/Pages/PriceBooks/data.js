@@ -50,3 +50,11 @@ export const columnWidths = {
   STATUS: "10%",
   "": "10%",
 };
+
+export const rulesColumns = [
+  "PRODUCT NAME",
+  "PRICING METHOD",
+  "PRICE/VALUE",
+  "VISIBILITY",
+  "ACTIONS",
+];
