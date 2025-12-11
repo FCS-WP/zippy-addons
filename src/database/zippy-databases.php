@@ -46,6 +46,8 @@ class Zippy_Databases
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_delivery_time_slots_table'));
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_holiday_config_table'));
+
+    register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_pricebook_tables'));
   }
 
 
@@ -273,6 +275,6 @@ class Zippy_Databases
 
     dbDelta($sql_relations);
 
-    add_option( 'pricebook_db_version', '1.0' );
+    add_option('pricebook_db_version', '1.0');
   }
 }

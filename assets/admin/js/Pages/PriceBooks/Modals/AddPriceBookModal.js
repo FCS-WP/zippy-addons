@@ -36,8 +36,8 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: "",
     role: "",
-    startDate: null,
-    endDate: null,
+    start_date: null,
+    end_date: null,
   });
 
   const handleChange = (e) => {
@@ -53,12 +53,12 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
 
     const dataToSave = {
       ...formData,
-      startDate: formData.startDate ? formData.startDate.toISOString() : null,
-      endDate: formData.endDate ? formData.endDate.toISOString() : null,
+      start_date: formData.start_date ? formData.start_date.toISOString() : null,
+      end_date: formData.end_date ? formData.end_date.toISOString() : null,
     };
 
     onSave(dataToSave);
-    setFormData({ name: "", role: "", startDate: null, endDate: null });
+    setFormData({ name: "", role: "", start_date: null, end_date: null });
   };
 
   return (
@@ -84,7 +84,6 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
                 onChange={handleChange}
                 required
               />
-              {/* Placeholder for description */}
               <Typography
                 variant="caption"
                 color="text.secondary"
@@ -102,8 +101,8 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
                 </InputLabel>
                 <DatePicker
                   id="start-date-picker"
-                  selected={formData.startDate}
-                  onChange={(date) => handleDateChange(date, "startDate")}
+                  selected={formData.start_date}
+                  onChange={(date) => handleDateChange(date, "start_date")}
                   customInput={<TextField fullWidth />}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="DD/MM/YYYY"
@@ -120,13 +119,13 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
                 </InputLabel>
                 <DatePicker
                   id="end-date-picker"
-                  selected={formData.endDate}
-                  onChange={(date) => handleDateChange(date, "endDate")}
+                  selected={formData.end_date}
+                  onChange={(date) => handleDateChange(date, "end_date")}
                   customInput={<TextField fullWidth />}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="DD/MM/YYYY"
                   isClearable
-                  minDate={formData.startDate}
+                  minDate={formData.start_date}
                 />
               </FormControl>
             </Grid>
@@ -185,7 +184,6 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
               Cancel
             </Button>
 
-            {/* Save & Define Products Button (Primary Action) */}
             <Button
               type="submit"
               variant="contained"

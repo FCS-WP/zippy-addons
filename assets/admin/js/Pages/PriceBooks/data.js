@@ -36,9 +36,9 @@ export const MOCK_API_DATA = [
 ];
 
 export const MOCK_ROLES = [
-  { slug: "wholesale_customer", name: "Wholesale Customer" },
-  { slug: "vip_member", name: "VIP Member" },
-  { slug: "partner", name: "Partner" },
+  { slug: "wholesale", name: "Wholesale Customer" },
+  { slug: "customer", name: "Customer" },
+  { slug: "vip", name: "VIP" },
   { slug: "customer", name: "Standard Customer" },
 ];
 
