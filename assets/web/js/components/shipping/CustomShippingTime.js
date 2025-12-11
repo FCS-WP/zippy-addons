@@ -17,6 +17,7 @@ const CustomShippingTime = () => {
   const [selectedBtn, setSelectedBtn] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   const [closedDates, setClosedDates] = useState([]);
+  const [loadingDates, setLoadingDates] = useState(false);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -64,6 +65,37 @@ const CustomShippingTime = () => {
     return !!check;
   };
 
+  const isDateClosed = (date, closedDates) => {
+    if (!closedDates || closedDates.length === 0) return false;
+    return closedDates.some(item => isInRangeDate(date, item.value));
+  };
+
+  useEffect(() => {
+    const fetchClosedDates = async () => {
+      setLoadingDates(true);
+      try {
+        const { data: response } = await webApi.getStores();
+
+        if (response?.data?.length > 0) {
+          const firstStore = response.data[0];
+          const cds = firstStore.closed_dates || [];
+          setClosedDates(cds);
+
+          let d = new Date(minDate);
+          while (d.getDay() === 0 || isDateClosed(d, cds)) {
+            d.setDate(d.getDate() + 1);
+          }
+          setSelectedDate(d);
+        }
+      } catch (err) {
+        console.log("Missing outlets");
+      }
+      setLoadingDates(false);
+    };
+
+    fetchClosedDates();
+  },[]);
+
   useEffect(() => {
     if (selectedDate) {
       const day = selectedDate.getDay();
@@ -75,22 +107,6 @@ const CustomShippingTime = () => {
         setDeliveryTime("");
       }
     }
-
-
-    const fetchClosedDates = async () => {
-      try {
-        const { data: response } = await webApi.getStores();
-
-        if (response?.data?.length > 0) {
-          const firstStore = response.data[0];
-          
-          setClosedDates(firstStore.closed_dates || []);
-        }
-      } catch (error) {
-        console.log("Missing outlets");
-      }
-    };
-    fetchClosedDates();
   }, [selectedDate, selectedBtn]);
 
   return (
@@ -110,6 +126,23 @@ const CustomShippingTime = () => {
             id="custom_delivery_time"
             value={deliveryTime}
           />
+          <div style={{ position: "relative" }}>
+            {loadingDates && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "rgba(255,255,255,1)",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 10,
+                  fontSize: "14px"
+                }}
+              >
+                Loading…
+              </div>
+            )}
           <DatePicker
             minDate={minDate}
             selected={selectedDate}
@@ -117,6 +150,7 @@ const CustomShippingTime = () => {
             filterDate={(date) => !isClosedDate(date)}
             inline
           />
+          </div>
         </div>
       </Box>
 
