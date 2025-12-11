@@ -49,3 +49,11 @@ body.zippy-bookings_page_products-booking {
     background: #e0f8e1;
   }
 }
+
+.MuiFormControl-root {
+  .MuiInputLabel-root {
+    background: #fff;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
+}

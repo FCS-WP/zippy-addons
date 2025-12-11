@@ -110,8 +110,10 @@ function initializeApp() {
     const root = ReactDOM.createRoot(zippyPriceBooks);
     root.render(
       <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <PriceBooks />
+        <BrowserRouter>
+          <CssBaseline />
+          <PriceBooks />
+        </BrowserRouter>
       </ThemeProvider>
     );
   }
