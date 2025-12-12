@@ -1,4 +1,3 @@
-
 export const priceBooksColumns = [
   "NAME",
   "ROLE",
@@ -6,33 +5,6 @@ export const priceBooksColumns = [
   "END DATE",
   "STATUS",
   "", // Action column
-];
-
-export const MOCK_API_DATA = [
-  {
-    id: 101,
-    name: "Wholesale Q4 2025",
-    role: "wholesale_customer",
-    start_date: "2025-10-01T00:00:00Z",
-    end_date: "2025-12-31T23:59:59Z",
-    status: "active",
-  },
-  {
-    id: 102,
-    name: "VIP Discount Group",
-    role: "vip_member",
-    start_date: "2025-11-15T00:00:00Z",
-    end_date: "2026-03-31T23:59:59Z",
-    status: "inactive",
-  },
-  {
-    id: 103,
-    name: "Partnership Pricing",
-    role: "partner",
-    start_date: "2024-01-01T00:00:00Z",
-    end_date: "2025-12-31T23:59:59Z",
-    status: "active",
-  },
 ];
 
 export const MOCK_ROLES = [
@@ -48,7 +20,7 @@ export const columnWidths = {
   "START DATE": "15%",
   "END DATE": "15%",
   STATUS: "10%",
-  "": "10%",
+  "": "10%", // Action column
 };
 
 export const rulesColumns = [
@@ -56,5 +28,5 @@ export const rulesColumns = [
   "PRICING METHOD",
   "PRICE/VALUE",
   "VISIBILITY",
-  "ACTIONS",
+  "", // Action column
 ];

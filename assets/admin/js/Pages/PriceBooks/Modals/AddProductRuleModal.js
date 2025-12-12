@@ -1,6 +1,6 @@
 // AddProductRuleModal.jsx
 
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Button,
   Stack,
@@ -17,66 +17,151 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  CircularProgress, // Import for loading state
+  Alert, // Import for displaying errors
 } from "@mui/material";
+
+// Assuming this component correctly handles filtering and provides callbacks
+import ProductFilterbyCategories from "../../../Components/Products/ProductFilterByCategories";
+
+import { generalAPI } from "../../../api/general";
 
 const modalStyle = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 650,
+  width: { xs: "90%", sm: 650 }, // Added responsiveness
+  maxHeight: "90vh", // Added max height
+  overflowY: "auto", // Added scroll
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   borderRadius: 2,
 };
 
-const MOCK_PRODUCTS = [
-  { id: 1, name: "Product A - Large Widget" },
-  { id: 2, name: "Product B - Small Gizmo" },
-  { id: 3, name: "Product C - Restricted Item" },
-  { id: 4, name: "Product D - New Accessory" },
-];
-
 const AddProductRuleModal = ({ open, handleClose, onSave }) => {
+  // Use null/empty string for initial state, reflecting lack of selection
   const [formData, setFormData] = useState({
     productId: "",
-    priceType: "fixed", // Default to fixed price
+    priceType: "fixed",
     priceValue: "",
-    visibility: "show", // Default to visible
+    visibility: "show",
   });
 
+  // State for products fetched from the API
+  const [products, setProducts] = useState([]);
+
+  // State for API call loading and error handling
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // State for product search/pagination parameters
+  const [params, setParams] = useState({
+    page: 1,
+    items: 10, // Increased items per page for better UX
+    category: "",
+    userID: userSettings.uid,
+    search: "",
+  });
+
+  const handleFilter = useCallback((filter) => {
+    setParams((prev) => ({
+      ...prev,
+      ...filter,
+      page: 1, // Reset to page 1 on filter change
+    }));
+  }, []);
+
+  /**
+   * Fetch products with API call
+   */
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null); // Clear previous errors
+
+    if (!open) return;
+
+    try {
+      const { data } = await generalAPI.products(params);
+
+      if (data?.status === "success" && Array.isArray(data.data?.data)) {
+        setProducts(data.data.data);
+      } else {
+        setProducts([]);
+        setError(
+          "Could not fetch products. API returned an unsuccessful status."
+        );
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setProducts([]);
+      setError("Failed to connect to the product API.");
+    } finally {
+      setLoading(false);
+    }
+  }, [params, open]);
+
   const handleChange = (e) => {
+    console.log(e);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Basic validation check
-    if (!formData.productId || !formData.priceValue) {
-      alert("Please select a product and enter a price value.");
+    let validationError = "";
+
+    if (!formData.productId) {
+      validationError = "Please select a product.";
+    } else if (!formData.priceValue || isNaN(parseFloat(formData.priceValue))) {
+      validationError = "Please enter a valid price value.";
+    } else if (
+      formData.priceType === "percent_off" &&
+      (parseFloat(formData.priceValue) < 0 ||
+        parseFloat(formData.priceValue) > 100)
+    ) {
+      validationError = "Percentage discount must be between 0 and 100.";
+    }
+
+    if (validationError) {
+      alert(validationError);
       return;
     }
 
-    const product = MOCK_PRODUCTS.find((p) => p.id === formData.productId);
+    const product = products.find((p) => p.id === formData.productId);
+
+    // Fallback to the product ID string if name is unavailable
+    const productName = product
+      ? product.name
+      : `Product ID: ${formData.productId}`;
+
     const dataToSave = {
       ...formData,
-      product_name: product ? product.name : "Unknown Product", // Add name for display confirmation
+      product_name: productName,
       priceValue: parseFloat(formData.priceValue), // Ensure value is a number
     };
 
     onSave(dataToSave);
+
     // Reset form data after submission
     setFormData({
-      productId: "",
+      productId: 0,
       priceType: "fixed",
       priceValue: "",
       visibility: "show",
     });
+    handleClose(); // Close modal on successful save
   };
 
   const isPercentage = formData.priceType === "percent_off";
+
+  useEffect(() => {
+    if (open) {
+      // Only fetch when the modal is opened
+      fetchProducts();
+    }
+  }, [fetchProducts, open]);
 
   return (
     <Modal
@@ -96,21 +181,56 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
 
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={3}>
-            {/* 1. Product Selection */}
-            <FormControl fullWidth required>
-              <InputLabel id="product-select-label">Select Product</InputLabel>
+            <Typography
+              variant="subtitle1"
+              tup
+              sx={{ mt: 3, mb: -1 }}
+              fontWeight="bold"
+            >
+              Search Products
+            </Typography>
+            {/* 1. Product Filtering Component */}
+            <ProductFilterbyCategories
+              onFilter={handleFilter}
+              className="price-book-search-product"
+            />
+
+            {/* Display error or loading state */}
+            {error && <Alert severity="error">{error}</Alert>}
+
+            {/* 2. Product Selection */}
+            <FormControl fullWidth required disabled={loading}>
+              <InputLabel id="product-select-label">
+                {loading ? "Loading Products..." : "Select Product"}
+              </InputLabel>
               <Select
                 labelId="product-select-label"
-                label="Select Product"
+                label={loading ? "Loading Products..." : "Select Product"}
                 name="productId"
                 value={formData.productId}
                 onChange={handleChange}
+                // Display loading spinner directly in the select if data is being fetched
+                endAdornment={loading && <CircularProgress size={20} />}
               >
-                {MOCK_PRODUCTS.map((product) => (
-                  <MenuItem key={product.id} value={product.id}>
-                    {product.name}
+                {/* Fallback for empty results */}
+                {products.length === 0 && !loading ? (
+                  <MenuItem disabled>
+                    No products found with current filters.
                   </MenuItem>
-                ))}
+                ) : (
+                  products.map((product) => (
+                    <MenuItem key={product.id} value={product.id}>
+                      <Stack direction="column">
+                        <Typography variant="body2" fontWeight="bold">
+                          {product.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          ID: {product.id}
+                        </Typography>
+                      </Stack>
+                    </MenuItem>
+                  ))
+                )}
               </Select>
               <Typography
                 variant="caption"
@@ -121,8 +241,13 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
               </Typography>
             </FormControl>
 
-            {/* 2. Pricing Method and Value */}
-            <Typography variant="subtitle1" sx={{ mt: 3, mb: -1 }}>
+            {/* 3. Pricing Method and Value */}
+            <Typography
+              variant="subtitle1"
+              tup
+              sx={{ mt: 3, mb: -1 }}
+              fontWeight="bold"
+            >
               Pricing Rule
             </Typography>
             <Grid container spacing={2}>
@@ -137,7 +262,7 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
                     value={formData.priceType}
                     onChange={handleChange}
                   >
-                    <MenuItem value="fixed">Fixed Price</MenuItem>
+                    <MenuItem value="fixed">Fixed Price (Override)</MenuItem>
                     <MenuItem value="percent_off">
                       Percentage Discount (%)
                     </MenuItem>
@@ -163,12 +288,21 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
                   value={formData.priceValue}
                   onChange={handleChange}
                   required
+                  helperText={
+                    isPercentage
+                      ? "Value must be between 0 and 100"
+                      : "Enter a price or discount amount"
+                  }
                 />
               </Grid>
             </Grid>
 
-            {/* 3. Visibility Rule */}
-            <Typography variant="subtitle1" sx={{ mt: 3, mb: -1 }}>
+            {/* 4. Visibility Rule */}
+            <Typography
+              variant="subtitle1"
+              sx={{ mt: 3, mb: -1 }}
+              fontWeight="bold"
+            >
               Visibility Rule
             </Typography>
             <FormControl component="fieldset">
@@ -181,17 +315,17 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
                 <FormControlLabel
                   value="show"
                   control={<Radio />}
-                  label="Show (Product is visible to this role)"
+                  label="Show (Product is visible)"
                 />
                 <FormControlLabel
                   value="hide"
                   control={<Radio />}
-                  label="Hide (Product is invisible to this role)"
+                  label="Hide (Product is invisible, only for this role)"
                 />
               </RadioGroup>
               <Typography variant="caption" color="text.secondary">
-                If hidden, only users with this Price Book role can access this
-                product.
+                If hidden, the product will only be visible to users assigned to
+                the Price Book role associated with this rule.
               </Typography>
             </FormControl>
 

@@ -22,12 +22,14 @@ import AddIcon from "@mui/icons-material/Add";
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
 import { toast, ToastContainer } from "react-toastify";
-
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 // Assuming these are available
 import { MOCK_ROLES } from "./data";
 import { priceBooksAPI } from "../../api/priceBooks";
 import AddProductRuleModal from "./Modals/AddProductRuleModal";
 import { rulesColumns } from "./data";
+import { NavLink } from "react-router";
+
 const getPriceBookIdFromUrl = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const id = urlParams.get("id");
@@ -171,7 +173,7 @@ const PriceBookDetails = () => {
         "PRICE/VALUE":
           rule.price_type === "percent_off"
             ? `${rule.price_value}%`
-            : `$${rule.price_value.toFixed(2)}`,
+            : `$${rule.price_value}`,
         VISIBILITY: (
           <span
             style={{
@@ -182,7 +184,7 @@ const PriceBookDetails = () => {
             {rule.visibility.toUpperCase()}
           </span>
         ),
-        ACTIONS: (
+        "": (
           <Stack direction="row" spacing={1}>
             <IconButton
               size="small"
@@ -266,17 +268,28 @@ const PriceBookDetails = () => {
         mb={4}
       >
         <Box>
-          <Typography variant="h4" sx={{ mb: 1 }}>
-            {isEditMode
-              ? `Editing Price Book: ${info.name}`
-              : "Create New Price Book"}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {isEditMode
-              ? `ID: ${priceBookId}`
-              : "Enter the core information for your new Price Book."}
-          </Typography>
+          <Box display="flex" alignItems="center" mb={2}>
+            <KeyboardBackspaceIcon />
+            <NavLink to={"/wp-admin/admin.php?page=price_books"}>
+              <Typography variant="body1" color="text.primary">
+                Back to Price Books
+              </Typography>
+            </NavLink>
+          </Box>
+          <Box>
+            <Typography variant="h4" sx={{ mb: 1 }}>
+              {isEditMode
+                ? `Editing Price Book: ${info.name}`
+                : "Create New Price Book"}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {isEditMode
+                ? `ID: ${priceBookId}`
+                : "Enter the core information for your new Price Book."}
+            </Typography>
+          </Box>
         </Box>
+
         <Box>
           <Button
             variant="contained"
@@ -293,7 +306,7 @@ const PriceBookDetails = () => {
         </Box>
       </Stack>
 
-      {/* Core Details Form */}
+      {/* Price Book's Info Form */}
       <Paper elevation={1} sx={{ p: 4, mb: 5 }}>
         <Typography variant="h6" gutterBottom>
           Price Book's Info

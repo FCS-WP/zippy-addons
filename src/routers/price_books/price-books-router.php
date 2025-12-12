@@ -70,7 +70,7 @@ class Price_Books_Router
     register_rest_route($namespace, '/price_books/(?P<id>\d+)', array(
       'methods'             => WP_REST_Server::EDITABLE, // PUT/PATCH
       'callback'            => [Zippy_Price_Books_Controller::class, 'update'],
-      'args'                => $model_args,
+      'args'                => [],
       'permission_callback' => $permission,
     ));
 
@@ -78,7 +78,7 @@ class Price_Books_Router
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules', array(
       'methods'             => WP_REST_Server::READABLE, // GET
       'callback'            => [Zippy_Price_Books_Controller::class, 'get_rules'],
-      'args'                => $model_args,
+      'args'                => [],
       'permission_callback' => $permission,
     ));
 
@@ -86,7 +86,7 @@ class Price_Books_Router
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules', array(
       'methods'             => WP_REST_Server::CREATABLE, // POST
       'callback'            => [Zippy_Price_Books_Controller::class, 'store_rule'],
-      'args'                => $model_args,
+      'args'                => [],
       'permission_callback' => $permission,
     ));
 
@@ -94,7 +94,7 @@ class Price_Books_Router
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules/(?P<id>\d+)', array(
       'methods'             => WP_REST_Server::DELETABLE, // DELETE
       'callback'            => [Zippy_Price_Books_Controller::class, 'delete_rule'],
-      'args'                => ['pricebook_id' => ['validate_callback' => 'is_numeric'], 'id' => ['validate_callback' => 'is_numeric']],
+      'args'                => [],
       'permission_callback' => $permission,
     ));
   }

@@ -104,7 +104,7 @@ class Zippy_Price_Books_Controller
     }
   }
 
-  public static function storeRule(WP_REST_Request $request)
+  public static function store_rule(WP_REST_Request $request)
   {
     $pricebook_id = (int) $request->get_param('pricebook_id');
     $params = $request->get_json_params();
@@ -134,7 +134,7 @@ class Zippy_Price_Books_Controller
    * Handles the GET request to fetch all Product Rules for a Price Book.
    */
 
-  public static function getRules(WP_REST_Request $request)
+  public static function get_rules(WP_REST_Request $request)
   {
     $pricebook_id = (int) $request->get_param('pricebook_id');
 
@@ -152,10 +152,10 @@ class Zippy_Price_Books_Controller
    * Handles the DELETE request to remove a specific Product Rule.
    */
 
-  public static function deleteRule(WP_REST_Request $request)
+  public static function delete_rule(WP_REST_Request $request)
   {
     // The rule ID is typically passed as a parameter in the DELETE request URL
-    $rule_id = (int) $request->get_param('rule_id');
+    $rule_id = (int) $request->get_param('id');
 
     if (empty($rule_id)) {
       return Zippy_Response_Handler::error('Product Rule ID is required for deletion.', 400);
