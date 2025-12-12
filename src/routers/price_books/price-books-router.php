@@ -78,7 +78,7 @@ class Price_Books_Router
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules', array(
       'methods'             => WP_REST_Server::READABLE, // GET
       'callback'            => [Zippy_Price_Books_Controller::class, 'get_rules'],
-      'args'                => ['pricebook_id' => ['validate_callback' => 'is_numeric']],
+      'args'                => $model_args,
       'permission_callback' => $permission,
     ));
 
@@ -86,7 +86,7 @@ class Price_Books_Router
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules', array(
       'methods'             => WP_REST_Server::CREATABLE, // POST
       'callback'            => [Zippy_Price_Books_Controller::class, 'store_rule'],
-      'args'                => ['pricebook_id' => ['validate_callback' => 'is_numeric']],
+      'args'                => $model_args,
       'permission_callback' => $permission,
     ));
 
