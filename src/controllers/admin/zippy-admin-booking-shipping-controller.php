@@ -287,48 +287,107 @@ class Zippy_Admin_Booking_Shipping_Controller
     {
         global $wpdb;
 
-        $checking_date = $billing_date;
+        $current_user = wp_get_current_user();
+        $user_roles   = $current_user->roles;
 
-        // Fetch rules
-        $query = $wpdb->prepare("
-        SELECT additional ,product_adjustments, filters
-        FROM {$wpdb->prefix}wdp_rules
-        WHERE deleted = 0 AND enabled = 1
-    ");
+        $checking_timestamp = strtotime($billing_date);
+
+        if (false === $checking_timestamp) {
+            return [];
+        }
+
+        $query = "
+            SELECT id, additional, product_adjustments, role_discounts, filters, priority
+            FROM {$wpdb->prefix}wdp_rules
+            WHERE deleted = 0 AND enabled = 1
+            ORDER BY priority DESC;
+        ";
+
         $results = $wpdb->get_results($query);
 
         if (empty($results)) {
-            return Zippy_Response_Handler::error([], 404, "No pricing rules found.");
+            return [];
         }
 
-        // Decode and filter rules
-        $valid_rules = [];
+
         foreach ($results as $row) {
-            $rule = maybe_unserialize($row->additional);
+            // Unserialize data once per row
+            $rule                = maybe_unserialize($row->additional);
             $product_adjustments = maybe_unserialize($row->product_adjustments);
-            $product = maybe_unserialize($row->filters);
+            $role_discounts      = maybe_unserialize($row->role_discounts);
+            $filters_data        = maybe_unserialize($row->filters);
 
-            if (!empty($rule['date_from']) && !empty($rule['date_to'])) {
-                $dateFrom = strtotime($rule['date_from']);
-                $dateTo   = strtotime($rule['date_to']);
-                $check    = strtotime($checking_date);
+            if (! empty($rule['date_from']) && ! empty($rule['date_to'])) {
+                $date_from_ts = strtotime($rule['date_from']);
+                $date_to_ts   = strtotime($rule['date_to']);
 
-                if ($check >= $dateFrom && $check <= $dateTo) {
-                    $product_matched = $product[0]['value'];
+                if ($checking_timestamp >= $date_from_ts && $checking_timestamp <= $date_to_ts) {
 
-                    if (!empty($product_matched) && in_array($product_id, $product_matched)) {
-                        $valid_rules['data'] = $product_adjustments;
-                        $valid_rules['from'] = $rule['date_from'];
-                        $valid_rules['to'] = $rule['date_to'];
+                    $is_product_matched = false;
+
+                    $product_filter = ! empty($filters_data[0]) ? $filters_data[0] : null;
+
+                    if ($product_filter && $product_filter['type'] === 'products') {
+                        $product_matched_ids = ! empty($product_filter['value']) ? $product_filter['value'] : [];
+
+                        // Check if the product ID is in the list of matched product IDs
+                        if (is_array($product_matched_ids) && in_array($product_id, $product_matched_ids)) {
+                            $is_product_matched = true;
+                        }
+                    }
+
+                    if ($is_product_matched) {
+                        $discounts = null;
+
+                        $role_rows = ! empty($role_discounts['rows']) ? $role_discounts['rows'] : [];
+
+                        foreach ($role_rows as $role_row) {
+                            $required_roles = ! empty($role_row['roles']) ? $role_row['roles'] : [];
+
+                            // Check if the current user has ANY of the roles required by this role discount row
+                            if (! empty($required_roles) && array_intersect($user_roles, $required_roles)) {
+                                $discounts = $role_row;
+                                break; // Found the first matching role discount row (usually only one per rule)
+                            }
+                        }
+
+                        if ($discounts) {
+                            // Role discount found and applied
+                            return self::convert_data_for_response($row->id, $discounts, $rule);
+                        } else {
+                            // No matching role discount found, fall back to product adjustment if it exists.
+                            // Assuming 'product_adjustments' is the fallback discount if no role matches.
+                            if (! empty($product_adjustments && $product_adjustments['total']['value'])) {
+                                return self::convert_data_for_response($row->id, $product_adjustments, $rule);
+                            }
+                        }
                     }
                 }
             }
         }
 
-        if (empty($valid_rules)) {
-            return '';
+        return [];
+    }
+
+    /**
+     * Converts raw rule data into a standardized response array.
+     */
+    private static function convert_data_for_response($id, $discounts, $rule)
+    {
+        $discount_value = 0;
+        if (isset($discounts['discount_value'])) {
+            // Structure for role discounts
+            $discount_value = $discounts['discount_value'];
+        } elseif (isset($discounts['total']['value'])) {
+            // Structure for product/cart adjustments
+            $discount_value = $discounts['total']['value'];
         }
 
-        return $valid_rules;
+        return [
+            'id'    => $id,
+            'total' => $discount_value,
+            'from'  => isset($rule['date_from']) ? $rule['date_from'] : '',
+            'to'    => isset($rule['date_to']) ? $rule['date_to'] : '',
+        ];
     }
 }
