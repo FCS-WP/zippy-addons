@@ -10,7 +10,9 @@ export const makeRequest = async (
   const api = axios.create({
     baseURL: baseURL,
   });
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const headers = token
+    ? { Authorization: `Bearer ${token}`, "X-WP-Nonce": admin_data.nonce }
+    : {};
 
   const config = {
     url: "zippy-addons/v1" + endpoint,
@@ -114,7 +116,7 @@ export const makeLocalRequest = async (
   }
 };
 
-// Onemap Request 
+// Onemap Request
 export const makeOneMapRequest = async (
   endpoint,
   params = {},
