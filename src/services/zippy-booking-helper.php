@@ -217,28 +217,41 @@ class Zippy_Booking_Helper
 
     public static function is_in_range_period_window($product_id)
     {
-        if (!$product_id || is_admin()) {
+        // Validate product & frontend only
+        if (empty($product_id) || is_admin()) {
             return false;
         }
-
 
         $session = new Zippy_Session_Handler();
-        $period_window = get_field('product_period_window', $product_id) ? get_field('product_period_window', $product_id) : 2;
-        if (!$session->get('order_mode')) {
+
+        if (! $session->get('order_mode')) {
             return false;
         }
 
-        $order_date = $session->get('date');
-        $order_date = new DateTime($order_date);
-        $today = new DateTime();
-        $today = new DateTime($today->format('Y-m-d'));
+        // Period window (default: 2 days)
+        $period_window = get_field('product_period_window', $product_id) ? get_field('product_period_window', $product_id) : 2;
 
-        $period_date = (clone $today)->modify('+' . $period_window . ' days');
-        if ($order_date < $period_date) {
-            return true;
+        $order_date_raw = $session->get('date');
+        if (empty($order_date_raw)) {
+            return false;
         }
-        return false;
+
+        $timezone = wp_timezone();
+
+        try {
+            $order_date = new DateTime($order_date_raw, $timezone);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        $today = new DateTime('now', $timezone);
+
+        // End of allowed period
+        $period_date = (clone $today)->modify("+{$period_window} days");
+
+        return $order_date < $period_date;
     }
+
 
     public static function get_disabled_ids($menu_id)
     {
