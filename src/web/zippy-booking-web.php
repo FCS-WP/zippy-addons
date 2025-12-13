@@ -81,7 +81,9 @@ class Zippy_Booking_Web
     wp_localize_script('booking-js', 'admin_data', array(
       'userID' => $current_user_id,
       'user_email' => $user_info ? $user_info->user_email : null,
-      'day_limited' => $day_limited
+      'day_limited' => $day_limited,
+      'url' => esc_url_raw(rest_url(ZIPPY_BOOKING_API_NAMESPACE)),
+      'nonce'  => wp_create_nonce('wp_rest'),
     ));
   }
 
