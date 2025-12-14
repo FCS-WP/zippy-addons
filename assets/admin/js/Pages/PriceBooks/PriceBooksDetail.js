@@ -20,13 +20,14 @@ import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css"; // Import styles
 import { format } from "date-fns";
 import { toast, ToastContainer } from "react-toastify";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 // Assuming these are available
 import { MOCK_ROLES } from "./data";
 import { priceBooksAPI } from "../../api/priceBooks";
-import AddProductRuleModal from "./Modals/AddProductRuleModal";
+import ProductRuleFormModal from "./Modals/ProductRuleFormModal";
 import { rulesColumns } from "./data";
 import { NavLink } from "react-router";
 
@@ -52,20 +53,29 @@ const PriceBookDetails = () => {
   const isEditMode = priceBookId !== "new";
 
   const [info, setInfo] = useState(INITIAL_INFO);
-  const [rules, setRules] = useState([]);
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [isSaving, setIsSaving] = useState(false);
-  const [openRuleModal, setOpenRuleModal] = useState(false);
 
-  // Function to fetch the product rules list
-  const fetchProductRules = useCallback(async (id) => {
-    if (!id || id === "new") return;
+  const [rules, setRules] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ruleToEdit, setRuleToEdit] = useState(null); // Data for editing
+  const [loadingRules, setLoadingRules] = useState(isEditMode); // Loading rules initially
+
+  const fetchRules = useCallback(async (id) => {
+    if (!id || id === "new") {
+      setLoadingRules(false);
+      return;
+    }
+    setLoadingRules(true);
     try {
       const response = await priceBooksAPI.getProductRules(id);
       setRules(response.data?.data || []);
     } catch (error) {
       toast.error("Failed to load product rules.");
       console.error("Fetch Rules Error:", error);
+      setRules([]);
+    } finally {
+      setLoadingRules(false);
     }
   }, []);
 
@@ -77,46 +87,77 @@ const PriceBookDetails = () => {
     setInfo({ ...info, [name]: date });
   };
 
-  const handleOpenRuleModal = () => setOpenRuleModal(true);
-  const handleCloseRuleModal = () => setOpenRuleModal(false);
+  const handleOpenAddModal = () => {
+    setRuleToEdit(null); // Ensure Add mode
+    setIsModalOpen(true);
+  };
 
-  // Handler to save the product rule (called from the modal)
-  const handleSaveProductRule = async (newRuleData) => {
+  const handleOpenEditModal = (ruleData) => {
+    setRuleToEdit(ruleData);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setRuleToEdit(null);
+  };
+
+  const handleSaveRule = async (dataPayload) => {
+    setLoadingRules(true);
+    const { ruleId, ...dataToSend } = dataPayload;
+
     try {
-      const response = await priceBooksAPI.createProductRule(
-        priceBookId,
-        newRuleData
-      );
-      toast.success(
-        response.data?.data?.message || "Product Rule added successfully!"
-      );
-      await fetchProductRules(priceBookId); // Refresh the rules table
-      handleCloseRuleModal();
+      let response;
+      if (ruleId) {
+        response = await priceBooksAPI.updateProductRule(
+          priceBookId,
+          ruleId,
+          dataToSend
+        );
+        toast.success(
+          response.data?.data?.message ||
+            `Rule ID ${ruleId} updated successfully!`
+        );
+      } else {
+        response = await priceBooksAPI.createProductRule(
+          priceBookId,
+          dataToSend
+        );
+        toast.success(
+          response.data?.data?.message || "Product Rule added successfully!"
+        );
+      }
+
+      // After successful save, refresh the rule list and close
+      await fetchRules(priceBookId);
+      handleCloseModal();
     } catch (error) {
       toast.error("Failed to save product rule.");
       console.error("Save Rule Error:", error);
+    } finally {
+      setLoadingRules(false);
     }
   };
 
   // Handler to delete a product rule
-  const handleDeleteRule = async (ruleId) => {
-    if (!window.confirm("Are you sure you want to delete this product rule?")) {
-      return;
-    }
-    try {
-      const response = await priceBooksAPI.deleteProductRule(
-        priceBookId,
-        ruleId
-      );
-      toast.success(
-        response.data?.data?.message || "Rule deleted successfully."
-      );
-      await fetchProductRules(priceBookId); // Refresh the rules table
-    } catch (error) {
-      toast.error("Failed to delete product rule.");
-      console.error("Delete Rule Error:", error);
-    }
-  };
+  const handleDeleteRule = useCallback(
+    async (ruleId) => {
+      if (
+        !window.confirm("Are you sure you want to delete this product rule?")
+      ) {
+        return;
+      }
+      try {
+        await priceBooksAPI.deleteProductRule(priceBookId, ruleId);
+        toast.success("Rule deleted successfully.");
+        await fetchRules(priceBookId); // Refresh the rules table
+      } catch (error) {
+        toast.error("Failed to delete product rule.");
+        console.error("Delete Rule Error:", error);
+      }
+    },
+    [priceBookId, fetchRules]
+  );
 
   useEffect(() => {
     if (!isEditMode) {
@@ -140,13 +181,10 @@ const PriceBookDetails = () => {
               : null,
             role: fetchedData.role_id,
           });
-          // TODO: Fetch rules data here once that API endpoint is implemented
-          await fetchProductRules(priceBookId);
-          // const rulesResponse = await priceBooksAPI.getProductRules(priceBookId);
-          // setRules(rulesResponse.data?.data || []);
+          // Fetch rules immediately after details load
+          await fetchRules(priceBookId);
         } else {
           toast.error("Price Book not found.");
-          // Optionally redirect to the list page here
         }
       } catch (error) {
         toast.error("Failed to load Price Book details.");
@@ -157,8 +195,9 @@ const PriceBookDetails = () => {
     };
 
     fetchDetails();
-  }, [isEditMode, priceBookId]);
+  }, [isEditMode, priceBookId, fetchRules]);
 
+  // --- TABLE MAPPING LOGIC ---
   const mapRulesToTable = useCallback(
     (rulesData) => {
       return rulesData.map((rule) => ({
@@ -186,10 +225,7 @@ const PriceBookDetails = () => {
         ),
         "": (
           <Stack direction="row" spacing={1}>
-            <IconButton
-              size="small"
-              onClick={() => console.log("Edit Rule:", rule.rule_id)}
-            >
+            <IconButton size="small" onClick={() => handleOpenEditModal(rule)}>
               <ModeEditOutlineIcon fontSize="inherit" />
             </IconButton>
             <IconButton
@@ -239,7 +275,7 @@ const PriceBookDetails = () => {
           toast.success(
             response.data.data.message || "Price Book created successfully!"
           );
-          window.location.href = `?page=price_books&id=${response.data.data.id}`;
+          window.location.href = `/wp-admin/admin.php?page=price_books&id=${response.data.data.id}`;
           return;
         }
       }
@@ -257,9 +293,10 @@ const PriceBookDetails = () => {
       setIsSaving(false);
     }
   };
+
   return (
     <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
-      <ToastContainer />
+      <ToastContainer position="top-center" autoClose={3000} />
 
       <Stack
         direction="row"
@@ -269,7 +306,7 @@ const PriceBookDetails = () => {
       >
         <Box>
           <Box display="flex" alignItems="center" mb={2}>
-            <KeyboardBackspaceIcon />
+            <KeyboardBackspaceIcon sx={{ mr: 1 }} />
             <NavLink to={"/wp-admin/admin.php?page=price_books"}>
               <Typography variant="body1" color="text.primary">
                 Back to Price Books
@@ -312,6 +349,7 @@ const PriceBookDetails = () => {
           Price Book's Info
         </Typography>
         <Grid container spacing={3}>
+          {/* ... (Form fields: Name, Role, Dates) ... */}
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
@@ -340,7 +378,6 @@ const PriceBookDetails = () => {
             </FormControl>
           </Grid>
           {/* Start Date */}
-
           <Grid item xs={12} md={2}>
             <FormControl fullWidth>
               <InputLabel shrink htmlFor="start-date-picker">
@@ -361,8 +398,8 @@ const PriceBookDetails = () => {
                 isClearable
               />
             </FormControl>
-            {/* End Date */}
           </Grid>
+          {/* End Date */}
           <Grid item xs={12} md={2}>
             <FormControl fullWidth>
               <InputLabel shrink htmlFor="end-date-picker">
@@ -388,6 +425,7 @@ const PriceBookDetails = () => {
         </Grid>
       </Paper>
 
+      {/* Product Pricing Rules Section (Only visible in Edit Mode) */}
       {isEditMode && (
         <Box>
           <Typography variant="h5" sx={{ mb: 2 }}>
@@ -407,26 +445,34 @@ const PriceBookDetails = () => {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={handleOpenRuleModal}
+              // Use the consolidated handler for opening the modal
+              onClick={handleOpenAddModal}
             >
               Add Product Rule
             </Button>
           </Stack>
 
           <Box sx={{ mt: 3 }}>
-            <TableView
-              hideCheckbox={true}
-              cols={rulesColumns}
-              rows={mapRulesToTable(rules)}
-            />
+            {loadingRules ? (
+              <Typography>Loading rules...</Typography>
+            ) : (
+              <TableView
+                className="price-book-details"
+                hideCheckbox={true}
+                cols={rulesColumns}
+                rows={mapRulesToTable(rules)}
+              />
+            )}
           </Box>
         </Box>
       )}
 
-      <AddProductRuleModal
-        open={openRuleModal}
-        handleClose={handleCloseRuleModal}
-        onSave={handleSaveProductRule}
+      {/* Product Rule Form Modal (Used for both Add and Edit) */}
+      <ProductRuleFormModal
+        open={isModalOpen} // Consolidated state
+        handleClose={handleCloseModal} // Consolidated handler
+        initialRuleData={ruleToEdit}
+        onSave={handleSaveRule}
       />
     </Container>
   );

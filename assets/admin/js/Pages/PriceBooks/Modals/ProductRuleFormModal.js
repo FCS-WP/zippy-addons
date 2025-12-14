@@ -1,4 +1,4 @@
-// AddProductRuleModal.jsx
+// ProductRuleFormModal.jsx (Corrected Version)
 
 import React, { useEffect, useState, useCallback } from "react";
 import {
@@ -17,13 +17,11 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
-  CircularProgress, // Import for loading state
-  Alert, // Import for displaying errors
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 
-// Assuming this component correctly handles filtering and provides callbacks
 import ProductFilterbyCategories from "../../../Components/Products/ProductFilterByCategories";
-
 import { generalAPI } from "../../../api/general";
 
 const modalStyle = {
@@ -31,58 +29,67 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: { xs: "90%", sm: 650 }, // Added responsiveness
-  maxHeight: "90vh", // Added max height
-  overflowY: "auto", // Added scroll
+  width: { xs: "90%", sm: 650 },
+  maxHeight: "90vh",
+  overflowY: "auto",
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   borderRadius: 2,
 };
 
-const AddProductRuleModal = ({ open, handleClose, onSave }) => {
-  // Use null/empty string for initial state, reflecting lack of selection
-  const [formData, setFormData] = useState({
-    productId: "",
-    priceType: "fixed",
-    priceValue: "",
-    visibility: "show",
-  });
+const initializeFormData = (initialData) => {
+  return {
+    productId: initialData?.productId || 0,
+    priceValue: initialData?.priceValue?.toString() || "",
+    priceType: initialData?.priceType || "fixed",
+    visibility: initialData?.visibility || "show",
+  };
+};
 
-  // State for products fetched from the API
+const ProductRuleFormModal = ({
+  open,
+  handleClose,
+  onSave,
+  initialRuleData,
+}) => {
+  const isEditing = !!initialRuleData?.id;
+
+  // FIX 1A: Use the functional updater form for state initialization
+  const [formData, setFormData] = useState(() =>
+    initializeFormData(initialRuleData)
+  );
+
+  // ... (products, loading, error states remain the same)
   const [products, setProducts] = useState([]);
-
-  // State for API call loading and error handling
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // State for product search/pagination parameters
   const [params, setParams] = useState({
     page: 1,
-    items: 10, // Increased items per page for better UX
+    items: 10,
     category: "",
     userID: userSettings.uid,
     search: "",
+    include_id: undefined, // Explicitly handle the new ID param
   });
 
   const handleFilter = useCallback((filter) => {
     setParams((prev) => ({
       ...prev,
       ...filter,
-      page: 1, // Reset to page 1 on filter change
+      page: 1,
     }));
   }, []);
 
-  /**
-   * Fetch products with API call
-   */
   const fetchProducts = useCallback(async () => {
     setLoading(true);
-    setError(null); // Clear previous errors
+    setError(null);
 
     if (!open) return;
 
     try {
+      console.log(params);
       const { data } = await generalAPI.products(params);
 
       if (data?.status === "success" && Array.isArray(data.data?.data)) {
@@ -100,26 +107,33 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
     } finally {
       setLoading(false);
     }
-  }, [params, open]);
+  }, [params, open]); // Dependencies are correct here
 
   const handleChange = (e) => {
-    console.log(e);
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let newValue = value;
+
+    if (name === "productId" && value !== 0 && value !== "") {
+      newValue = parseInt(value, 10);
+    }
+
+    setFormData({ ...formData, [name]: newValue });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     let validationError = "";
+    const priceValueNumber = parseFloat(formData.priceValue);
 
-    if (!formData.productId) {
+    if (formData.productId === 0) {
+      // Check against 0 for the default numeric value
       validationError = "Please select a product.";
-    } else if (!formData.priceValue || isNaN(parseFloat(formData.priceValue))) {
+    } else if (!formData.priceValue || isNaN(priceValueNumber)) {
       validationError = "Please enter a valid price value.";
     } else if (
       formData.priceType === "percent_off" &&
-      (parseFloat(formData.priceValue) < 0 ||
-        parseFloat(formData.priceValue) > 100)
+      (priceValueNumber < 0 || priceValueNumber > 100)
     ) {
       validationError = "Percentage discount must be between 0 and 100.";
     }
@@ -130,60 +144,80 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
     }
 
     const product = products.find((p) => p.id === formData.productId);
-
-    // Fallback to the product ID string if name is unavailable
     const productName = product
       ? product.name
       : `Product ID: ${formData.productId}`;
 
     const dataToSave = {
+      ruleId: initialRuleData?.id || null,
       ...formData,
       product_name: productName,
-      priceValue: parseFloat(formData.priceValue), // Ensure value is a number
+      priceValue: priceValueNumber, // Use the parsed number
     };
 
-    onSave(dataToSave);
+    if (isEditing) {
+      onSave(initialRuleData.id, dataToSave);
+    } else {
+      onSave(dataToSave);
+    }
 
-    // Reset form data after submission
-    setFormData({
-      productId: 0,
-      priceType: "fixed",
-      priceValue: "",
-      visibility: "show",
-    });
-    handleClose(); // Close modal on successful save
+    handleClose();
   };
-
-  const isPercentage = formData.priceType === "percent_off";
 
   useEffect(() => {
     if (open) {
-      // Only fetch when the modal is opened
+      console.log(initialRuleData);
+      setFormData(initializeFormData(initialRuleData));
+
+      if (isEditing && initialRuleData.product_id) {
+        setParams((prev) => ({
+          ...prev,
+          page: 1,
+          category: "",
+          search: "",
+          include_id: initialRuleData.product_id, // Include the current product ID
+        }));
+      } else {
+        // Add Mode:
+        setParams((prev) => ({
+          ...prev,
+          page: 1,
+          category: "",
+          search: "",
+          include_id: undefined,
+        }));
+      }
+    }
+  }, [initialRuleData, open, isEditing]);
+
+  useEffect(() => {
+    if (open) {
       fetchProducts();
     }
-  }, [fetchProducts, open]);
+  }, [open, params, fetchProducts]);
+
+  const isPercentage = formData.priceType === "percent_off";
 
   return (
     <Modal
       open={open}
       onClose={handleClose}
-      aria-labelledby="add-product-rule-title"
+      aria-labelledby="product-rule-title"
     >
       <Paper sx={modalStyle}>
         <Typography
-          id="add-product-rule-title"
+          id="product-rule-title"
           variant="h6"
           component="h2"
           sx={{ mb: 3 }}
         >
-          Add Product Rule to Price Book
+          {isEditing ? "Edit Product Rule" : "Add Product Rule to Price Book"}
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={3}>
             <Typography
               variant="subtitle1"
-              tup
               sx={{ mt: 3, mb: -1 }}
               fontWeight="bold"
             >
@@ -209,10 +243,14 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
                 name="productId"
                 value={formData.productId}
                 onChange={handleChange}
-                // Display loading spinner directly in the select if data is being fetched
                 endAdornment={loading && <CircularProgress size={20} />}
               >
-                {/* Fallback for empty results */}
+                {/* Default/Placeholder Item */}
+                <MenuItem value={0} disabled>
+                  Select a Product
+                </MenuItem>
+
+                {/* Render fetched products */}
                 {products.length === 0 && !loading ? (
                   <MenuItem disabled>
                     No products found with current filters.
@@ -231,6 +269,13 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
                     </MenuItem>
                   ))
                 )}
+                {isEditing &&
+                  formData.productId !== 0 &&
+                  !products.find((p) => p.id === formData.productId) && (
+                    <MenuItem value={formData.productId} disabled>
+                      Selected ID: {formData.productId} (External)
+                    </MenuItem>
+                  )}
               </Select>
               <Typography
                 variant="caption"
@@ -244,13 +289,12 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
             {/* 3. Pricing Method and Value */}
             <Typography
               variant="subtitle1"
-              tup
               sx={{ mt: 3, mb: -1 }}
               fontWeight="bold"
             >
               Pricing Rule
             </Typography>
-            <Grid container spacing={2}>
+            <Grid container display="flex" gap={2} wrap="nowrap">
               {/* Pricing Method */}
               <Grid item xs={6}>
                 <FormControl fullWidth required>
@@ -340,7 +384,7 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
                 Cancel
               </Button>
               <Button type="submit" variant="contained" color="primary">
-                Save Rule
+                {isEditing ? "Update Rule" : "Save Rule"}
               </Button>
             </Stack>
           </Stack>
@@ -350,4 +394,4 @@ const AddProductRuleModal = ({ open, handleClose, onSave }) => {
   );
 };
 
-export default AddProductRuleModal;
+export default ProductRuleFormModal;
