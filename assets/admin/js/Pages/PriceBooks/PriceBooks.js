@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Container, Typography, Button, Stack, Box } from "@mui/material";
+import { Container, Typography, Button, Stack, Box, Chip } from "@mui/material";
 import TableView from "../../Components/TableView";
 import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
 import { NavLink } from "react-router";
 import { format } from "date-fns";
 import { toast, ToastContainer } from "react-toastify";
+import Loading from "../../Components/Loading";
 
 import AddPriceBookModal from "./Modals/AddPriceBookModal";
 import { MOCK_ROLES, priceBooksColumns, columnWidths } from "./data";
@@ -20,6 +21,19 @@ const getRoleDisplayName = (slug) => {
   return role ? role.name : slug;
 };
 
+const getStatusChipProps = (statusLabel) => {
+  switch (statusLabel) {
+    case "Upcoming":
+      return { label: statusLabel, color: "warning", variant: "outlined" };
+    case "Ongoing":
+      return { label: statusLabel, color: "success", variant: "filled" };
+    case "Expired":
+      return { label: statusLabel, color: "error", variant: "outlined" };
+    default:
+      return { label: statusLabel, color: "default", variant: "filled" };
+  }
+};
+
 const handleConvertData = (rows) => {
   return rows.map((value) => ({
     ID: value.id,
@@ -31,11 +45,7 @@ const handleConvertData = (rows) => {
     "END DATE": value.end_date
       ? format(new Date(value.end_date), "MMM dd, yyyy")
       : "N/A",
-    STATUS: (
-      <span style={{ color: value.status === "active" ? "green" : "red" }}>
-        {value.status.toUpperCase()}
-      </span>
-    ),
+    STATUS: <Chip size="small" {...getStatusChipProps(value.status_label)} />,
     "": (
       <NavLink to={constructEditUrl(value.id)}>
         <Button startIcon={<ModeEditOutlineIcon />} size="small">
@@ -87,7 +97,7 @@ const PriceBooks = () => {
 
       if (id) {
         toast.success(message || "Price Book created successfully.");
-        await fetchPriceBooks(); 
+        await fetchPriceBooks();
         handleClose();
       } else {
         toast.error("Creation successful, but missing Price Book ID.");
@@ -109,7 +119,7 @@ const PriceBooks = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      return <Typography>Loading Price Books...</Typography>;
+      return <Loading message={"Loading Price Books..."} />;
     }
     if (hasError) {
       return (

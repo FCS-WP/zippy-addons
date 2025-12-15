@@ -5,23 +5,48 @@ namespace Zippy_Booking\Src\Services\Price_Books;
 use Zippy_Booking\Utils\Zippy_DateTime_Helper;
 
 use WP_Error;
+use DateTimeZone;
+use DateTime;
 
 class Price_Books_Service
 {
+
   public static function get_pricebooks()
   {
     global $wpdb;
     $table_name = $wpdb->prefix . 'pricebook_containers';
 
-    $pricebooks = $wpdb->get_results("SELECT * FROM {$table_name} ORDER BY id DESC", ARRAY_A);
+    $pricebooks = $wpdb->get_results("SELECT * FROM {$table_name} ORDER BY start_date DESC", ARRAY_A);
 
     if ($pricebooks === null) {
       return [];
     }
+    $timezone = new DateTimeZone('Asia/Singapore');
+    $datetime = new DateTime('now', $timezone);
 
-    $formatted_pricebooks = array_map(function ($book) {
-      $book['start_date'] = $book['start_date'] ? date('c', strtotime($book['start_date'])) : null;
-      $book['end_date']   = $book['end_date'] ? date('c', strtotime($book['end_date'])) : null;
+    $today_timestamp = $datetime->getTimestamp();
+
+    $formatted_pricebooks = array_map(function ($book) use ($today_timestamp) {
+
+      $start_date_raw = $book['start_date'];
+      $end_date_raw   = $book['end_date'];
+
+      $book['start_date'] = $start_date_raw ? date('c', strtotime($start_date_raw)) : null;
+      $book['end_date']   = $end_date_raw ? date('c', strtotime($end_date_raw)) : null;
+
+      $start_timestamp = $start_date_raw ? strtotime($start_date_raw) : null;
+      $end_timestamp = $end_date_raw ? strtotime($end_date_raw) : PHP_INT_MAX;
+
+      $status_label = 'Expired';
+
+      if ($start_timestamp && $start_timestamp > $today_timestamp) {
+        $status_label = 'Upcoming';
+      } elseif ($today_timestamp >= $start_timestamp && $today_timestamp <= $end_timestamp) {
+        $status_label = 'Ongoing';
+      }
+
+      $book['status_label'] = $status_label;
+
       return $book;
     }, $pricebooks);
 

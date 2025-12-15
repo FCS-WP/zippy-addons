@@ -29,6 +29,7 @@ import { MOCK_ROLES } from "./data";
 import { priceBooksAPI } from "../../api/priceBooks";
 import ProductRuleFormModal from "./Modals/ProductRuleFormModal";
 import { rulesColumns } from "./data";
+import Loading from "../../Components/Loading";
 import { NavLink } from "react-router";
 
 const getPriceBookIdFromUrl = () => {
@@ -225,9 +226,11 @@ const PriceBookDetails = () => {
         ),
         "": (
           <Stack direction="row" spacing={1}>
-            <IconButton size="small" onClick={() => handleOpenEditModal(rule)}>
-              <ModeEditOutlineIcon fontSize="inherit" />
-            </IconButton>
+            <Button
+              startIcon={<ModeEditOutlineIcon />}
+              size="small"
+              onClick={() => handleOpenEditModal(rule)}
+            ></Button>
             <IconButton
               size="small"
               color="error"
@@ -245,7 +248,7 @@ const PriceBookDetails = () => {
   if (isLoading) {
     return (
       <Container sx={{ mt: 5 }}>
-        <Typography>Loading Price Book details...</Typography>
+        <Loading message={"Loading Price Book details..."} />;
       </Container>
     );
   }

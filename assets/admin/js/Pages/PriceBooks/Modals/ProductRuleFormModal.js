@@ -67,7 +67,7 @@ const ProductRuleFormModal = ({
 
   const [params, setParams] = useState({
     page: 1,
-    items: 20,
+    items: 50,
     category: "",
     userID: userSettings.uid,
     search: "",
@@ -166,7 +166,7 @@ const ProductRuleFormModal = ({
         page: 1,
         category: "",
         search: "",
-        items: 20,
+        items: 50,
         userID: userSettings.uid,
       };
 
