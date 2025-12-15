@@ -100,7 +100,9 @@ const PriceBooks = () => {
         await fetchPriceBooks();
         handleClose();
       } else {
-        toast.error("Creation successful, but missing Price Book ID.");
+        toast.error(
+          response.error?.message || "Creation successful, but missing Price Book ID."
+        );
       }
     } catch (error) {
       const errorMessage =

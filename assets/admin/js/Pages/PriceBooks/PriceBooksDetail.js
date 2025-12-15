@@ -31,6 +31,7 @@ import ProductRuleFormModal from "./Modals/ProductRuleFormModal";
 import { rulesColumns } from "./data";
 import Loading from "../../Components/Loading";
 import { NavLink } from "react-router";
+import { generalAPI } from "../../api/general";
 
 const getPriceBookIdFromUrl = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -40,8 +41,8 @@ const getPriceBookIdFromUrl = () => {
 const INITIAL_INFO = {
   name: "New Price Book",
   role: "customer",
-  startDate: new Date(),
-  endDate: null,
+  start_date: new Date(),
+  end_date: null,
   status: "active",
 };
 
@@ -62,6 +63,8 @@ const PriceBookDetails = () => {
   const [ruleToEdit, setRuleToEdit] = useState(null); // Data for editing
   const [loadingRules, setLoadingRules] = useState(isEditMode); // Loading rules initially
 
+  const [role, setRole] = useState([]);
+
   const fetchRules = useCallback(async (id) => {
     if (!id || id === "new") {
       setLoadingRules(false);
@@ -79,6 +82,59 @@ const PriceBookDetails = () => {
       setLoadingRules(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchDetails = async () => {
+      try {
+        const response = await priceBooksAPI.getPriceBook(priceBookId);
+        const fetchedData = response.data?.data;
+
+        if (fetchedData) {
+          setInfo({
+            ...fetchedData,
+            start_date: fetchedData.start_date
+              ? new Date(fetchedData.start_date)
+              : null,
+            end_date: fetchedData.end_date
+              ? new Date(fetchedData.end_date)
+              : null,
+            role: fetchedData.role_id,
+          });
+          // Fetch rules immediately after details load
+          await fetchRules(priceBookId);
+          await fetchUserRole();
+        } else {
+          toast.error("Price Book not found.");
+        }
+      } catch (error) {
+        toast.error("Failed to load Price Book details.");
+        console.error("Fetch Details Error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [isEditMode, priceBookId, fetchRules, fetchUserRole]);
+
+  const fetchUserRole = useCallback(async () => {
+    try {
+      const { data } = await generalAPI.getAvailableRoles();
+      if (data?.status === "success" && Array.isArray(data?.data)) {
+        setRole(data.data);
+      } else {
+        setRole([]);
+        setError(
+          "Could not fetch user role. API returned an unsuccessful status."
+        );
+      }
+    } catch (error) {}
+  });
 
   const handleInfoChange = (e) => {
     setInfo({ ...info, [e.target.name]: e.target.value });
@@ -123,7 +179,7 @@ const PriceBookDetails = () => {
           priceBookId,
           dataToSend
         );
-        toast.success(response?.data.message || "Product Rule added successfully!");
+        toast.success("Product Rule added successfully!");
       }
 
       // After successful save, refresh the rule list and close
@@ -156,44 +212,6 @@ const PriceBookDetails = () => {
     },
     [priceBookId, fetchRules]
   );
-
-  useEffect(() => {
-    if (!isEditMode) {
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchDetails = async () => {
-      try {
-        const response = await priceBooksAPI.getPriceBook(priceBookId);
-        const fetchedData = response.data?.data;
-
-        if (fetchedData) {
-          setInfo({
-            ...fetchedData,
-            startDate: fetchedData.start_date
-              ? new Date(fetchedData.start_date)
-              : null,
-            endDate: fetchedData.end_date
-              ? new Date(fetchedData.end_date)
-              : null,
-            role: fetchedData.role_id,
-          });
-          // Fetch rules immediately after details load
-          await fetchRules(priceBookId);
-        } else {
-          toast.error("Price Book not found.");
-        }
-      } catch (error) {
-        toast.error("Failed to load Price Book details.");
-        console.error("Fetch Details Error:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDetails();
-  }, [isEditMode, priceBookId, fetchRules]);
 
   // --- TABLE MAPPING LOGIC ---
   const mapRulesToTable = useCallback(
@@ -250,15 +268,15 @@ const PriceBookDetails = () => {
     );
   }
 
-  const isReadyToSave = info.name && info.role;
+  const isReadyToSave = info.name && info.role && info.start_date;
 
   const handleSaveInfo = async () => {
     setIsSaving(true);
     try {
       const dataToSubmit = {
         ...info,
-        startDate: formatDateForAPI(info.startDate),
-        endDate: formatDateForAPI(info.endDate),
+        start_date: formatDateForAPI(info.start_date),
+        end_date: formatDateForAPI(info.end_date),
         role: info.role,
       };
 
@@ -285,8 +303,7 @@ const PriceBookDetails = () => {
       );
       setInfo({ ...info, name: dataToSubmit.name });
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to save Price Book.";
+      const errorMessage = "Failed to save Price Book.";
       toast.error(errorMessage);
       console.error("Save Info Error:", error);
     } finally {
@@ -369,7 +386,7 @@ const PriceBookDetails = () => {
                 value={info.role}
                 onChange={handleInfoChange}
               >
-                {MOCK_ROLES.map((role) => (
+                {role.map((role) => (
                   <MenuItem key={role.slug} value={role.slug}>
                     {role.name}
                   </MenuItem>
@@ -385,8 +402,8 @@ const PriceBookDetails = () => {
               </InputLabel>
               <DatePicker
                 id="start-date-picker"
-                selected={info.startDate}
-                onChange={(date) => handleDateChange(date, "startDate")}
+                selected={info.start_date}
+                onChange={(date) => handleDateChange(date, "start_date")}
                 customInput={
                   <TextField
                     fullWidth
@@ -407,8 +424,8 @@ const PriceBookDetails = () => {
               </InputLabel>
               <DatePicker
                 id="end-date-picker"
-                selected={info.endDate}
-                onChange={(date) => handleDateChange(date, "endDate")}
+                selected={info.end_date}
+                onChange={(date) => handleDateChange(date, "end_date")}
                 customInput={
                   <TextField
                     fullWidth
@@ -418,7 +435,7 @@ const PriceBookDetails = () => {
                 }
                 dateFormat="dd/MM/yyyy"
                 isClearable
-                minDate={info.startDate}
+                minDate={info.start_date}
               />
             </FormControl>
           </Grid>

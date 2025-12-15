@@ -1,6 +1,6 @@
 // AddPriceBookModal.jsx - Final Corrected UI
 
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Button,
   Stack,
@@ -13,12 +13,16 @@ import {
   FormControl,
   Typography,
   Paper,
+  Alert,
   Grid,
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
+import { generalAPI } from "../../../api/general";
+
 import { MOCK_ROLES } from "../data";
+import { CallMerge } from "@mui/icons-material";
 
 const modalStyle = {
   position: "absolute",
@@ -39,6 +43,10 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
     start_date: null,
     end_date: null,
   });
+
+  const [role, setRole] = useState([]);
+
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -62,6 +70,27 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
     onSave(dataToSave);
     setFormData({ name: "", role: "", start_date: null, end_date: null });
   };
+
+  const fetchUserRole = useCallback(async () => {
+    try {
+      const { data } = await generalAPI.getAvailableRoles();
+      console.log(data);
+      if (data?.status === "success" && Array.isArray(data?.data)) {
+        setRole(data.data);
+      } else {
+        setRole([]);
+        setError(
+          "Could not fetch user role. API returned an unsuccessful status."
+        );
+      }
+    } catch (error) {}
+  });
+
+  useEffect(() => {
+    if (open) {
+      fetchUserRole();
+    }
+  }, [open]);
 
   return (
     <Modal
@@ -146,6 +175,8 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
           </Typography>
 
           <Grid container spacing={3}>
+            {/* Display error or loading state */}
+            {error && <Alert severity="error">{error}</Alert>}
             {/* Target User Role */}
             <Grid item xs={6}>
               <FormControl fullWidth required>
@@ -157,7 +188,7 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
                   value={formData.role}
                   onChange={handleChange}
                 >
-                  {MOCK_ROLES.map((role) => (
+                  {role.map((role) => (
                     <MenuItem key={role.slug} value={role.slug}>
                       {role.name}
                     </MenuItem>
