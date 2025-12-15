@@ -116,17 +116,14 @@ const PriceBookDetails = () => {
           dataToSend
         );
         toast.success(
-          response.data?.data?.message ||
-            `Rule ID ${rule_id} updated successfully!`
+          response?.data.message || `Rule ID ${rule_id} updated successfully!`
         );
       } else {
         response = await priceBooksAPI.createProductRule(
           priceBookId,
           dataToSend
         );
-        toast.success(
-          response.data?.data?.message || "Product Rule added successfully!"
-        );
+        toast.success(response?.data.message || "Product Rule added successfully!");
       }
 
       // After successful save, refresh the rule list and close

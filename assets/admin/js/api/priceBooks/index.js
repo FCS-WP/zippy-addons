@@ -7,6 +7,9 @@ export const priceBooksAPI = {
   async getPriceBooks(params) {
     return await makeRequest("/price_books", params, "GET");
   },
+  async getAllProducts(params) {
+    return await makeRequest("/price_books/products", params, "GET");
+  },
 
   /**
    * Fetches a single Price Book container by ID (for the Edit Details page).

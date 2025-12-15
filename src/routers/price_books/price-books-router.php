@@ -4,6 +4,7 @@ namespace Zippy_Booking\Src\Routers\Price_Books;
 
 use Zippy_Booking\Src\App\Models\Price_Books\Zippy_Price_Books_Model;
 use Zippy_Booking\Src\Controllers\Price_Books\Zippy_Price_Books_Controller;
+use Zippy_Booking\Src\Controllers\Price_Books\Zippy_Price_Book_Products_Controller;
 use Zippy_Booking\Src\Middleware\Admin\Zippy_Booking_Permission;
 use WP_REST_Server;
 
@@ -34,6 +35,7 @@ class Price_Books_Router
   public function __construct()
   {
     add_action('rest_api_init', array($this, 'zippy_price_books_init_api'));
+    add_action('rest_api_init', array($this, 'zippy_price_book_product_init_api'));
   }
 
   public function zippy_price_books_init_api()
@@ -102,6 +104,18 @@ class Price_Books_Router
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules/(?P<id>\d+)', array(
       'methods'             => WP_REST_Server::DELETABLE, // DELETE
       'callback'            => [Zippy_Price_Books_Controller::class, 'delete_rule'],
+      'args'                => [],
+      'permission_callback' => $permission,
+    ));
+  }
+
+  public function zippy_price_book_product_init_api(): void
+  {
+    $namespace = ZIPPY_BOOKING_API_NAMESPACE;
+    $permission = array(Zippy_Booking_Permission::class, 'zippy_permission_callback');
+    register_rest_route($namespace, '/price_books/products', array(
+      'methods'             => WP_REST_Server::READABLE, // GET
+      'callback'            => [Zippy_Price_Book_Products_Controller::class, 'get_products'],
       'args'                => [],
       'permission_callback' => $permission,
     ));

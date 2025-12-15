@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 
 import ProductFilterbyCategories from "../../../Components/Products/ProductFilterByCategories";
-import { generalAPI } from "../../../api/general";
+import { priceBooksAPI } from "../../../api/priceBooks";
 
 const modalStyle = {
   position: "absolute",
@@ -66,19 +66,14 @@ const ProductRuleFormModal = ({
   const [error, setError] = useState(null);
 
   const [params, setParams] = useState({
-    page: 1,
-    items: 50,
     category: "",
-    userID: userSettings.uid,
     search: "",
-    include_id: undefined, // Explicitly handle the new ID param
   });
 
   const handleFilter = useCallback((filter) => {
     setParams((prev) => ({
       ...prev,
       ...filter,
-      page: 1,
     }));
   }, []);
 
@@ -88,9 +83,9 @@ const ProductRuleFormModal = ({
 
     if (!open) return;
     try {
-      const { data } = await generalAPI.products(params);
-      if (data?.status === "success" && Array.isArray(data.data?.data)) {
-        setProducts(data.data.data);
+      const { data } = await priceBooksAPI.getAllProducts(params);
+      if (data?.status === "success" && Array.isArray(data?.data)) {
+        setProducts(data.data);
       } else {
         setProducts([]);
         setError(
@@ -163,11 +158,8 @@ const ProductRuleFormModal = ({
       paramsSyncedRef.current = true;
 
       let newParams = {
-        page: 1,
         category: "",
         search: "",
-        items: 50,
-        userID: userSettings.uid,
       };
 
       if (isEditing && initialRuleData.product_id) {
@@ -268,7 +260,7 @@ const ProductRuleFormModal = ({
                           {product.name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          ID: {product.id}
+                          SKU: {product.sku}
                         </Typography>
                       </Stack>
                     </MenuItem>
