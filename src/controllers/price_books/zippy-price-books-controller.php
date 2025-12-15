@@ -187,7 +187,7 @@ class Zippy_Price_Books_Controller
     }
   }
   /**
-   * 
+   *
    * Handles the DELETE request to remove a specific Product Rule.
    */
 

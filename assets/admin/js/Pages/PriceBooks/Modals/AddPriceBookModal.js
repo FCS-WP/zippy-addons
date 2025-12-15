@@ -53,7 +53,9 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
 
     const dataToSave = {
       ...formData,
-      start_date: formData.start_date ? formData.start_date.toISOString() : null,
+      start_date: formData.start_date
+        ? formData.start_date.toISOString()
+        : null,
       end_date: formData.end_date ? formData.end_date.toISOString() : null,
     };
 
@@ -134,7 +136,12 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
           <Typography variant="h6" sx={{ mb: 2 }}>
             Target Audience
           </Typography>
-          <Typography variant="body2" color="text.secondary" display="block" sx={{ mb: 1 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            display="block"
+            sx={{ mb: 1 }}
+          >
             Select the user role that this pricing and visibility will apply to.
           </Typography>
 
@@ -171,7 +178,7 @@ const AddPriceBookModal = ({ open, handleClose, onSave }) => {
           >
             <Button
               onClick={handleClose}
-              variant="text"
+              variant="outlined"
               size="small"
               sx={{
                 color: "text.secondary",
