@@ -56,4 +56,22 @@ class Zippy_Price_Books_Model
       ),
     );
   }
+  public static function update_product_rule_args()
+  {
+    return array(
+      'pricebook_id' => array(
+        'required' => true,
+        'validate_callback' => function ($param, $request, $key) {
+          return is_numeric($param);
+        },
+      ),
+      'rule_id' => array(
+        'required' => true,
+        'validate_callback' => function ($param, $request, $key) {
+          return is_numeric($param);
+        },
+      ),
+
+    );
+  }
 }

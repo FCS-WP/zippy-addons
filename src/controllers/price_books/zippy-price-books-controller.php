@@ -109,16 +109,23 @@ class Zippy_Price_Books_Controller
     $pricebook_id = (int) $request->get_param('pricebook_id');
     $params = $request->get_json_params();
 
-    // 1. Basic Validation
-    if (empty($pricebook_id) || empty($params['productId']) || empty($params['priceValue'])) {
-      return Zippy_Response_Handler::error('Price Book ID, Product ID, and Price Value are required.', 400);
+    // 1. Validation
+
+    $required_fields = [
+      "product_id" => ["required" => true, "data_type" => "number"],
+      "price_value" => ["required" => true, "data_type" => "number"],
+    ];
+
+    $validate = Zippy_Request_Validation::validate_request($required_fields, $request);
+    if (!empty($validate)) {
+      return Zippy_Response_Handler::error($validate, 400);
     }
 
     // 2. Call the Service to insert data
     $new_id = Price_Books_Service::create_product_rule($pricebook_id, [
-      'productId'  => $params['productId'],
-      'priceType'  => $params['priceType'],
-      'priceValue' => $params['priceValue'],
+      'product_id'  => $params['product_id'],
+      'price_type'  => $params['price_type'],
+      'price_value' => $params['price_value'],
       'visibility' => $params['visibility'],
     ]);
 
@@ -146,6 +153,38 @@ class Zippy_Price_Books_Controller
 
     // Return the list of rules (which could be an empty array [])
     return Zippy_Response_Handler::success($rules);
+  }
+
+  /**
+   * 
+   * Handles the UPDATE request to update a specific Product Rule.
+   */
+
+  public static function update_product_rule(WP_REST_Request $request)
+  {
+
+    $rule_id = (int) $request->get_param('rule_id');
+
+    $pricebook_id = (int) $request->get_param('pricebook_id');
+
+
+    if (empty($rule_id) || empty($pricebook_id)) {
+      return Zippy_Response_Handler::error('Product Rule ID is required for update.', 400);
+    }
+
+    $data = $request->get_json_params();
+
+    try {
+      $result = Price_Books_Service::update_product_rule($pricebook_id, $rule_id, $data);
+
+      if (is_wp_error($result)) {
+        return Zippy_Response_Handler::error('Failed to update Product Rule.', 500);
+      }
+
+      return Zippy_Response_Handler::success($data, 'Product rule updated successfully.');
+    } catch (\Exception $e) {
+      return new WP_REST_Response(['status' => 'error', 'message' => $e->getMessage()], 500);
+    }
   }
   /**
    * 

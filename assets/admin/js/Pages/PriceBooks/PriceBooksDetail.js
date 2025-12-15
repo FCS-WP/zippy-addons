@@ -104,19 +104,19 @@ const PriceBookDetails = () => {
 
   const handleSaveRule = async (dataPayload) => {
     setLoadingRules(true);
-    const { ruleId, ...dataToSend } = dataPayload;
+    const { rule_id, ...dataToSend } = dataPayload;
 
     try {
       let response;
-      if (ruleId) {
+      if (rule_id) {
         response = await priceBooksAPI.updateProductRule(
           priceBookId,
-          ruleId,
+          rule_id,
           dataToSend
         );
         toast.success(
           response.data?.data?.message ||
-            `Rule ID ${ruleId} updated successfully!`
+            `Rule ID ${rule_id} updated successfully!`
         );
       } else {
         response = await priceBooksAPI.createProductRule(

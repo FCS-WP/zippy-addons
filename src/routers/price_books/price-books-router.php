@@ -41,6 +41,7 @@ class Price_Books_Router
     $namespace = ZIPPY_BOOKING_API_NAMESPACE;
     $permission = array(Zippy_Booking_Permission::class, 'zippy_permission_callback');
     $model_args = Zippy_Price_Books_Model::get_args();
+    $update_product_rule_model_args = Zippy_Price_Books_Model::update_product_rule_args();
 
 
     register_rest_route($namespace, '/price_books', array(
@@ -89,6 +90,13 @@ class Price_Books_Router
       'args'                => [],
       'permission_callback' => $permission,
     ));
+
+    register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules/(?P<rule_id>\d+)', [
+      'methods'             => WP_REST_Server::EDITABLE, // PUT
+      'callback'            => [Zippy_Price_Books_Controller::class, 'update_product_rule'],
+      'args'                => $update_product_rule_model_args,
+      'permission_callback' => $permission,
+    ]);
 
     // Route: /price_books/{pricebook_id}/rules/{id}
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules/(?P<id>\d+)', array(

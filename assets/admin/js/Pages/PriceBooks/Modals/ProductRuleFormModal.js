@@ -1,6 +1,6 @@
 // ProductRuleFormModal.jsx (Corrected Version)
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   Button,
   Stack,
@@ -40,9 +40,9 @@ const modalStyle = {
 
 const initializeFormData = (initialData) => {
   return {
-    productId: initialData?.productId || 0,
-    priceValue: initialData?.priceValue?.toString() || "",
-    priceType: initialData?.priceType || "fixed",
+    product_id: initialData?.product_id || 0,
+    price_value: initialData?.price_value?.toString() || "",
+    price_type: initialData?.price_type || "fixed",
     visibility: initialData?.visibility || "show",
   };
 };
@@ -53,21 +53,21 @@ const ProductRuleFormModal = ({
   onSave,
   initialRuleData,
 }) => {
-  const isEditing = !!initialRuleData?.id;
+  const paramsSyncedRef = useRef(false);
 
-  // FIX 1A: Use the functional updater form for state initialization
+  const isEditing = !!initialRuleData?.rule_id;
+
   const [formData, setFormData] = useState(() =>
     initializeFormData(initialRuleData)
   );
 
-  // ... (products, loading, error states remain the same)
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const [params, setParams] = useState({
     page: 1,
-    items: 10,
+    items: 20,
     category: "",
     userID: userSettings.uid,
     search: "",
@@ -87,11 +87,8 @@ const ProductRuleFormModal = ({
     setError(null);
 
     if (!open) return;
-
     try {
-      console.log(params);
       const { data } = await generalAPI.products(params);
-
       if (data?.status === "success" && Array.isArray(data.data?.data)) {
         setProducts(data.data.data);
       } else {
@@ -107,13 +104,13 @@ const ProductRuleFormModal = ({
     } finally {
       setLoading(false);
     }
-  }, [params, open]); // Dependencies are correct here
+  }, [params, open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     let newValue = value;
 
-    if (name === "productId" && value !== 0 && value !== "") {
+    if (name === "product_id" && value !== 0 && value !== "") {
       newValue = parseInt(value, 10);
     }
 
@@ -124,15 +121,15 @@ const ProductRuleFormModal = ({
     e.preventDefault();
 
     let validationError = "";
-    const priceValueNumber = parseFloat(formData.priceValue);
+    const priceValueNumber = parseFloat(formData.price_value);
 
-    if (formData.productId === 0) {
+    if (formData.product_id === 0) {
       // Check against 0 for the default numeric value
       validationError = "Please select a product.";
-    } else if (!formData.priceValue || isNaN(priceValueNumber)) {
+    } else if (!formData.price_value || isNaN(priceValueNumber)) {
       validationError = "Please enter a valid price value.";
     } else if (
-      formData.priceType === "percent_off" &&
+      formData.price_type === "percent_off" &&
       (priceValueNumber < 0 || priceValueNumber > 100)
     ) {
       validationError = "Percentage discount must be between 0 and 100.";
@@ -143,60 +140,68 @@ const ProductRuleFormModal = ({
       return;
     }
 
-    const product = products.find((p) => p.id === formData.productId);
+    const product = products.find((p) => p.id == formData.product_id);
     const productName = product
       ? product.name
-      : `Product ID: ${formData.productId}`;
+      : `Product ID: ${formData.product_id}`;
 
     const dataToSave = {
-      ruleId: initialRuleData?.id || null,
+      rule_id: initialRuleData?.rule_id || null,
       ...formData,
       product_name: productName,
-      priceValue: priceValueNumber, // Use the parsed number
+      price_value: priceValueNumber, // Use the parsed number
     };
 
-    if (isEditing) {
-      onSave(initialRuleData.id, dataToSave);
-    } else {
-      onSave(dataToSave);
-    }
+    onSave(dataToSave);
 
     handleClose();
   };
 
   useEffect(() => {
     if (open) {
-      console.log(initialRuleData);
       setFormData(initializeFormData(initialRuleData));
+      paramsSyncedRef.current = true;
+
+      let newParams = {
+        page: 1,
+        category: "",
+        search: "",
+        items: 20,
+        userID: userSettings.uid,
+      };
 
       if (isEditing && initialRuleData.product_id) {
-        setParams((prev) => ({
-          ...prev,
-          page: 1,
-          category: "",
-          search: "",
-          include_id: initialRuleData.product_id, // Include the current product ID
-        }));
+        newParams.include_id = initialRuleData.product_id;
       } else {
-        // Add Mode:
-        setParams((prev) => ({
-          ...prev,
-          page: 1,
-          category: "",
-          search: "",
-          include_id: undefined,
-        }));
+        newParams.include_id = undefined;
       }
+
+      setParams((prev) => {
+        if (JSON.stringify(prev) === JSON.stringify(newParams)) {
+          paramsSyncedRef.current = false;
+          return prev;
+        }
+        return newParams;
+      });
     }
   }, [initialRuleData, open, isEditing]);
 
   useEffect(() => {
     if (open) {
-      fetchProducts();
+      if (paramsSyncedRef.current) {
+        paramsSyncedRef.current = false;
+        fetchProducts();
+      } else if (
+        paramsSyncedRef.current === false &&
+        !isEditing &&
+        initialRuleData?.id === undefined
+      ) {
+        fetchProducts();
+      }
     }
-  }, [open, params, fetchProducts]);
+  }, [open, params, fetchProducts, isEditing, initialRuleData]);
 
-  const isPercentage = formData.priceType === "percent_off";
+  const isPercentage = formData.price_type === "percent_off";
 
   return (
     <Modal
@@ -240,8 +245,8 @@ const ProductRuleFormModal = ({
               <Select
                 labelId="product-select-label"
                 label={loading ? "Loading Products..." : "Select Product"}
-                name="productId"
-                value={formData.productId}
+                name="product_id"
+                value={formData.product_id}
                 onChange={handleChange}
                 endAdornment={loading && <CircularProgress size={20} />}
               >
@@ -270,10 +275,10 @@ const ProductRuleFormModal = ({
                   ))
                 )}
                 {isEditing &&
-                  formData.productId !== 0 &&
-                  !products.find((p) => p.id === formData.productId) && (
-                    <MenuItem value={formData.productId} disabled>
-                      Selected ID: {formData.productId} (External)
+                  formData.product_id !== 0 &&
+                  !products.find((p) => p.id == formData.product_id) && (
+                    <MenuItem value={formData.product_id} disabled>
+                      Selected ID: {formData.product_id} (External)
                     </MenuItem>
                   )}
               </Select>
@@ -302,8 +307,8 @@ const ProductRuleFormModal = ({
                   <Select
                     labelId="price-type-label"
                     label="Pricing Method"
-                    name="priceType"
-                    value={formData.priceType}
+                    name="price_type"
+                    value={formData.price_type}
                     onChange={handleChange}
                   >
                     <MenuItem value="fixed">Fixed Price (Override)</MenuItem>
@@ -326,10 +331,10 @@ const ProductRuleFormModal = ({
                       ? "Discount Percentage (0-100)"
                       : "Custom Price or Discount Amount"
                   }
-                  name="priceValue"
+                  name="price_value"
                   type="number"
                   inputProps={{ step: "0.01", min: "0" }}
-                  value={formData.priceValue}
+                  value={formData.price_value}
                   onChange={handleChange}
                   required
                   helperText={

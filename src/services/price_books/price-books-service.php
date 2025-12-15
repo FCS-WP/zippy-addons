@@ -4,6 +4,8 @@ namespace Zippy_Booking\Src\Services\Price_Books;
 
 use Zippy_Booking\Utils\Zippy_DateTime_Helper;
 
+use WP_Error;
+
 class Price_Books_Service
 {
   public static function get_pricebooks()
@@ -117,12 +119,12 @@ class Price_Books_Service
     global $wpdb;
     $table_name = $wpdb->prefix . 'pricebook_product_relations';
 
-    $price_value = (float) $data['priceValue'];
+    $price_value = (float) $data['price_value'];
 
     $insert_data = array(
       'pricebook_id'  => $pricebook_id,
-      'product_id'    => (int) $data['productId'],
-      'price_type'    => sanitize_key($data['priceType']),
+      'product_id'    => (int) $data['product_id'],
+      'price_type'    => sanitize_key($data['price_type']),
       'price_value'   => $price_value,
       'visibility'    => sanitize_key($data['visibility']),
     );
@@ -169,6 +171,60 @@ class Price_Books_Service
     $rules = $wpdb->get_results($sql, ARRAY_A);
 
     return $rules ?: [];
+  }
+
+  /**
+   * Updates an existing product pricing rule.
+   */
+  public static function update_product_rule($pricebook_id, $rule_id, $data)
+  {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'pricebook_product_relations';
+
+    $update_data = [];
+    $format = [];
+
+    if (isset($data['product_id'])) {
+      $update_data['product_id'] = sanitize_text_field($data['product_id']);
+      $format[] = '%s';
+    }
+
+    if (isset($data['price_type'])) {
+      $update_data['price_type'] = sanitize_text_field($data['price_type']);
+      $format[] = '%s';
+    }
+
+    if (isset($data['price_value'])) {
+      $update_data['price_value'] = floatval($data['price_value']);
+      $format[] = '%f';
+    }
+
+    if (isset($data['visibility'])) {
+      $update_data['visibility'] = sanitize_text_field($data['visibility']);
+      $format[] = '%s';
+    }
+
+    if (empty($update_data)) {
+      return new WP_Error('no_data', 'No valid data provided for update.');
+    }
+
+    $updated = $wpdb->update(
+      $table_name,
+      $update_data,
+      [
+        'id' => intval($rule_id),
+        'pricebook_id' => intval($pricebook_id) // Security check
+      ],
+      $format,
+      ['%d', '%d']
+    );
+
+    if ($updated === false) {
+      // Database error
+      return new WP_Error('db_error', 'Failed to update rule: ' . $wpdb->last_error);
+    }
+
+    return true;
   }
 
   /**
