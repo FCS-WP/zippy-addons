@@ -54,9 +54,9 @@ if (!defined('ZIPPY_ADDONS_URL')) {
   define('ZIPPY_ADDONS_URL', plugin_dir_url(__FILE__));
 }
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 
 /* ------------------------------------------
 // Includes
