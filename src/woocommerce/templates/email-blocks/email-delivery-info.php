@@ -25,7 +25,7 @@
 
 			<tr>
 				<td align="right" valign="top"><br>
-					<b>Delivery Address</b><br><?php echo $order->get_shipping_address_1(); ?>
+					<b>Delivery Address</b><br><?php echo $order->get_shipping_address_1() . ', ' . $order->get_shipping_address_2(); ?>
 				</td>
 			</tr>
 			<tr>
