@@ -8,3 +8,5 @@ yarn.lock
 assets/dist
 
 vendor
+
+.env
