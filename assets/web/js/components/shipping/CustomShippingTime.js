@@ -198,7 +198,7 @@ const CustomShippingTime = () => {
       </Box>
 
       <p style={{ color: "red", marginBottom: "10px" }}>
-        Our store will be closed on <b>25 December</b>. All orders placed or
+        Our store will be closed on <b>25,26 December</b>. All orders placed or
         deliveries scheduled on this date will be processed the next working day.
       </p>
 
