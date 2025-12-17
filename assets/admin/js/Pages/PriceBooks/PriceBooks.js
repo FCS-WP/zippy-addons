@@ -118,7 +118,7 @@ const PriceBooks = () => {
 
       if (id) {
         toast.success(message || "Price Book created successfully.");
-        await fetchPriceBooksData();
+        await initData();
         handleClose();
       } else {
         toast.error(
@@ -207,6 +207,7 @@ const PriceBooks = () => {
         handleClose={handleClose}
         onSave={handleSavePriceBook}
         isSaving={isCreating}
+        ruleData={rules}
       />
       <ToastContainer />
     </Container>
