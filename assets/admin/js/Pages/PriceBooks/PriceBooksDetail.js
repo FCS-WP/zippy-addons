@@ -25,7 +25,6 @@ import { format } from "date-fns";
 import { toast, ToastContainer } from "react-toastify";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 // Assuming these are available
-import { MOCK_ROLES } from "./data";
 import { priceBooksAPI } from "../../api/priceBooks";
 import ProductRuleFormModal from "./Modals/ProductRuleFormModal";
 import { rulesColumns } from "./data";
@@ -55,6 +54,7 @@ const PriceBookDetails = () => {
   const isEditMode = priceBookId !== "new";
 
   const [info, setInfo] = useState(INITIAL_INFO);
+  const [isEditInfo, setEditInfo] = useState(false);
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -138,6 +138,7 @@ const PriceBookDetails = () => {
 
   const handleInfoChange = (e) => {
     setInfo({ ...info, [e.target.name]: e.target.value });
+    setEditInfo(true);
   };
 
   const handleDateChange = (date, name) => {
@@ -308,6 +309,8 @@ const PriceBookDetails = () => {
       console.error("Save Info Error:", error);
     } finally {
       setIsSaving(false);
+      setEditInfo(false);
+
     }
   };
 
@@ -349,7 +352,7 @@ const PriceBookDetails = () => {
             variant="contained"
             color="success"
             onClick={handleSaveInfo}
-            disabled={isSaving || !isReadyToSave}
+            disabled={isSaving || !isReadyToSave || !isEditInfo}
           >
             {isSaving
               ? "Saving..."

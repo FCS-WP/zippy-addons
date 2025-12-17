@@ -8,17 +8,13 @@ import { toast, ToastContainer } from "react-toastify";
 import Loading from "../../Components/Loading";
 
 import AddPriceBookModal from "./Modals/AddPriceBookModal";
-import { MOCK_ROLES, priceBooksColumns, columnWidths } from "./data";
+import { priceBooksColumns, columnWidths } from "./data";
 import { priceBooksAPI } from "../../api/priceBooks";
+import { generalAPI } from "../../api/general";
 
 const constructEditUrl = (id) => {
   const baseUrl = "?page=price_books";
   return baseUrl + "&id=" + id;
-};
-
-const getRoleDisplayName = (slug) => {
-  const role = MOCK_ROLES.find((r) => r.slug === slug);
-  return role ? role.name : slug;
 };
 
 const getStatusChipProps = (statusLabel) => {
@@ -34,60 +30,85 @@ const getStatusChipProps = (statusLabel) => {
   }
 };
 
-const handleConvertData = (rows) => {
-  return rows.map((value) => ({
-    ID: value.id,
-    NAME: value.name,
-    ROLE: getRoleDisplayName(value.role_id),
-    "START DATE": value.start_date
-      ? format(new Date(value.start_date), "MMM dd, yyyy")
-      : "N/A",
-    "END DATE": value.end_date
-      ? format(new Date(value.end_date), "MMM dd, yyyy")
-      : "N/A",
-    STATUS: <Chip size="small" {...getStatusChipProps(value.status_label)} />,
-    "": (
-      <NavLink to={constructEditUrl(value.id)}>
-        <Button startIcon={<ModeEditOutlineIcon />} size="small">
-          Edit
-        </Button>
-      </NavLink>
-    ),
-  }));
-};
-
 const PriceBooks = () => {
   const [priceBooks, setPriceBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [rules, setRules] = useState([]);
 
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
 
+  const handleConvertData = (rows, currentRules) => {
+    return rows.map((value) => ({
+      ID: value.id,
+      NAME: value.name,
+      ROLE: getRoleDisplayName(value.role_id, currentRules),
+      "START DATE": value.start_date
+        ? format(new Date(value.start_date), "MMM dd, yyyy")
+        : "N/A",
+      "END DATE": value.end_date
+        ? format(new Date(value.end_date), "MMM dd, yyyy")
+        : "N/A",
+      STATUS: <Chip size="small" {...getStatusChipProps(value.status_label)} />,
+      "": (
+        <NavLink to={constructEditUrl(value.id)}>
+          <Button startIcon={<ModeEditOutlineIcon />} size="small">
+            Edit
+          </Button>
+        </NavLink>
+      ),
+    }));
+  };
+
+  const getRoleDisplayName = (slug, currentRules) => {
+    const roleList = currentRules.length > 0 ? currentRules : rules;
+    const role = roleList.find((r) => r.slug === slug);
+    return role ? role.name : slug;
+  };
+
+  const fetchUserRole = useCallback(async () => {
+    try {
+      const { data } = await generalAPI.getAvailableRoles();
+      if (data?.status === "success" && Array.isArray(data?.data)) {
+        return data.data;
+      } else {
+        setRules([]);
+        setHasError(true);
+      }
+    } catch (error) {}
+  }, []);
+
   //fetch data
-  const fetchPriceBooks = useCallback(async () => {
+  const fetchPriceBooksData = useCallback(async () => {
+    try {
+      const response = await priceBooksAPI.getPriceBooks();
+      return response.data?.data || [];
+    } catch (error) {
+      throw error;
+    }
+  }, []);
+
+  const initData = useCallback(async () => {
     setIsLoading(true);
     setHasError(false);
     try {
-      const response = await priceBooksAPI.getPriceBooks();
-      const apiData = response.data?.data || [];
+      const fetchedRules = await fetchUserRole();
+      setRules(fetchedRules);
 
-      if (apiData.length > 0) {
-        const convertedData = handleConvertData(apiData);
-        setPriceBooks(convertedData);
-      } else {
-        setPriceBooks([]);
-      }
+      const rawPriceBooks = await fetchPriceBooksData();
+
+      const formatted = handleConvertData(rawPriceBooks, fetchedRules);
+      setPriceBooks(formatted);
     } catch (error) {
-      console.error("API Error: Cannot get Price Books:", error);
-      toast.error("Failed to load Price Books data.");
       setHasError(true);
+      toast.error("Failed to load data");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchUserRole, fetchPriceBooksData]);
 
   const handleSavePriceBook = async (params) => {
     setIsCreating(true);
@@ -97,11 +118,12 @@ const PriceBooks = () => {
 
       if (id) {
         toast.success(message || "Price Book created successfully.");
-        await fetchPriceBooks();
+        await fetchPriceBooksData();
         handleClose();
       } else {
         toast.error(
-          response.error?.message || "Creation successful, but missing Price Book ID."
+          response.error?.message ||
+            "Creation successful, but missing Price Book ID."
         );
       }
     } catch (error) {
@@ -116,8 +138,8 @@ const PriceBooks = () => {
   };
 
   useEffect(() => {
-    fetchPriceBooks();
-  }, [fetchPriceBooks]);
+    initData();
+  }, [initData]);
 
   const renderContent = () => {
     if (isLoading) {

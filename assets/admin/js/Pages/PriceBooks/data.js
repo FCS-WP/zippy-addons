@@ -7,13 +7,6 @@ export const priceBooksColumns = [
   "", // Action column
 ];
 
-export const MOCK_ROLES = [
-  { slug: "wholesale", name: "Wholesale Customer" },
-  { slug: "customer", name: "Customer" },
-  { slug: "vip", name: "VIP" },
-  { slug: "customer", name: "Standard Customer" },
-];
-
 export const columnWidths = {
   NAME: "auto",
   ROLE: "20%",

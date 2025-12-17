@@ -206,6 +206,7 @@ const ProductRuleFormModal = ({
           id="product-rule-title"
           variant="h6"
           component="h2"
+          fontWeight="bold"
           sx={{ mb: 3 }}
         >
           {isEditing ? "Edit Product Rule" : "Add Product Rule to Price Book"}
@@ -215,7 +216,7 @@ const ProductRuleFormModal = ({
           <Stack spacing={3}>
             <Typography
               variant="subtitle1"
-              sx={{ mt: 3, mb: -1 }}
+              sx={{ mt: 1, mb: -2 }}
               fontWeight="bold"
             >
               Search Products
