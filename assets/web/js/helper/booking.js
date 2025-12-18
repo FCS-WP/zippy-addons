@@ -21,7 +21,8 @@ export const getSelectProductId = () => {
   const zippyForm = document.getElementById("zippy-form");
   const productId = zippyForm.getAttribute("data-product_id");
   const quantity = zippyForm.getAttribute("quantity") ?? 1;
-  return [productId, quantity];
+  const productType = zippyForm.getAttribute("data-product-type") ?? null;
+  return [productId, quantity, productType];
 };
 
 export const triggerCloseLightbox = () => {

@@ -44,6 +44,14 @@ class Zippy_Woo_Booking
     /* Update Checkout After Applied Coupon */
     add_action('woocommerce_applied_coupon', array($this, 'after_apply_coupon_action'));
     add_action('woocommerce_product_options_pricing', array($this, 'add_custom_price_field_to_product'));
+    add_action('woocommerce_product_options_pricing', array($this, 'add_popup_price_field_to_product'));
+    add_action('woocommerce_variation_options_pricing', array($this, 'add_popup_price_to_variations'), 10, 3);
+    add_action('woocommerce_save_product_variation', array($this, 'save_popup_price_variations'), 10, 2);
+
+    add_action('woocommerce_admin_process_product_object',  array($this, 'save_popup_price_field'));
+
+    add_filter('post_class', array($this, 'custom_class_products'), 10, 3);
+
     add_filter('woocommerce_add_to_cart_validation', array($this, 'check_product_category_before_add_to_cart'), 10, 5);
     add_action('wp_login', array($this, 'init_session'), 10, 2);
     add_action('init', array($this, 'init_session'), 5);
@@ -155,5 +163,71 @@ class Zippy_Woo_Booking
         'min' => '0'
       )
     ));
+  }
+
+  public function add_popup_price_field_to_product()
+  {
+    woocommerce_wp_text_input(array(
+      'id' => '_popup_price',
+      'label' => __('Popup price ($)', 'woocommerce'),
+      'description' => __('Enter an price for Popup reservation.', 'woocommerce'),
+      'desc_tip' => 'true',
+      'type' => 'number',
+      'custom_attributes' => array(
+        'step' => '0.1',
+        'min' => '0'
+      )
+    ));
+  }
+
+  function add_popup_price_to_variations($loop, $variation_data, $variation)
+  {
+
+    woocommerce_wp_text_input(array(
+      'id'            => "_popup_price[$loop]",
+      'name'          => "_popup_price[$loop]",
+      'value'         => get_post_meta($variation->ID, '_popup_price', true),
+      'label'         => __('Popup price ($)', 'woocommerce'),
+      'type'          => 'number',
+      'custom_attributes' => array(
+        'step' => '0.01',
+        'min'  => '0',
+      ),
+      'wrapper_class' => 'form-row form-row-full',
+    ));
+  }
+
+  public function save_popup_price_field($product)
+  {
+
+    if (isset($_POST['_popup_price'])) {
+      $product->update_meta_data(
+        '_popup_price',
+        wc_clean($_POST['_popup_price'])
+      );
+    }
+  }
+
+  function save_popup_price_variations($variation_id, $i)
+  {
+
+    if (isset($_POST['_popup_price'][$i])) {
+      update_post_meta(
+        $variation_id,
+        '_popup_price',
+        wc_clean($_POST['_popup_price'][$i])
+      );
+    }
+  }
+
+  public function custom_class_products($classes, $class, $post_id)
+  {
+    $product = wc_get_product($post_id);
+    $type = wc_get_product_price_type($product);
+
+    $classes[] = $type;
+
+
+    return $classes;
   }
 }

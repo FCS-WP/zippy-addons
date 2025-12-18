@@ -7,12 +7,11 @@ import OrderForm from "./components/zippy-forms/OrderForm";
 import LoginForm from "./pages/LoginForm";
 
 $(function () {
-
   const target = document.getElementById("lightbox-zippy-form");
   let root = null;
 
   // Function to render React component
-  function renderReactApp(productId, quantity = 1) {
+  function renderReactApp(productId, quantity = 1, productType) {
     const zippyMain = document.getElementById("zippy-form");
     const root = ReactDOM.createRoot(zippyMain);
 
@@ -23,7 +22,11 @@ $(function () {
       root.render(
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <OrderForm productId={productId} quantity={quantity} />
+          <OrderForm
+            productId={productId}
+            quantity={quantity}
+            productType={productType}
+          />
           <ToastContainer />
         </ThemeProvider>
       );
@@ -46,7 +49,8 @@ $(function () {
             let form = document.getElementById("zippy-form");
             let productId = form.getAttribute("data-product_id");
             let quantity = form.getAttribute("quantity");
-            renderReactApp(productId, quantity);
+            let productType = form.getAttribute("data-product-type");
+            renderReactApp(productId, quantity, productType);
           }
         });
       }

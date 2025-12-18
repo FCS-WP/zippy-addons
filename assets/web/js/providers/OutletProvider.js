@@ -20,12 +20,15 @@ const OutletProvider = ({ children }) => {
   const [customOutletSelected, setCustomOutletSelected] = useState();
 
   const checkCartType = async () => {
+    const productType = getSelectProductId()[2];
     const currentPath = window.location.pathname;
     let is_retail = currentPath.includes(SHOP_TYPE.RETAIL);
     let is_popup = currentPath.includes(SHOP_TYPE.POPUP_RESERVATION);
     if (is_retail || is_popup) {
       setCartType(is_retail ? SHOP_TYPE.RETAIL : SHOP_TYPE.POPUP_RESERVATION);
       let donaOutletData = is_retail ? dataRetailStore : dataPopupReservation;
+    } else {
+      setCartType(productType);
     }
   };
 
