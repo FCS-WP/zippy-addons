@@ -8,7 +8,7 @@ defined('ABSPATH') or die();
 class Zipyy_Pricebooks_DB
 {
   protected static $_instance = null;
-  protected $version = '1.1';
+  protected $version = '1.2';
 
   public function __construct()
   {
@@ -26,6 +26,7 @@ class Zipyy_Pricebooks_DB
 
     if ($installed_ver !== $this->version) {
       $this->migrate_to_soft_delete();
+      $this->migrate_price_book_type();
       update_option('pricebook_db_version', $this->version);
     }
   }
@@ -58,6 +59,16 @@ class Zipyy_Pricebooks_DB
           $wpdb->query($sql);
         }
       }
+    }
+  }
+
+  private function migrate_price_book_type()
+  {
+    global $wpdb;
+    $containers_table = $wpdb->prefix . 'pricebook_containers';
+    $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $containers_table LIKE 'is_exclusive'");
+    if (empty($column_exists)) {
+      $wpdb->query("ALTER TABLE $containers_table ADD COLUMN is_exclusive TINYINT(1) NOT NULL DEFAULT 0 AFTER status");
     }
   }
 

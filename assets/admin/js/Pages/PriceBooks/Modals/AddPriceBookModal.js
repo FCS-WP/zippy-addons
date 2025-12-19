@@ -1,6 +1,4 @@
-// AddPriceBookModal.jsx - Final Corrected UI
-
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
   Button,
   Stack,
@@ -13,23 +11,29 @@ import {
   FormControl,
   Typography,
   Paper,
-  Alert,
+  Switch,
   Grid,
+  Divider,
+  Chip,
+  Alert,
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { generalAPI } from "../../../api/general";
+import SettingsIcon from "@mui/icons-material/Settings";
+import PeopleIcon from "@mui/icons-material/People";
 
 const modalStyle = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 750, // Optimal width for the two-column grid
+  width: 800, // Slightly wider for better grid spacing
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
-  borderRadius: 2,
+  borderRadius: 3,
+  maxHeight: "90vh",
+  overflowY: "auto",
 };
 
 const AddPriceBookModal = ({ open, handleClose, onSave, ruleData }) => {
@@ -38,157 +42,207 @@ const AddPriceBookModal = ({ open, handleClose, onSave, ruleData }) => {
     role: "",
     start_date: null,
     end_date: null,
+    is_exclusive: false,
+    status: true, // Default to Active
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleDateChange = (date, name) => {
-    setFormData({ ...formData, [name]: date });
+  const handleToggleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.checked });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const dataToSave = {
       ...formData,
-      start_date: formData.start_date
-        ? formData.start_date.toISOString()
-        : null,
-      end_date: formData.end_date ? formData.end_date.toISOString() : null,
+      status: formData.status ? "active" : "inactive",
+      is_exclusive: formData.is_exclusive ? 1 : 0,
+      start_date: formData.start_date?.toISOString() || null,
+      end_date: formData.end_date?.toISOString() || null,
     };
-
     onSave(dataToSave);
-    setFormData({ name: "", role: "", start_date: null, end_date: null });
+    setFormData({
+      name: "",
+      role: "",
+      start_date: null,
+      end_date: null,
+      is_exclusive: false,
+      status: true,
+    });
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="add-price-book-title"
-    >
+    <Modal open={open} onClose={handleClose}>
       <Paper sx={modalStyle}>
         <Box component="form" onSubmit={handleSubmit}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Pricebook's Info
-          </Typography>
-
-          <Grid container spacing={3} mb={4}>
-            {/* Name */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Name: Pricebook's name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 0.5, display: "block" }}
-              >
-                A short, descriptive name for this Price Book.
-              </Typography>
-            </Grid>
-
-            {/* Start Date */}
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel shrink htmlFor="start-date-picker">
-                  Start Date
-                </InputLabel>
-                <DatePicker
-                  id="start-date-picker"
-                  selected={formData.start_date}
-                  onChange={(date) => handleDateChange(date, "start_date")}
-                  customInput={<TextField fullWidth />}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="DD/MM/YYYY"
-                  isClearable
-                />
-              </FormControl>
-            </Grid>
-
-            {/* End Date */}
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel shrink htmlFor="end-date-picker">
-                  End Date
-                </InputLabel>
-                <DatePicker
-                  id="end-date-picker"
-                  selected={formData.end_date}
-                  onChange={(date) => handleDateChange(date, "end_date")}
-                  customInput={<TextField fullWidth />}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="DD/MM/YYYY"
-                  isClearable
-                  minDate={formData.start_date}
-                />
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Target Audience
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            display="block"
-            sx={{ mb: 1 }}
-          >
-            Select the user role that this pricing and visibility will apply to.
-          </Typography>
-
-          <Grid container spacing={3}>
-            {/* Target User Role */}
-            <Grid item xs={6}>
-              <FormControl fullWidth required>
-                <InputLabel id="role-select-label">Target User Role</InputLabel>
-                <Select
-                  labelId="role-select-label"
-                  label="Target User Role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                >
-                  {ruleData.map((role) => (
-                    <MenuItem key={role.slug} value={role.slug}>
-                      {role.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            {/* Empty spacer */}
-            <Grid item xs={6}></Grid>
-          </Grid>
-
+          {/* Header with Status Badge */}
           <Stack
             direction="row"
-            spacing={2}
-            justifyContent="flex-end"
+            justifyContent="space-between"
             alignItems="center"
-            sx={{ mt: 5 }}
+            mb={3}
           >
-            <Button onClick={handleClose} variant="outlined" size="small">
+            <Typography variant="h5" fontWeight="600">
+              Create New Price Book
+            </Typography>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="body2" color="text.secondary">
+                Status:
+              </Typography>
+              <Chip
+                label={formData.status ? "ACTIVE" : "INACTIVE"}
+                color={formData.status ? "success" : "default"}
+                size="small"
+                sx={{ fontWeight: "bold" }}
+              />
+              <Switch
+                name="status"
+                checked={formData.status}
+                onChange={handleToggleChange}
+                color="success"
+              />
+            </Stack>
+          </Stack>
+
+          <Divider sx={{ mb: 4 }} />
+
+          <Grid container spacing={4}>
+            {/* Section 1: General Info */}
+            <Grid item xs={12} md={7}>
+              <Stack spacing={3} sx={{ paddingRight: 4 }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <SettingsIcon color="action" fontSize="small" />
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    General Settings
+                  </Typography>
+                </Stack>
+
+                <TextField
+                  fullWidth
+                  label="Price Book Name"
+                  name="name"
+                  placeholder="e.g. VIP Summer Sale 2025"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+
+                <Stack direction="row" spacing={2}>
+                  <FormControl fullWidth>
+                    <InputLabel shrink>Start Date</InputLabel>
+                    <DatePicker
+                      selected={formData.start_date}
+                      onChange={(date) =>
+                        setFormData({ ...formData, start_date: date })
+                      }
+                      customInput={<TextField fullWidth size="small" />}
+                      dateFormat="dd/MM/yyyy"
+                    />
+                  </FormControl>
+                  <FormControl fullWidth>
+                    <InputLabel shrink>End Date</InputLabel>
+                    <DatePicker
+                      selected={formData.end_date}
+                      onChange={(date) =>
+                        setFormData({ ...formData, end_date: date })
+                      }
+                      customInput={<TextField fullWidth size="small" />}
+                      dateFormat="dd/MM/yyyy"
+                      minDate={formData.start_date}
+                    />
+                  </FormControl>
+                </Stack>
+              </Stack>
+            </Grid>
+
+            {/* Section 2: Audience & Behavior */}
+            <Grid
+              item
+              xs={12}
+              md={5}
+              sx={{ borderLeft: { md: "1px solid #eee" } }}
+            >
+              <Stack spacing={3}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <PeopleIcon color="action" fontSize="small" />
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Visibility & Audience
+                  </Typography>
+                </Stack>
+
+                <FormControl fullWidth required size="small">
+                  <InputLabel>Target User Role</InputLabel>
+                  <Select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    label="Target User Role"
+                  >
+                    <MenuItem value="all">
+                      <em>All Users</em>
+                    </MenuItem>
+                    {ruleData.map((role) => (
+                      <MenuItem key={role.slug} value={role.slug}>
+                        {role.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Box sx={{ p: 2, bgcolor: "#f9f9f9", borderRadius: 2 }}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Box display="flex" direction="column">
+                      <Typography variant="body2" fontWeight="bold">
+                        Exclusive Catalog
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Hide all other products
+                      </Typography>
+                    </Box>
+                    <Switch
+                      name="is_exclusive"
+                      checked={formData.is_exclusive}
+                      onChange={handleToggleChange}
+                      color="secondary"
+                    />
+                  </Stack>
+                  {formData.is_exclusive && (
+                    <Alert
+                      severity="warning"
+                      icon={false}
+                      sx={{ mt: 1, fontSize: "0.75rem" }}
+                    >
+                      Users will <b>only</b> see products assigned to this book.
+                    </Alert>
+                  )}
+                </Box>
+              </Stack>
+            </Grid>
+          </Grid>
+
+          <Box
+            sx={{ mt: 6, display: "flex", justifyContent: "flex-end", gap: 2 }}
+          >
+            <Button onClick={handleClose} variant="text" color="inherit">
               Cancel
             </Button>
-
             <Button
               type="submit"
               variant="contained"
+              size="large"
               disabled={!formData.name || !formData.role}
-              color="primary"
+              sx={{ px: 4, borderRadius: 2 }}
             >
               Save & Define Products
             </Button>
-          </Stack>
+          </Box>
         </Box>
       </Paper>
     </Modal>

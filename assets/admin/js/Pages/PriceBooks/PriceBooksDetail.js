@@ -14,6 +14,10 @@ import {
   IconButton,
   Paper,
   Divider,
+  Switch,
+  Chip,
+  Alert,
+  Tooltip,
 } from "@mui/material";
 import TableView from "../../Components/TableView";
 import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
@@ -37,6 +41,7 @@ const getPriceBookIdFromUrl = () => {
   const id = urlParams.get("id");
   return id === "new" ? "new" : id && !isNaN(Number(id)) ? Number(id) : null;
 };
+
 const INITIAL_INFO = {
   name: "New Price Book",
   role: "customer",
@@ -158,6 +163,23 @@ const PriceBookDetails = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setRuleToEdit(null);
+  };
+
+  const handleToggleChange = (e) => {
+    const value =
+      e.target.type === "checkbox"
+        ? e.target.checked
+          ? 1
+          : 0
+        : e.target.value;
+    const name = e.target.name;
+
+    if (name === "status") {
+      setInfo({ ...info, status: e.target.checked ? "active" : "inactive" });
+    } else {
+      setInfo({ ...info, [name]: value });
+    }
+    setEditInfo(true);
   };
 
   const handleSaveRule = async (dataPayload) => {
@@ -310,184 +332,274 @@ const PriceBookDetails = () => {
     } finally {
       setIsSaving(false);
       setEditInfo(false);
-
     }
   };
 
   return (
-    <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
-      <ToastContainer position="top-center" autoClose={3000} />
+    <Container maxWidth={false} sx={{ mt: 3, mb: 5 }}>
+      <ToastContainer position="top-center" autoClose={2000} />
 
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={4}
+      {/* HEADER SECTION */}
+      <Paper
+        elevation={0}
+        sx={{ p: 3, mb: 3, bgcolor: "#f8f9fa", borderRadius: 2 }}
       >
-        <Box>
-          <Box display="flex" alignItems="center" mb={2}>
-            <KeyboardBackspaceIcon sx={{ mr: 1 }} />
-            <NavLink to={"/wp-admin/admin.php?page=price_books"}>
-              <Typography variant="body1" color="text.primary">
-                Back to Price Books
-              </Typography>
-            </NavLink>
-          </Box>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
           <Box>
-            <Typography variant="h4" sx={{ mb: 1 }}>
-              {isEditMode
-                ? `Editing Price Book: ${info.name}`
-                : "Create New Price Book"}
+            <Button
+              startIcon={<KeyboardBackspaceIcon />}
+              component={NavLink}
+              to="/wp-admin/admin.php?page=price_books"
+              sx={{ mb: 1, p: 0 }}
+            >
+              Back to List
+            </Button>
+            <Typography variant="h4" fontWeight="700">
+              {isEditMode ? info.name : "New Price Book"}
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {isEditMode
-                ? `ID: ${priceBookId}`
-                : "Enter the core information for your new Price Book."}
-            </Typography>
+            <Stack direction="row" spacing={1} mt={1} alignItems="center">
+              <Chip
+                label={info.status.toUpperCase()}
+                color={info.status === "active" ? "success" : "default"}
+                size="small"
+              />
+              {info.is_exclusive === 1 && (
+                <Chip
+                  label="EXCLUSIVE CATALOG"
+                  color="secondary"
+                  size="small"
+                  variant="outlined"
+                />
+              )}
+              {isEditMode && (
+                <Typography variant="caption">ID: #{priceBookId}</Typography>
+              )}
+            </Stack>
           </Box>
-        </Box>
 
-        <Box>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={handleSaveInfo}
-            disabled={isSaving || !isReadyToSave || !isEditInfo}
-          >
-            {isSaving
-              ? "Saving..."
-              : isEditMode
-              ? "Save Changes"
-              : "Create Price Book"}
-          </Button>
-        </Box>
-      </Stack>
-
-      {/* Price Book's Info Form */}
-      <Paper elevation={1} sx={{ p: 4, mb: 5 }}>
-        <Typography variant="h6" gutterBottom>
-          Price Book's Info
-        </Typography>
-        <Grid container spacing={3}>
-          {/* ... (Form fields: Name, Role, Dates) ... */}
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Price Book Name"
-              name="name"
-              value={info.name}
-              onChange={handleInfoChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth>
-              <InputLabel id="role-select-label">Target User Role</InputLabel>
-              <Select
-                labelId="role-select-label"
-                label="Target User Role"
-                name="role"
-                value={info.role}
-                onChange={handleInfoChange}
-              >
-                {role.map((role) => (
-                  <MenuItem key={role.slug} value={role.slug}>
-                    {role.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          {/* Start Date */}
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth>
-              <InputLabel shrink htmlFor="start-date-picker">
-                Start Date
-              </InputLabel>
-              <DatePicker
-                id="start-date-picker"
-                selected={info.start_date}
-                onChange={(date) => handleDateChange(date, "start_date")}
-                customInput={
-                  <TextField
-                    fullWidth
-                    label="Start Date"
-                    InputLabelProps={{ shrink: true }}
-                  />
-                }
-                dateFormat="dd/MM/yyyy"
-                isClearable
-              />
-            </FormControl>
-          </Grid>
-          {/* End Date */}
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth>
-              <InputLabel shrink htmlFor="end-date-picker">
-                End Date
-              </InputLabel>
-              <DatePicker
-                id="end-date-picker"
-                selected={info.end_date}
-                onChange={(date) => handleDateChange(date, "end_date")}
-                customInput={
-                  <TextField
-                    fullWidth
-                    label="End Date"
-                    InputLabelProps={{ shrink: true }}
-                  />
-                }
-                dateFormat="dd/MM/yyyy"
-                isClearable
-                minDate={info.start_date}
-              />
-            </FormControl>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Product Pricing Rules Section (Only visible in Edit Mode) */}
-      {isEditMode && (
-        <Box>
-          <Typography variant="h5" sx={{ mb: 2 }}>
-            Product Pricing Rules
-          </Typography>
-          <Divider sx={{ mb: 3 }} />
-
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Typography variant="subtitle1" color="text.secondary">
-              Total Products in this Price Book: {rules.length}
-            </Typography>
+          <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
-              // Use the consolidated handler for opening the modal
-              onClick={handleOpenAddModal}
+              color="primary"
+              size="large"
+              onClick={handleSaveInfo}
+              disabled={isSaving || !isReadyToSave || !isEditInfo}
+              sx={{ px: 4, borderRadius: 2 }}
             >
-              Add Product Rule
+              {isSaving
+                ? "Saving..."
+                : isEditMode
+                ? "Update Details"
+                : "Create Price Book"}
             </Button>
           </Stack>
+        </Stack>
+      </Paper>
 
-          <Box sx={{ mt: 3 }}>
-            {loadingRules ? (
-              <Typography>Loading rules...</Typography>
-            ) : (
-              <TableView
-                className="price-book-details"
-                hideCheckbox={true}
-                cols={rulesColumns}
-                rows={mapRulesToTable(rules)}
-              />
-            )}
-          </Box>
+      {/* SETTINGS GRID */}
+      <Grid container spacing={3}>
+        {/* Left: General Info Form */}
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 3, height: "100%" }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+              1. Configuration
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Display Name"
+                  name="name"
+                  value={info.name}
+                  onChange={handleInfoChange}
+                  placeholder="Example: Wholesale Winter Sale"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Applied User Role</InputLabel>
+                  <Select
+                    name="role"
+                    value={info.role}
+                    onChange={handleInfoChange}
+                    label="Applied User Role"
+                  >
+                    <MenuItem value="all">All Roles</MenuItem>
+                    {role.map((r) => (
+                      <MenuItem key={r.slug} value={r.slug}>
+                        {r.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <DatePicker
+                  selected={info.start_date}
+                  onChange={(date) => handleDateChange(date, "start_date")}
+                  customInput={
+                    <TextField
+                      fullWidth
+                      label="Starts"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  }
+                  dateFormat="dd/MM/yyyy"
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <DatePicker
+                  selected={info.end_date}
+                  onChange={(date) => handleDateChange(date, "end_date")}
+                  customInput={
+                    <TextField
+                      fullWidth
+                      label="Ends"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  }
+                  dateFormat="dd/MM/yyyy"
+                  minDate={info.start_date}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+
+        {/* Right: Behavior Switches */}
+        <Grid item xs={12} md={4}>
+          <Paper
+            sx={{
+              p: 3,
+              height: "100%",
+              bgcolor: info.is_exclusive ? "#fff5f8" : "#fff",
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+              2. Behavior
+            </Typography>
+
+            <Stack spacing={3}>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography variant="subtitle2">Active Status</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Toggle price book availability
+                  </Typography>
+                </Box>
+                <Switch
+                  name="status"
+                  checked={info.status === "active"}
+                  onChange={handleToggleChange}
+                  color="success"
+                />
+              </Box>
+
+              <Divider />
+
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography variant="subtitle2">Exclusive Mode</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Restrict catalog to these rules
+                  </Typography>
+                </Box>
+                <Switch
+                  name="is_exclusive"
+                  checked={info.is_exclusive === 1}
+                  onChange={handleToggleChange}
+                  color="secondary"
+                />
+              </Box>
+
+              {info.is_exclusive === 1 && (
+                <Alert severity="info" sx={{ mt: 1 }}>
+                  Target users will ONLY see products listed in the table below.
+                </Alert>
+              )}
+            </Stack>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* PRODUCT RULES SECTION */}
+      {isEditMode && (
+        <Box sx={{ mt: 6 }}>
+          <Paper sx={{ p: 0, overflow: "hidden" }}>
+            <Box
+              sx={{
+                p: 3,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                bgcolor: "#fcfcfc",
+              }}
+            >
+              <Box>
+                <Typography variant="h6" fontWeight="600">
+                  Product Rules
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Manage individual product prices and visibility
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenAddModal}
+                size="large"
+              >
+                Add Product
+              </Button>
+            </Box>
+
+            <Divider />
+
+            <Box sx={{ p: 2 }}>
+              {loadingRules ? (
+                <Loading message="Fetching rules..." />
+              ) : rules.length === 0 ? (
+                <Box textAlign="center" py={5}>
+                  <Typography variant="h6" color="text.disabled">
+                    No Product Rules Defined
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" mb={3}>
+                    Start adding products to this price book to see them listed
+                    here.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenAddModal}
+                  >
+                    Add Your First Product
+                  </Button>
+                </Box>
+              ) : (
+                <TableView
+                  className="price-book-details-table"
+                  hideCheckbox={true}
+                  cols={rulesColumns}
+                  rows={mapRulesToTable(rules)}
+                />
+              )}
+            </Box>
+          </Paper>
         </Box>
       )}
 
-      {/* Product Rule Form Modal (Used for both Add and Edit) */}
       <ProductRuleFormModal
         open={isModalOpen} // Consolidated state
         handleClose={handleCloseModal} // Consolidated handler

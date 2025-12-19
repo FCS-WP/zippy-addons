@@ -69,6 +69,7 @@ class Price_Books_Service
       'start_date'    => ! empty($data['start_date']) ? Zippy_DateTime_Helper::parse_iso_to_mysql($data['start_date']) : null,
       'end_date'      => ! empty($data['end_date']) ? Zippy_DateTime_Helper::parse_iso_to_mysql($data['end_date']) : null,
       'status'        => 'active',
+      'is_exclusive'        => empty(sanitize_text_field($data['is_exclusive'])) ? 0 : 1,
     );
 
     $formats = array('%s', '%s', '%s', '%s', '%s');
@@ -117,9 +118,10 @@ class Price_Books_Service
       'start_date'    => Zippy_DateTime_Helper::parse_iso_to_mysql($data['start_date']),
       'end_date'      => Zippy_DateTime_Helper::parse_iso_to_mysql($data['end_date']),
       'status'        => sanitize_key($data['status']), // Assuming status can also be updated
+      'is_exclusive'        => sanitize_text_field($data['is_exclusive']),
     );
 
-    $formats = array('%s', '%s', '%s', '%s', '%s');
+    $formats = array('%s', '%s', '%s', '%s', '%s', '%s');
     $where_format = array('%d');
 
     $result = $wpdb->update(

@@ -3,15 +3,14 @@
 namespace Zippy_Booking\Src\Services\Price_Books;
 
 use Zippy_Booking\Src\Services\Price_Books\Price_Books_Helper;
-use DateTimeZone;
-use DateTime;
-
 
 class Price_Books_Woocommerce
 {
   protected $active_rules = null;
   protected $user = null;
   protected $product = null;
+
+  protected $current_pricebook_data = null;
 
   public function __construct($product = null, $user_id = null)
   {
@@ -45,13 +44,13 @@ class Price_Books_Woocommerce
       $current_role = $current_role_formated[0];
     }
 
-    $active_price_book_id = $this->get_active_price_book_id_by_role($current_role);
-    if (! $active_price_book_id) {
+    $this->current_pricebook_data = $this->get_active_price_book_id_by_role($current_role);
+    if (! $this->current_pricebook_data) {
       $this->active_rules = [];
       return $this->active_rules;
     }
 
-    $rules_list = $this->get_all_rules_by_price_book_id($active_price_book_id);
+    $rules_list = $this->get_all_rules_by_price_book_id($this->current_pricebook_data);
 
     // Cache the results
     $this->active_rules = $rules_list;
@@ -63,7 +62,7 @@ class Price_Books_Woocommerce
     $original_price = floatval($product->get_regular_price());
 
     $product_id = $product->get_id();
-    $rules = $this->get_active_rules_for_current_user();
+    $rules = $this->active_rules;
 
     if (! isset($rules[$product_id])) {
       return $original_price; // No rule for this product
@@ -84,8 +83,7 @@ class Price_Books_Woocommerce
     }
 
     $product_id = $product->get_id();
-    $rules = $this->get_active_rules_for_current_user();
-
+    $rules = $this->active_rules;
     if (! isset($rules[$product_id])) {
       return $price; // No rule for this product
     }
@@ -101,15 +99,25 @@ class Price_Books_Woocommerce
 
   public function control_product_visibility($is_visible, $product_id)
   {
+    // Force trigger the cache fetch
     $rules = $this->get_active_rules_for_current_user();
 
-    if (isset($rules[$product_id])) {
-      if ($rules[$product_id]['visibility'] === 'hide') {
-        return false; // Hide the product from the shop/catalog
-      }
+    if (empty($this->current_pricebook_data)) {
+      return $is_visible;
     }
 
-    return $is_visible; // Keep the default WooCommerce visibility
+    $is_exclusive = (bool)$this->current_pricebook_data['is_exclusive'];
+
+    // var_dump($rules);
+    if ($is_exclusive) {
+      return isset($rules[$product_id]);
+    }
+
+    if (isset($rules[$product_id]) && $rules[$product_id]['visibility'] === 'hide') {
+      return false;
+    }
+
+    return $is_visible;
   }
 
   /**
@@ -173,28 +181,27 @@ class Price_Books_Woocommerce
     $date = Price_Books_Helper::get_pricebook_date();
     $query = $wpdb->prepare(
       "
-            SELECT id
-            FROM {$containers_table}
-            WHERE
-                role_id = %s
-                AND status = 'active'
-                AND start_date <= %s
-                AND (end_date >= %s OR end_date IS NULL)
-            ORDER BY id DESC
-            LIMIT 1
-            ",
+         SELECT id, is_exclusive FROM {$containers_table} 
+             WHERE (role_id = %s OR role_id = 'all') 
+             AND status = 'active' AND deleted_at IS NULL
+             AND start_date <= %s AND (end_date >= %s OR end_date IS NULL)
+             ORDER BY CASE WHEN role_id = %s THEN 1 ELSE 2 END ASC, id DESC LIMIT 1",
       $role_slug,
       $date,
-      $date
+      $date,
+      $role_slug
     );
+    // var_dump($query);
+    // Later enhancement
 
+    // "ORDER BY
+    //     CASE WHEN role_id = %s THEN 1 ELSE 2 END ASC,
+    //     priority DESC,
+    //     id DESC"
 
-
-    $pricebook_id = $wpdb->get_var($query);
-
-    return $pricebook_id ? intval($pricebook_id) : null;
+    $pricebook_data = $wpdb->get_row($query, ARRAY_A);
+    return is_array($pricebook_data) ? $pricebook_data : null;
   }
-
 
   /**
    * Fetches all rules for a given Price Book ID and formats them for quick lookup.
@@ -216,7 +223,7 @@ class Price_Books_Woocommerce
             FROM {$rules_table}
             WHERE pricebook_id = %d
             ",
-      $price_book_id
+      $price_book_id["id"],
     );
 
     $rules_data = $wpdb->get_results($query, ARRAY_A);

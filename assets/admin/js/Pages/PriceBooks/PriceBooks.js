@@ -1,5 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Container, Typography, Button, Stack, Box, Chip } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Button,
+  Stack,
+  Box,
+  Chip,
+  Paper,
+  InputBase,
+  Divider,
+  IconButton,
+  Grid,
+  Card,
+  CardContent,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
+import InfoIcon from "@mui/icons-material/Info";
 import TableView from "../../Components/TableView";
 import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
 import { NavLink } from "react-router";
@@ -37,10 +54,16 @@ const PriceBooks = () => {
   const [openModal, setOpenModal] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [rules, setRules] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
 
+  const filteredPriceBooks = priceBooks.filter(
+    (pb) =>
+      pb.NAME.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pb.ROLE.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const handleConvertData = (rows, currentRules) => {
     return rows.map((value) => ({
       ID: value.id,
@@ -65,6 +88,7 @@ const PriceBooks = () => {
 
   const getRoleDisplayName = (slug, currentRules) => {
     const roleList = currentRules.length > 0 ? currentRules : rules;
+    if (slug == "all") return "All";
     const role = roleList.find((r) => r.slug === slug);
     return role ? role.name : slug;
   };
@@ -142,41 +166,76 @@ const PriceBooks = () => {
   }, [initData]);
 
   const renderContent = () => {
-    if (isLoading) {
-      return <Loading message={"Loading Price Books..."} />;
-    }
-    if (hasError) {
+    if (isLoading) return <Loading message={"Loading Price Books..."} />;
+
+    if (hasError)
       return (
-        <Typography color="error">
-          An error occurred while fetching data. Please check the console.
-        </Typography>
+        <Alert severity="error" sx={{ mt: 5 }}>
+          An error occurred while fetching data. Please refresh the page.
+        </Alert>
       );
-    }
-    if (priceBooks.length === 0) {
-      return (
-        <Typography
-          variant="subtitle1"
-          sx={{ mt: 5, p: 3, border: "1px dashed #ccc" }}
-        >
-          No Price Books found. Click "Add Price Book" to create your first one.
-        </Typography>
-      );
-    }
 
     return (
-      <TableView
-        hideCheckbox={true}
-        cols={priceBooksColumns}
-        columnWidths={columnWidths}
-        rows={priceBooks}
-        className="table-priceBook"
-      />
+      <Paper
+        elevation={0}
+        sx={{
+          border: "1px solid #e0e0e0",
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        {/* Table Toolbar */}
+        <Box
+          sx={{
+            p: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            bgcolor: "#fafafa",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              bgcolor: "#fff",
+              border: "1px solid #ddd",
+              borderRadius: 1,
+              px: 2,
+              width: 300,
+            }}
+          >
+            <SearchIcon fontSize="small" color="action" />
+            <InputBase
+              placeholder="Search name or role..."
+              sx={{ ml: 1, flex: 1, fontSize: "0.875rem" }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </Box>
+          <Typography variant="caption" color="text.secondary">
+            Showing {filteredPriceBooks.length} items
+          </Typography>
+        </Box>
+
+        <Divider />
+
+        <TableView
+          hideCheckbox={true}
+          cols={priceBooksColumns}
+          columnWidths={columnWidths}
+          rows={filteredPriceBooks}
+          className="table-priceBook"
+        />
+      </Paper>
     );
   };
 
   return (
-    <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
-      {/* Header and Add Button */}
+    <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
+      <ToastContainer position="top-right" autoClose={3000} />
+
+      {/* TOP HEADER */}
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -184,24 +243,71 @@ const PriceBooks = () => {
         mb={4}
       >
         <Box>
-          <Typography variant="h4" sx={{ mb: 1 }}>
-            Price Books Management
+          <Typography variant="h4" fontWeight="700" color="primary.main">
+            Price Books
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Define role-specific pricing and product visibility rules.
+          <Typography variant="body2" color="text.secondary">
+            Manage custom pricing and exclusive product visibility by user role.
           </Typography>
         </Box>
-        <Box>
-          <Button variant="contained" onClick={handleOpen} disabled={isLoading}>
-            Add Price Book
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleOpen}
+          disabled={isLoading}
+          sx={{ borderRadius: 2, px: 3, py: 1 }}
+        >
+          Add Price Book
+        </Button>
       </Stack>
 
-      {/* Table Section */}
-      <Box sx={{ mt: 5 }}>{renderContent()}</Box>
+      {/* QUICK STATS CARDS */}
+      <Grid container spacing={3} mb={5}>
+        <Grid item xs={12} md={4}>
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <CardContent>
+              <Typography
+                color="text.secondary"
+                gutterBottom
+                variant="overline"
+                fontWeight="bold"
+              >
+                Total Price Books
+              </Typography>
+              <Typography variant="h5" fontWeight="bold">
+                {priceBooks.length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
 
-      {/* The Add Price Book Modal */}
+        <Grid item xs={12} md={4}>
+          <Card
+            variant="outlined"
+            sx={{ borderRadius: 2, bgcolor: "#e3f2fd", height: "100%" }}
+          >
+            <CardContent>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <InfoIcon color="primary" fontSize="small" />
+                <Typography
+                  color="primary.main"
+                  variant="overline"
+                  fontWeight="bold"
+                >
+                  Pro Tip
+                </Typography>
+              </Stack>
+              <Typography variant="body2" color="text.primary">
+                Specific role prices always override "All" role rules.
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* MAIN TABLE CONTENT */}
+      {renderContent()}
+
       <AddPriceBookModal
         open={openModal}
         handleClose={handleClose}
@@ -209,7 +315,6 @@ const PriceBooks = () => {
         isSaving={isCreating}
         ruleData={rules}
       />
-      <ToastContainer />
     </Container>
   );
 };

@@ -39,6 +39,7 @@ class Zippy_Price_Books_Controller
       'role'      => $params['role'],
       'start_date' => $params['start_date'],
       'end_date'   => $params['end_date'],
+      'is_exclusive'   => $params['is_exclusive'] ?? 0,
     ]);
 
     if ($new_id) {
@@ -93,6 +94,7 @@ class Zippy_Price_Books_Controller
       'start_date' => $params['start_date'],
       'end_date'   => $params['end_date'],
       'status'    => $params['status'] ?? 'active',
+      'is_exclusive'   => $params['is_exclusive'] ?? 0,
     ]);
 
     if ($result) {
