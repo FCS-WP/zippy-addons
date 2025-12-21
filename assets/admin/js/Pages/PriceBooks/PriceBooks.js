@@ -13,8 +13,10 @@ import {
   Grid,
   Card,
   CardContent,
+  LinearProgress,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import BoltIcon from "@mui/icons-material/Bolt";
 import AddIcon from "@mui/icons-material/Add";
 import InfoIcon from "@mui/icons-material/Info";
 import TableView from "../../Components/TableView";
@@ -43,27 +45,39 @@ const getStatusChipProps = (statusLabel) => {
     case "Expired":
       return { label: statusLabel, color: "error", variant: "outlined" };
     default:
-      return { label: statusLabel, color: "default", variant: "filled" };
+      return { label: statusLabel, color: "error", variant: "filled" };
+  }
+};
+const getExclusiveChipProps = (exclusive) => {
+  switch (exclusive) {
+    case "0":
+      return { label: "No", color: "success", variant: "outlined" };
+    case "1":
+      return { label: "Yes", color: "error", variant: "filled" };
+    default:
+      return { label: "No", color: "success", variant: "filled" };
   }
 };
 
 const PriceBooks = () => {
   const [priceBooks, setPriceBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLiveLoading, setIsLiveLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [rules, setRules] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [liveBooks, setLiveBooks] = useState([]);
 
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
-
   const filteredPriceBooks = priceBooks.filter(
     (pb) =>
       pb.NAME.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pb.ROLE.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
   const handleConvertData = (rows, currentRules) => {
     return rows.map((value) => ({
       ID: value.id,
@@ -76,6 +90,9 @@ const PriceBooks = () => {
         ? format(new Date(value.end_date), "MMM dd, yyyy")
         : "N/A",
       STATUS: <Chip size="small" {...getStatusChipProps(value.status_label)} />,
+      EXCLUSIVE: (
+        <Chip size="small" {...getExclusiveChipProps(value.is_exclusive)} />
+      ),
       "": (
         <NavLink to={constructEditUrl(value.id)}>
           <Button startIcon={<ModeEditOutlineIcon />} size="small">
@@ -126,13 +143,14 @@ const PriceBooks = () => {
 
       const formatted = handleConvertData(rawPriceBooks, fetchedRules);
       setPriceBooks(formatted);
+      fetchLive();
     } catch (error) {
       setHasError(true);
       toast.error("Failed to load data");
     } finally {
       setIsLoading(false);
     }
-  }, [fetchUserRole, fetchPriceBooksData]);
+  }, [fetchUserRole, fetchPriceBooksData, fetchLive]);
 
   const handleSavePriceBook = async (params) => {
     setIsCreating(true);
@@ -160,6 +178,18 @@ const PriceBooks = () => {
       setIsCreating(false);
     }
   };
+
+  const fetchLive = useCallback(async () => {
+    setIsLiveLoading(true);
+    try {
+      const response = await priceBooksAPI.getTodaysActive();
+      setLiveBooks(response.data?.data || []);
+    } catch (error) {
+      console.error("Failed to fetch live books");
+    } finally {
+      setIsLiveLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     initData();
@@ -231,6 +261,64 @@ const PriceBooks = () => {
     );
   };
 
+  const renderLiveSection = () => {
+    if (isLiveLoading)
+      return <LinearProgress sx={{ mb: 4, borderRadius: 2 }} />;
+    if (liveBooks.length === 0) return null;
+
+    return (
+      <Box sx={{ mb: 6 }}>
+        <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+          <BoltIcon sx={{ color: "#ff9800" }} />
+          <Typography variant="h6" fontWeight="700">
+            Live Today
+          </Typography>
+          <Chip
+            label="Affecting Current Store Prices"
+            size="small"
+            color="warning"
+            variant="outlined"
+          />
+        </Stack>
+        <Grid container spacing={2}>
+          {liveBooks.map((book) => (
+            <Grid item xs={12} sm={6} md={4} key={book.id}>
+              <Card
+                variant="outlined"
+                sx={{ borderColor: "warning.light", bgcolor: "#fffbf2" }}
+              >
+                <CardContent sx={{ p: "0px !important" }}>
+                  <Typography variant="subtitle2" fontWeight="800" noWrap>
+                    {book.name}
+                  </Typography>
+                  <Stack direction="row" spacing={1} mt={1}>
+                    <Chip
+                      label={
+                        book.role_id === "all"
+                          ? "Everyone"
+                          : getRoleDisplayName(book.role_id, rules)
+                      }
+                      size="small"
+                      sx={{ fontSize: "10px" }}
+                    />
+                    {book.is_exclusive == 1 && (
+                      <Chip
+                        label="Exclusive"
+                        size="small"
+                        color="secondary"
+                        sx={{ fontSize: "10px" }}
+                      />
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
+  };
+
   return (
     <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
       <ToastContainer position="top-right" autoClose={3000} />
@@ -261,10 +349,12 @@ const PriceBooks = () => {
         </Button>
       </Stack>
 
+      {renderLiveSection()}
+
       {/* QUICK STATS CARDS */}
       <Grid container spacing={3} mb={5}>
         <Grid item xs={12} md={4}>
-          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+          <Card variant="outlined" sx={{ borderRadius: 2, height: "100%" }}>
             <CardContent>
               <Typography
                 color="text.secondary"

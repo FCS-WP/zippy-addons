@@ -518,7 +518,7 @@ const PriceBookDetails = () => {
                 </Box>
                 <Switch
                   name="is_exclusive"
-                  checked={info.is_exclusive === 1}
+                  checked={info.is_exclusive == 1}
                   onChange={handleToggleChange}
                   color="secondary"
                 />

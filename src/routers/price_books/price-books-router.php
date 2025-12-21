@@ -60,6 +60,13 @@ class Price_Books_Router
       'args'                => Zippy_Price_Books_Model::store_args(),
       'permission_callback' => $permission,
     ));
+    // Route: /price_books
+    register_rest_route($namespace, '/price_books/today', array(
+      'methods'             => WP_REST_Server::READABLE, // GET
+      'callback'            => [Zippy_Price_Books_Controller::class, 'get_todays_active_pricebooks'],
+      'args'                => [],
+      'permission_callback' => $permission,
+    ));
 
     // Route: /price_books/{id}
     register_rest_route($namespace, '/price_books/(?P<id>\d+)', array(

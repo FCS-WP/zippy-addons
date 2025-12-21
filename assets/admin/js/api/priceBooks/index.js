@@ -3,7 +3,6 @@
 import { makeRequest } from "../axios"; // Assuming this handles the base URL and headers
 
 export const priceBooksAPI = {
- 
   async getPriceBooks(params) {
     return await makeRequest("/price_books", params, "GET");
   },
@@ -41,13 +40,21 @@ export const priceBooksAPI = {
 
   /**
    * Deletes a Price Book container and all associated rules.
-   * 
+   *
    * @param {number} id - The ID of the Price Book to delete.
    */
   async deletePriceBook(id) {
     return await makeRequest(`/price_books/${id}`, null, "DELETE");
   },
 
+  /**
+   * Get Price Book Todays Active.
+   *
+   */
+
+  async getTodaysActive() {
+    return await makeRequest("/price_books/today", null, "GET");
+  },
 
   /**
    * Fetches all product rules associated with a specific Price Book.

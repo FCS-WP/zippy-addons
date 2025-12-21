@@ -3,6 +3,7 @@ export const priceBooksColumns = [
   "ROLE",
   "START DATE",
   "END DATE",
+  "EXCLUSIVE",
   "STATUS",
   "", // Action column
 ];

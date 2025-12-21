@@ -33,16 +33,21 @@ class Price_Books_Service
 
       $book['start_date'] = $start_date_raw ? date('c', strtotime($start_date_raw)) : null;
       $book['end_date']   = $end_date_raw ? date('c', strtotime($end_date_raw)) : null;
+      $status =  $book['status'];
 
       $start_timestamp = $start_date_raw ? strtotime($start_date_raw) : null;
       $end_timestamp = $end_date_raw ? strtotime($end_date_raw) : PHP_INT_MAX;
 
       $status_label = 'Expired';
 
-      if ($start_timestamp && $start_timestamp > $today_timestamp) {
-        $status_label = 'Upcoming';
-      } elseif ($today_timestamp >= $start_timestamp && $today_timestamp <= $end_timestamp) {
-        $status_label = 'Ongoing';
+      if ($status == 'active') {
+        if ($start_timestamp && $start_timestamp > $today_timestamp) {
+          $status_label = 'Upcoming';
+        } elseif ($today_timestamp >= $start_timestamp && $today_timestamp <= $end_timestamp) {
+          $status_label = 'Ongoing';
+        }
+      } else {
+        $status_label = 'Disabled';
       }
 
       $book['status_label'] = $status_label;
@@ -69,7 +74,7 @@ class Price_Books_Service
       'start_date'    => ! empty($data['start_date']) ? Zippy_DateTime_Helper::parse_iso_to_mysql($data['start_date']) : null,
       'end_date'      => ! empty($data['end_date']) ? Zippy_DateTime_Helper::parse_iso_to_mysql($data['end_date']) : null,
       'status'        => 'active',
-      'is_exclusive'        => empty(sanitize_text_field($data['is_exclusive'])) ? 0 : 1,
+      'is_exclusive'  => empty(sanitize_text_field($data['is_exclusive'])) ? 0 : 1,
     );
 
     $formats = array('%s', '%s', '%s', '%s', '%s');
@@ -118,7 +123,7 @@ class Price_Books_Service
       'start_date'    => Zippy_DateTime_Helper::parse_iso_to_mysql($data['start_date']),
       'end_date'      => Zippy_DateTime_Helper::parse_iso_to_mysql($data['end_date']),
       'status'        => sanitize_key($data['status']), // Assuming status can also be updated
-      'is_exclusive'        => sanitize_text_field($data['is_exclusive']),
+      'is_exclusive'  => empty(sanitize_text_field($data['is_exclusive'])) ? 0 : 1,
     );
 
     $formats = array('%s', '%s', '%s', '%s', '%s', '%s');
@@ -135,6 +140,36 @@ class Price_Books_Service
     return $result !== false;
   }
 
+  /**
+   * Get pricebook Today
+   *
+   */
+
+  public static function get_todays_active_pricebooks()
+  {
+    global $wpdb;
+    $table = $wpdb->prefix . 'pricebook_containers';
+
+    $datetime = new DateTime('now', new DateTimeZone('Asia/Singapore'));
+    $today = $datetime->format('Y-m-d H:i:s');
+
+    $query = $wpdb->prepare("
+        SELECT id, name, role_id, is_exclusive, start_date, end_date
+        FROM $table
+        WHERE status = 'active'
+          AND deleted_at IS NULL
+          AND start_date <= %s
+          AND (end_date >= %s OR end_date IS NULL)
+        ORDER BY
+            priority DESC,
+            start_date DESC,
+            id DESC
+    ", $today, $today);
+
+    $results = $wpdb->get_results($query);
+
+    return $results;
+  }
   /**
    * Inserts a new Product Rule into the database.
    * @param int $pricebook_id The parent Price Book ID.

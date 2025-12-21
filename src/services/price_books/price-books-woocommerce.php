@@ -101,7 +101,6 @@ class Price_Books_Woocommerce
   {
     // Force trigger the cache fetch
     $rules = $this->get_active_rules_for_current_user();
-
     if (empty($this->current_pricebook_data)) {
       return $is_visible;
     }
@@ -180,18 +179,16 @@ class Price_Books_Woocommerce
     $containers_table = $wpdb->prefix . 'pricebook_containers';
     $date = Price_Books_Helper::get_pricebook_date();
     $query = $wpdb->prepare(
-      "
-         SELECT id, is_exclusive FROM {$containers_table} 
+      "SELECT id, is_exclusive FROM {$containers_table} 
              WHERE (role_id = %s OR role_id = 'all') 
              AND status = 'active' AND deleted_at IS NULL
              AND start_date <= %s AND (end_date >= %s OR end_date IS NULL)
-             ORDER BY CASE WHEN role_id = %s THEN 1 ELSE 2 END ASC, id DESC LIMIT 1",
+             ORDER BY CASE WHEN role_id = %s THEN 1 ELSE 2 END ASC, start_date DESC LIMIT 1",
       $role_slug,
       $date,
       $date,
       $role_slug
     );
-    // var_dump($query);
     // Later enhancement
 
     // "ORDER BY

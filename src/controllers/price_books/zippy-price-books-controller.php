@@ -106,6 +106,20 @@ class Zippy_Price_Books_Controller
     }
   }
 
+  public static function get_todays_active_pricebooks(WP_REST_Request $request)
+  {
+
+    $result = Price_Books_Service::get_todays_active_pricebooks();
+
+    if ($result) {
+      // Return a success response, optionally include the updated ID
+      return Zippy_Response_Handler::success($result, 'Get Price Book successfully.');
+    } else {
+      // This might mean a DB error or 0 rows were affected (no change made)
+      return Zippy_Response_Handler::success([], 'Not Found.');
+    }
+  }
+
   public static function store_rule(WP_REST_Request $request)
   {
     $pricebook_id = (int) $request->get_param('pricebook_id');
