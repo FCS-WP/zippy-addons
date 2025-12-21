@@ -62,7 +62,9 @@ class Price_Books_Woocommerce
     $original_price = floatval($product->get_regular_price());
 
     $product_id = $product->get_id();
-    $rules = $this->active_rules;
+    $rules = $this->get_active_rules_for_current_user();
+    
+    // $rules = $this->active_rules;
 
     if (! isset($rules[$product_id])) {
       return $original_price; // No rule for this product
