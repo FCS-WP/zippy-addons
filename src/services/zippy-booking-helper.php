@@ -217,7 +217,6 @@ class Zippy_Booking_Helper
 
     public static function is_in_range_period_window($product_id)
     {
-        // Validate product & frontend only
         if (empty($product_id) || is_admin()) {
             return false;
         }
@@ -228,8 +227,8 @@ class Zippy_Booking_Helper
             return false;
         }
 
-        // Period window (default: 2 days)
-        $period_window = get_field('product_period_window', $product_id) ? get_field('product_period_window', $product_id) : 2;
+        // Period window (days)
+        $period_window = (int) get_field('product_period_window', $product_id) ?? 2;
 
         $order_date_raw = $session->get('date');
         if (empty($order_date_raw)) {
@@ -243,13 +242,14 @@ class Zippy_Booking_Helper
         } catch (Exception $e) {
             return false;
         }
-
+        $period_window = $period_window - 1;
         $today = new DateTime('now', $timezone);
+        $today->setTime(23, 59, 59);
 
-        // End of allowed period
         $period_date = (clone $today)->modify("+{$period_window} days");
 
-        return $order_date < $period_date;
+
+        return $order_date <= $period_date;
     }
 
 
