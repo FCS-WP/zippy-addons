@@ -15,7 +15,7 @@ defined('ABSPATH') or die();
 
 class Zippy_Admin_Booking_Product_Controller
 {
-    const MAX_DISTANCE = 99999999999999;
+    const MAX_DISTANCE = 9999999;
 
     public static function add_product_and_shipping_info_to_card(WP_REST_Request $request)
     {
@@ -51,11 +51,13 @@ class Zippy_Admin_Booking_Product_Controller
             $session_data["outlet_address"] = $outlet_address["address"] ?? null;
 
             if ($order_mode === 'delivery') {
+
                 $delivery_info = self::calculate_shipping_fee($request["delivery_address"], $lat, $lng, $request['outlet_id']);
+                $delivery_obj = $request["delivery_address"] ?? null;
                 if (isset($delivery_info['error'])) {
                     return Zippy_Response_Handler::error($delivery_info['error']);
                 }
-                $session_data = array_merge($session_data, $delivery_info);
+                $session_data = array_merge($session_data, $delivery_info, $delivery_obj);
             }
 
             self::store_to_session($session_data);

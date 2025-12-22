@@ -56,6 +56,10 @@ const DeliveryForm = ({ onChangeMode }) => {
       order_mode: "delivery",
       delivery_address: {
         address_name: selectedLocation.ADDRESS,
+        blk_no: selectedLocation.BLK_NO ?? '',
+        road_name: selectedLocation.ROAD_NAME,
+        building: selectedLocation.BUILDING,
+        postal: selectedLocation.POSTAL,
         lat: selectedLocation.LATITUDE,
         lng: selectedLocation.LONGITUDE,
       },
