@@ -21,10 +21,10 @@ class Price_Books_Helper
    * @param int $user_id               The ID of the user requesting the price.
    * @return float                     The calculated price.
    */
-  public static function get_pricebook_date()
+  public static function get_pricebook_date($date = null)
   {
     $timezone = new DateTimeZone('Asia/Singapore');
-    $now      = new DateTime('now', $timezone);
+    $now      = !empty($date) ?  new DateTime($date, $timezone) : new DateTime('now', $timezone);
 
     // Default fallback (today at 00:00:00)
     $default_date = $now->format('Y-m-d 00:00:00');

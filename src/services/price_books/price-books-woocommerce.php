@@ -29,22 +29,22 @@ class Price_Books_Woocommerce
    * Fetches and caches the data on the first call per request.
    * @return array Array of rules (e.g., [product_id => rule_data, ...]).
    */
-  protected function get_active_rules_for_current_user()
+  protected function get_active_rules_for_current_user($query_date = null)
   {
     if ($this->active_rules !== null) {
       return $this->active_rules;
     }
 
     $user = $this->user;
-    if (!is_array($user->roles) && empty($user->roles)) {
-      $current_role = 'guest';
+    if (empty($user->roles)) {
+      $current_role = 'subscriber';
     } else {
       $current_role_formated = array_values($user->roles);
 
       $current_role = $current_role_formated[0];
     }
 
-    $this->current_pricebook_data = $this->get_active_price_book_id_by_role($current_role);
+    $this->current_pricebook_data = $this->get_active_price_book_id_by_role($current_role, $query_date);
     if (! $this->current_pricebook_data) {
       $this->active_rules = [];
       return $this->active_rules;
@@ -63,7 +63,7 @@ class Price_Books_Woocommerce
 
     $product_id = $product->get_id();
     $rules = $this->get_active_rules_for_current_user();
-    
+
     // $rules = $this->active_rules;
 
     if (! isset($rules[$product_id])) {
@@ -175,13 +175,13 @@ class Price_Books_Woocommerce
    * * @param string $role_slug The user role slug (e.g., 'customer', 'wholesale').
    * @return int|null The active Price Book ID or null if none is found.
    */
-  protected function get_active_price_book_id_by_role($role_slug)
+  protected function get_active_price_book_id_by_role($role_slug, $target_date = null)
   {
     global $wpdb;
     $containers_table = $wpdb->prefix . 'pricebook_containers';
-    $date = Price_Books_Helper::get_pricebook_date();
+    $date = Price_Books_Helper::get_pricebook_date($target_date);
     $query = $wpdb->prepare(
-      "SELECT id, is_exclusive FROM {$containers_table} 
+      "SELECT id, is_exclusive, start_date, end_date FROM {$containers_table} 
              WHERE (role_id = %s OR role_id = 'all') 
              AND status = 'active' AND deleted_at IS NULL
              AND start_date <= %s AND (end_date >= %s OR end_date IS NULL)
@@ -273,5 +273,24 @@ class Price_Books_Woocommerce
 
     // Ensure the new price is not negative after fixed_off discount
     return max(0, $new_price);
+  }
+
+  public function get_preorder_price_info($product_id, $target_date = null)
+  {
+    $query_date =  Price_Books_Helper::get_pricebook_date($target_date);
+    $rules = $this->get_active_rules_for_current_user($query_date);
+
+    if (!isset($rules[$product_id])) {
+      return null;
+    }
+
+    $product = wc_get_product($product_id);
+    $original_price = (float)$product->get_regular_price();
+    $new_price = $this->apply_custom_pricing($original_price, $product);
+    return [
+      'old_price'  => wc_price($original_price),
+      'new_price'  => wc_price($new_price),
+      'price_book' => $this->current_pricebook_data
+    ];
   }
 }
