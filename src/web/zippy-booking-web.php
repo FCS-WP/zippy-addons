@@ -99,6 +99,7 @@ class Zippy_Booking_Web
     $is_retail = str_contains($current_cart, 'retail-store');
 
     $added_price = $is_retail ? floatval($retail_price) : floatval($popup_price);
+
     // Save it into cart item data
     $cart_item_data['zippy_added_price'] = $added_price;
 
@@ -107,12 +108,16 @@ class Zippy_Booking_Web
 
   public function zippy_apply_custom_price($cart)
   {
+    $session = new Zippy_Session_Handler;
+
+    $current_cart = $session->get('current_cart');
+    $is_retail = str_contains($current_cart, 'retail-store');
 
     if (is_admin() && !defined('DOING_AJAX')) return;
 
     foreach ($cart->get_cart() as $cart_item) {
       if (isset($cart_item['zippy_added_price'])) {
-        $base_price = $cart_item['data']->get_regular_price(); // Or get_price() if you prefer
+        $base_price = $is_retail ?  $cart_item['data']->get_regular_price() : 0; // Or get_price() if you prefer
         $custom_price = $base_price + floatval($cart_item['zippy_added_price']);
         $cart_item['data']->set_price($custom_price);
       }
