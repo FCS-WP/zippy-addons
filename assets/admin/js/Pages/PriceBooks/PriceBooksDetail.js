@@ -148,6 +148,7 @@ const PriceBookDetails = () => {
 
   const handleDateChange = (date, name) => {
     setInfo({ ...info, [name]: date });
+    setEditInfo(true);
   };
 
   const handleOpenAddModal = () => {
