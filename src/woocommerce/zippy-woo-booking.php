@@ -14,6 +14,7 @@ defined('ABSPATH') or die();
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Orders;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Product_Composite;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
+use Zippy_Booking\Src\Woocommerce\Zippy_Price_Books;
 use WC_Session_Handler;
 
 class Zippy_Woo_Booking
@@ -47,6 +48,8 @@ class Zippy_Woo_Booking
 
     add_action('init', array($this, 'init_woo_session'), 5);
 
+    add_action('woocommerce_init', array($this, 'init_pricebook'), 5);
+
     Zippy_Woo_Orders::get_instance();
 
     Zippy_Woo_Manual_Order::get_instance();
@@ -57,6 +60,11 @@ class Zippy_Woo_Booking
   function after_apply_coupon_action($coupon_code)
   {
     echo '<script>jQuery( "body" ).trigger( "update_checkout" ); </script>';
+  }
+
+  public function init_pricebook()
+  {
+    new Zippy_Price_Books();
   }
 
   public function init_woo_session()

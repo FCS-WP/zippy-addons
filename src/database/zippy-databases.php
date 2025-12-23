@@ -10,6 +10,8 @@ namespace Zippy_Booking\Src\Database;
 
 defined('ABSPATH') or die();
 
+use Zippy_Booking\Src\Database\Zipyy_Pricebooks_DB;
+
 
 class Zippy_Databases
 {
@@ -46,6 +48,8 @@ class Zippy_Databases
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_delivery_time_slots_table'));
 
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_holiday_config_table'));
+
+    new Zipyy_Pricebooks_Db;
   }
 
 

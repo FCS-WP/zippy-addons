@@ -20,6 +20,13 @@ export const generalAPI = {
     return await makeRequest("/categories", params, "GET");
   },
   async addProductsToOrder(order_id, action, params) {
-    return await makeRequest(`/add-items-order?order_id=${order_id}&action=${action}`, params, "POST");
+    return await makeRequest(
+      `/add-items-order?order_id=${order_id}&action=${action}`,
+      params,
+      "POST"
+    );
+  },
+  async getAvailableRoles() {
+    return await makeRequest("/user-roles", null, "GET");
   },
 };

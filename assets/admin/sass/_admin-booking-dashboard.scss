@@ -56,14 +56,17 @@
       }
     }
   }
+
   input {
     border: 0px !important;
-    padding: 6px;
-    padding-left: 10px;
+    padding: 12px;
     &:focus {
       outline: none;
       box-shadow: none;
     }
+  }
+  .MuiSelect-select {
+    padding: 12px !important;
   }
   .date-picker {
     position: relative;
