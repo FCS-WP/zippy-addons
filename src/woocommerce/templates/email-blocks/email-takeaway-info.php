@@ -7,7 +7,7 @@
 			</tr>
 			<tr>
 			<tr>
-				<td align="right" valign="top"><strong>Order Date:</strong> <?php echo $order->get_date_created()->date('Y-m-d'); ?></td>
+				<td align="right" valign="top"><strong>Order Date:</strong> <?php echo $order->get_date_created()->date('D, j M Y'); ?></td>
 			</tr>
 			<tr>
 				<td align="right" valign="top"><strong>Takeaway Date: </strong> <?php echo date("D, j M Y", strtotime($order_date)) ?></td>
