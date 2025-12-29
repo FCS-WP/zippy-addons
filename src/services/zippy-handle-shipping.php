@@ -72,7 +72,7 @@ class Zippy_Handle_Shipping
     $config = self::query_shipping();
 
     $free_shipping_threshold = (float) self::get_fee_from_config(maybe_unserialize($config->minimum_order_to_freeship), $distance);
-    if (self::is_free_shipping($order->get_subtotal(), $free_shipping_threshold)) {
+    if (self::is_free_shipping($order->get_total(), $free_shipping_threshold)) {
       self::add_free_shipping($order);
       $new_order = wc_get_order(intval($order_id));
 
