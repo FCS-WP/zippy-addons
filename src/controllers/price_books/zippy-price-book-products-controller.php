@@ -58,7 +58,7 @@ class Zippy_Price_Book_Products_Controller
   }
   private static function sanitize_products($request)
   {
-    $excluded_tag = ['add-ons'];
+    $excluded_tag = [];
 
     $args = [
       'status'   => 'publish',

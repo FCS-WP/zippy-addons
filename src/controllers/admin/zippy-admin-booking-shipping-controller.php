@@ -7,7 +7,7 @@ use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_Booking\Src\App\Models\Zippy_Log_Action;
 use DateTime;
-use Zippy_Booking\Src\Services\Price_Books\Price_Books_Woocommerce;
+use Zippy_Booking\Src\Services\Price_Books\Price_Books_Helper;
 
 defined('ABSPATH') or die();
 
@@ -283,9 +283,9 @@ class Zippy_Admin_Booking_Shipping_Controller
 
     private static function product_checking_pricing_rule($product_id, $billing_date)
     {
-        $price_book = new Price_Books_Woocommerce();
+        $helper = new Price_Books_Helper();
 
-        $info = $price_book->get_preorder_price_info($product_id, $billing_date);
+        $info = $helper->get_preorder_price_info($product_id, $billing_date);
 
         return $info;
     }

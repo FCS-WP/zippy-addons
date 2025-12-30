@@ -7,44 +7,33 @@ use Zippy_Booking\Src\Services\Price_Books\Price_Books_Helper;
 class Price_Books_Woocommerce
 {
   protected $active_rules = null;
-  protected $user = null;
-  protected $product = null;
+
 
   protected $current_pricebook_data = null;
 
-  public function __construct($product = null, $user_id = null)
-  {
-    //Called by Woo
-    if (empty($user_id)) {
-      $this->user = wp_get_current_user();
-    } else {
-      $this->user = get_user_by('id', $user_id);
-
-      $this->product = $product;
-    }
-  }
 
   /**
    * Gets the active pricing rules applicable to the current user's role.
    * Fetches and caches the data on the first call per request.
    * @return array Array of rules (e.g., [product_id => rule_data, ...]).
    */
-  protected function get_active_rules_for_current_user($query_date = null)
+  protected function get_active_rules_for_current_user()
   {
     if ($this->active_rules !== null) {
       return $this->active_rules;
     }
 
-    $user = $this->user;
+    $user_id = get_current_user_id();
+    $user = get_userdata($user_id);
     if (empty($user->roles)) {
-      $current_role = 'subscriber';
+      $current_role = '';
     } else {
       $current_role_formated = array_values($user->roles);
 
       $current_role = $current_role_formated[0];
     }
 
-    $this->current_pricebook_data = $this->get_active_price_book_id_by_role($current_role, $query_date);
+    $this->current_pricebook_data = $this->get_active_price_book_id_by_role($current_role);
     if (! $this->current_pricebook_data) {
       $this->active_rules = [];
       return $this->active_rules;
@@ -62,9 +51,8 @@ class Price_Books_Woocommerce
     $original_price = floatval($product->get_regular_price());
 
     $product_id = $product->get_id();
-    $rules = $this->get_active_rules_for_current_user();
 
-    // $rules = $this->active_rules;
+    $rules = $this->get_active_rules_for_current_user();
 
     if (! isset($rules[$product_id])) {
       return $original_price; // No rule for this product
@@ -85,7 +73,7 @@ class Price_Books_Woocommerce
     }
 
     $product_id = $product->get_id();
-    $rules = $this->active_rules;
+    $rules = $this->get_active_rules_for_current_user();
     if (! isset($rules[$product_id])) {
       return $price; // No rule for this product
     }
@@ -109,7 +97,6 @@ class Price_Books_Woocommerce
 
     $is_exclusive = (bool)$this->current_pricebook_data['is_exclusive'];
 
-    // var_dump($rules);
     if ($is_exclusive) {
       return isset($rules[$product_id]);
     }
@@ -175,11 +162,11 @@ class Price_Books_Woocommerce
    * * @param string $role_slug The user role slug (e.g., 'customer', 'wholesale').
    * @return int|null The active Price Book ID or null if none is found.
    */
-  protected function get_active_price_book_id_by_role($role_slug, $target_date = null)
+  protected function get_active_price_book_id_by_role($role_slug)
   {
     global $wpdb;
     $containers_table = $wpdb->prefix . 'pricebook_containers';
-    $date = Price_Books_Helper::get_pricebook_date($target_date);
+    $date = Price_Books_Helper::get_pricebook_date();
     $query = $wpdb->prepare(
       "SELECT id, is_exclusive, start_date, end_date FROM {$containers_table} 
              WHERE (role_id = %s OR role_id = 'all') 
@@ -192,7 +179,6 @@ class Price_Books_Woocommerce
       $role_slug
     );
     // Later enhancement
-
     // "ORDER BY
     //     CASE WHEN role_id = %s THEN 1 ELSE 2 END ASC,
     //     priority DESC,
@@ -217,8 +203,7 @@ class Price_Books_Woocommerce
     }
 
     $query = $wpdb->prepare(
-      "
-            SELECT product_id, price_value, price_type, visibility
+      "SELECT product_id, price_value, price_type, visibility
             FROM {$rules_table}
             WHERE pricebook_id = %d
             ",
@@ -270,27 +255,6 @@ class Price_Books_Woocommerce
         // Handle unknown type or no discount
         break;
     }
-
-    // Ensure the new price is not negative after fixed_off discount
     return max(0, $new_price);
-  }
-
-  public function get_preorder_price_info($product_id, $target_date = null)
-  {
-    $query_date =  Price_Books_Helper::get_pricebook_date($target_date);
-    $rules = $this->get_active_rules_for_current_user($query_date);
-
-    if (!isset($rules[$product_id])) {
-      return null;
-    }
-
-    $product = wc_get_product($product_id);
-    $original_price = (float)$product->get_regular_price();
-    $new_price = $this->apply_custom_pricing($original_price, $product);
-    return [
-      'old_price'  => wc_price($original_price),
-      'new_price'  => wc_price($new_price),
-      'price_book' => $this->current_pricebook_data
-    ];
   }
 }
