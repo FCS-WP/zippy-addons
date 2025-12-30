@@ -35,8 +35,8 @@ class Zipyy_Pricebooks_DB
   private function migrate_to_soft_delete()
   {
     global $wpdb;
-    $containers_table = $wpdb->prefix . 'pricebook_containers';
-    $relations_table  = $wpdb->prefix . 'pricebook_product_relations';
+    $containers_table = $wpdb->prefix . PRICEBOOK_TABLE;
+    $relations_table  = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
 
     // Columns to add
     $migrations = [
@@ -65,7 +65,7 @@ class Zipyy_Pricebooks_DB
   private function migrate_price_book_type()
   {
     global $wpdb;
-    $containers_table = $wpdb->prefix . 'pricebook_containers';
+    $containers_table = $wpdb->prefix . PRICEBOOK_TABLE;
     $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $containers_table LIKE 'is_exclusive'");
     if (empty($column_exists)) {
       $wpdb->query("ALTER TABLE $containers_table ADD COLUMN is_exclusive TINYINT(1) NOT NULL DEFAULT 0 AFTER status");
@@ -79,7 +79,7 @@ class Zipyy_Pricebooks_DB
     $charset_collate = $wpdb->get_charset_collate();
 
     // PriceBooks Table
-    $containers_table_name = $wpdb->prefix . 'pricebook_containers';
+    $containers_table_name = $wpdb->prefix . PRICEBOOK_TABLE;
     $sql_containers = "CREATE TABLE $containers_table_name (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             name VARCHAR(255) NOT NULL,
@@ -99,7 +99,7 @@ class Zipyy_Pricebooks_DB
     dbDelta($sql_containers);
 
     // PriceBooks Relations Table
-    $relations_table_name = $wpdb->prefix . 'pricebook_product_relations';
+    $relations_table_name = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
     $sql_relations = "CREATE TABLE $relations_table_name (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             pricebook_id BIGINT(20) UNSIGNED NOT NULL,

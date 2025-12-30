@@ -20,9 +20,7 @@ class Price_Books_Helper
   protected static $current_pricebook_data = null;
   /**
    * Retrieves the final price for a given product and user.
-   * * @param int|WC_Product $product    The product ID or WC_Product object.
-   * @param int $user_id               The ID of the user requesting the price.
-   * @return float                     The calculated price.
+   * @return string                     The calculated price.
    */
   public static function get_pricebook_date($date = null)
   {
@@ -81,8 +79,8 @@ class Price_Books_Helper
     $role_slug = ($user && !empty($user->roles)) ? array_values($user->roles)[0] : '';
     $query_date = $date ? $date : current_time('mysql');
 
-    $containers_table = $wpdb->prefix . 'pricebook_containers';
-    $relations_table  = $wpdb->prefix . 'pricebook_product_relations';
+    $containers_table = $wpdb->prefix . PRICEBOOK_TABLE;
+    $relations_table  = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
 
     $pricebook = $wpdb->get_row($wpdb->prepare(
       "SELECT id, is_exclusive, start_date, end_date FROM {$containers_table} 

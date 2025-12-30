@@ -14,7 +14,7 @@ class Price_Books_Service
   public static function get_pricebooks()
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'pricebook_containers';
+    $table_name = $wpdb->prefix . PRICEBOOK_TABLE;
 
     $pricebooks = $wpdb->get_results("SELECT * FROM {$table_name} ORDER BY start_date DESC", ARRAY_A);
 
@@ -66,7 +66,7 @@ class Price_Books_Service
   public static function create_pricebook(array $data)
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'pricebook_containers';
+    $table_name = $wpdb->prefix . PRICEBOOK_TABLE;
 
     $insert_data = array(
       'name'          => sanitize_text_field($data['name']),
@@ -94,7 +94,7 @@ class Price_Books_Service
   public static function get_pricebook_by_id(int $id)
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'pricebook_containers';
+    $table_name = $wpdb->prefix . PRICEBOOK_TABLE;
 
     $book = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table_name} WHERE id = %d", $id), ARRAY_A);
 
@@ -114,7 +114,7 @@ class Price_Books_Service
   public static function update_pricebook(int $id, array $data)
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'pricebook_containers';
+    $table_name = $wpdb->prefix . PRICEBOOK_TABLE;
 
     // Prepare data for updating
     $update_data = array(
@@ -148,7 +148,7 @@ class Price_Books_Service
   public static function get_todays_active_pricebooks()
   {
     global $wpdb;
-    $table = $wpdb->prefix . 'pricebook_containers';
+    $table = $wpdb->prefix . PRICEBOOK_TABLE;
 
     $datetime = new DateTime('now', new DateTimeZone('Asia/Singapore'));
     $today = $datetime->format('Y-m-d H:i:s');
@@ -179,7 +179,7 @@ class Price_Books_Service
   public static function create_product_rule(int $pricebook_id, array $data)
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'pricebook_product_relations';
+    $table_name = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
 
     $price_value = (float) $data['price_value'];
 
@@ -211,7 +211,7 @@ class Price_Books_Service
   public static function get_product_rules(int $pricebook_id)
   {
     global $wpdb;
-    $rules_table = $wpdb->prefix . 'pricebook_product_relations';
+    $rules_table = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
     $posts_table = $wpdb->prefix . 'posts';
 
     // SQL query to join the rules table with the WooCommerce product table (wp_posts)
@@ -241,7 +241,7 @@ class Price_Books_Service
   public static function update_product_rule($pricebook_id, $rule_id, $data)
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'pricebook_product_relations';
+    $table_name = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
 
     $update_data = [];
     $format = [];
@@ -297,7 +297,7 @@ class Price_Books_Service
   public static function delete_product_rule(int $rule_id)
   {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'pricebook_product_relations';
+    $table_name = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
 
     // Use $wpdb->delete for safe deletion
     $result = $wpdb->delete(

@@ -87,3 +87,12 @@ if (!defined('ONEMAP_ACCESS_TOKEN_KEY')) {
 if (!defined('ONEMAP_META_KEY')) {
   define('ONEMAP_META_KEY', "one_map_credentials");
 }
+
+// Price Book Table Name
+if (!defined('PRICEBOOK_TABLE')) {
+  define('PRICEBOOK_TABLE', "pricebook_containers");
+}
+// Price Book Products Table 
+if (!defined('PRICEBOOK_PRODUCTS_TABLE')) {
+  define('PRICEBOOK_PRODUCTS_TABLE', "pricebook_product_relations");
+}

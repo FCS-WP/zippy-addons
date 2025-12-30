@@ -165,7 +165,7 @@ class Price_Books_Woocommerce
   protected function get_active_price_book_id_by_role($role_slug)
   {
     global $wpdb;
-    $containers_table = $wpdb->prefix . 'pricebook_containers';
+    $containers_table = $wpdb->prefix . PRICEBOOK_TABLE;
     $date = Price_Books_Helper::get_pricebook_date();
     $query = $wpdb->prepare(
       "SELECT id, is_exclusive, start_date, end_date FROM {$containers_table} 
@@ -196,7 +196,7 @@ class Price_Books_Woocommerce
   protected function get_all_rules_by_price_book_id($price_book_id)
   {
     global $wpdb;
-    $rules_table = $wpdb->prefix . 'pricebook_product_relations';
+    $rules_table = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
 
     if (! $price_book_id) {
       return [];
