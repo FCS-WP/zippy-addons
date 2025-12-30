@@ -258,8 +258,10 @@ class Zippy_Products_Controller
         $is_composite_product = is_composite_product($product);
 
         $list_sub_products = get_field('product_combo', $product->get_id());
-        $min_addons        = get_field('min_order', $product->get_id()) ?: 0;
-        $min_order         = get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0;
+        // $min_addons        = get_field('min_order', $product->get_id()) ?: 0;
+        $min_addons        =  0;
+        // $min_order         = get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0;
+        $min_order         = 0;
         $groups            = get_field('products_group', $product->get_id()) ?: [];
         $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
 
@@ -376,8 +378,10 @@ class Zippy_Products_Controller
       $is_composite_product = is_composite_product($results);
 
       $list_sub_products = get_field('product_combo', $results->get_id());
-      $min_addons         = get_field('min_order', $results->get_id()) ?: 0;
-      $min_order         = get_post_meta($results->get_id(), '_custom_minimum_order_qty', true) ?: 0;
+      $min_addons         = 0;
+      // $min_addons         = get_field('min_order', $results->get_id()) ?: 0;
+      // $min_order         = get_post_meta($results->get_id(), '_custom_minimum_order_qty', true) ?: 0;
+      $min_order         =  0;
       $groups            = get_field('products_group', $results->get_id()) ?: [];
       $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
       $minMaxOptions     = get_field('min_max_options', $results->get_id());
