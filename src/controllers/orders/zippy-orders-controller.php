@@ -848,7 +848,8 @@ class Zippy_Orders_Controller
                 'price_per_item'    => Zippy_Wc_Calculate_Helper::round_price_wc($item->get_subtotal() / max(1, $item->get_quantity())),
                 'tax_per_item'      => Zippy_Wc_Calculate_Helper::round_price_wc($item->get_subtotal_tax() / max(1, $item->get_quantity())),
                 'packing_instructions' => $item->get_meta('packing_instructions', true),
-                'min_order'         => get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0,
+                // 'min_order'         => get_post_meta($product->get_id(), '_custom_minimum_order_qty', true) ?: 0,
+                'min_order'         =>  0,
             ];
 
             $subtotal += ($price_total + Zippy_Wc_Calculate_Helper::round_price_wc($tax_total));
