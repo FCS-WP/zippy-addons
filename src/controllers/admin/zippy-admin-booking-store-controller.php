@@ -97,7 +97,12 @@ class Zippy_Admin_Booking_Store_Controller
                 foreach ($unserialze_fields as $field) {
                     $outlets[$key]->{$field} = maybe_unserialize($outlets[$key]->{$field});
                 }
+                if($outlets[$key]->closed_dates){
+                    $outlets[$key]->close_message = get_field("top_header_message", "option");
+                }
             }
+
+
 
             return Zippy_Response_Handler::success($outlets, "Outlet");
         } catch (\Throwable $th) {

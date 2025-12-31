@@ -18,6 +18,7 @@ const CustomShippingTime = () => {
   const [deliveryTime, setDeliveryTime] = useState("");
   const [closedDates, setClosedDates] = useState([]);
   const [loadingDates, setLoadingDates] = useState(false);
+  const [closeMessage, setCloseMessage] = useState(false);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -80,7 +81,7 @@ const CustomShippingTime = () => {
           const firstStore = response.data[0];
           const cds = firstStore.closed_dates || [];
           setClosedDates(cds);
-
+          setCloseMessage(firstStore?.close_message)
           let d = new Date(minDate);
           while (d.getDay() === 0 || isDateClosed(d, cds)) {
             d.setDate(d.getDate() + 1);
@@ -197,10 +198,12 @@ const CustomShippingTime = () => {
         )}
       </Box>
 
-      <p style={{ color: "red", marginBottom: "10px" }}>
-        Our store will be closed on <b>25, 26 December</b>. All orders placed or
-        deliveries scheduled on this date will be processed the next working day.
-      </p>
+        {closeMessage && (
+          <div
+            style={{ color: "red", marginBottom: "10px" }}
+            dangerouslySetInnerHTML={{ __html: closeMessage }}
+          />
+        )}
 
       <p>
         <i>

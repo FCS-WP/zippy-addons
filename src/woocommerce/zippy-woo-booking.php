@@ -54,6 +54,7 @@ class Zippy_Woo_Booking
   {
     add_filter('wc_get_template_part', array($this, 'override_woocommerce_template_part'), 1, 3);
     add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_template'), 1, 3);
+    add_filter('acf/format_value/name=top_header_message', array($this, 'parse_close_dates') , 10, 3);
   }
 
   /**
@@ -107,4 +108,50 @@ class Zippy_Woo_Booking
       )
     ));
   }
+
+  public function parse_close_dates($value, $post_id, $field) {
+    if (!str_contains($value, '{closed_dates}')) return $value;
+
+    global $wpdb;
+    $table_name = OUTLET_CONFIG_TABLE_NAME;
+    $outlet = $wpdb->get_row("SELECT * FROM $table_name WHERE 1=1");
+
+    if (!empty($outlet->closed_dates)) {
+        $closed_dates = maybe_unserialize($outlet->closed_dates);
+        $closed_dates_arr = [];
+
+        foreach ($closed_dates as $dates) {
+            if (empty($dates['value']) || !is_array($dates['value'])) {
+                continue;
+            }
+
+            $values = array_values(array_unique($dates['value']));
+            sort($values);
+
+            $formatDate = function ($date) {
+                $dt = \DateTime::createFromFormat('Y-m-d', $date);
+                return $dt ? $dt->format('d M, Y') : $date;
+            };
+
+            if (count($values) >= 2) {
+                $from = $formatDate($values[0]);
+                $to   = $formatDate(end($values));
+                $closed_dates_arr[] = "$from to $to";
+            } else {
+                $closed_dates_arr[] = $formatDate($values[0]);
+            }
+        }
+
+        $value = str_replace(
+            '{closed_dates}',
+            implode(', ', $closed_dates_arr),
+            $value
+        );
+    }
+
+    return $value;
+
+
+  }
+
 }
