@@ -24,7 +24,8 @@ class Zippy_Handle_Product_Add_On
         }
 
         $sub_product_id = $sub_product['product']->ID;
-        $min_qty        = intval($sub_product['minimum_quantity'] ?? 0);
+        // $min_qty        = intval($sub_product['minimum_quantity'] ?? 0);
+        $min_qty        = 0;
 
         $prod      = wc_get_product($sub_product_id);
         $image_url = wp_get_attachment_image_url($prod->get_image_id(), 'thumbnail');
