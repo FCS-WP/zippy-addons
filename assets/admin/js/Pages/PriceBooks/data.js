@@ -18,6 +18,7 @@ export const columnWidths = {
 };
 
 export const rulesColumns = [
+  "NO",
   "PRODUCT NAME",
   "PRICING METHOD",
   "PRICE/VALUE",

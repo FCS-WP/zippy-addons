@@ -240,7 +240,8 @@ const PriceBookDetails = () => {
   // --- TABLE MAPPING LOGIC ---
   const mapRulesToTable = useCallback(
     (rulesData) => {
-      return rulesData.map((rule) => ({
+      return rulesData.map((rule, index) => ({
+        NO: index + 1,
         ID: rule.rule_id, // Use rule_id from the backend response
         "PRODUCT NAME": rule.product_name,
         "PRICING METHOD":
