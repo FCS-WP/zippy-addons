@@ -24,18 +24,19 @@ class Zippy_Handle_Product_Add_On
         }
 
         $sub_product_id = $sub_product['product']->ID;
-        $min_qty        = intval($sub_product['minimum_quantity'] ?? 0);
+        // $min_qty        = intval($sub_product['minimum_quantity'] ?? 0);
+        $min_qty        = 0;
 
         $prod      = wc_get_product($sub_product_id);
         $image_url = wp_get_attachment_image_url($prod->get_image_id(), 'thumbnail');
 
         $max_qty = $prod ? intval($prod->get_stock_quantity()) : 0;
-        if ($is_composite_product) {
-          $max_qty = intval($grouped_addons['quantity_products_group'] ?? 0);
-          if (!in_array($sub_product_id, $grouped_addons['product_ids'] ?? [])) {
-            $max_qty = $min_qty;
-          }
-        }
+        // if ($is_composite_product) {
+        //   $max_qty = intval($grouped_addons['quantity_products_group'] ?? 0);
+        //   if (!in_array($sub_product_id, $grouped_addons['product_ids'] ?? [])) {
+        //     $max_qty = $min_qty;
+        //   }
+        // }
 
         $addons[] = [
           'id'    => $sub_product_id,
@@ -62,15 +63,15 @@ class Zippy_Handle_Product_Add_On
       'quantity_products_group' => 0,
     ];
 
-    if (!empty($groups)) {
-      $grouped_addons['quantity_products_group'] = intval($groups['quantity_products_group'] ?? 0);
+    // if (!empty($groups)) {
+    //   $grouped_addons['quantity_products_group'] = intval($groups['quantity_products_group'] ?? 0);
 
-      if (!empty($groups['product_group']) && is_array($groups['product_group'])) {
-        foreach ($groups['product_group'] as $group) {
-          $grouped_addons['product_ids'][] = $group->ID;
-        }
-      }
-    }
+    //   if (!empty($groups['product_group']) && is_array($groups['product_group'])) {
+    //     foreach ($groups['product_group'] as $group) {
+    //       $grouped_addons['product_ids'][] = $group->ID;
+    //     }
+    //   }
+    // }
 
     return $grouped_addons;
   }

@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import Index from "./Pages/Bookings";
 import Dashboard from "./Pages/Dashboard";
 import Settings from "./Pages/Settings";
+import PriceBooks from "./Pages/PriceBooks";
 // import ProductsBooking from "./Pages/ProductsBooking";
 // import Calendar from "./Pages/Calendar";
 import Store from "./Pages/Store";
@@ -27,6 +28,7 @@ function initializeApp() {
   const zippyStore = document.getElementById("zippy_store_booking");
   const zippyShipping = document.getElementById("zippy_shipping");
   const zippyMenus = document.getElementById("zippy_menus");
+  const zippyPriceBooks = document.getElementById("zippy_price_books");
   const zippyOrderFilter = document.getElementById("zippy_order_filter");
   const zippyCreateOrder = document.getElementById("admin_create_order");
   const zippyOrderTable = document.getElementById("admin-table-order");
@@ -101,6 +103,17 @@ function initializeApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Shipping />
+      </ThemeProvider>
+    );
+  }
+  if (zippyPriceBooks) {
+    const root = ReactDOM.createRoot(zippyPriceBooks);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <BrowserRouter>
+          <CssBaseline />
+          <PriceBooks />
+        </BrowserRouter>
       </ThemeProvider>
     );
   }

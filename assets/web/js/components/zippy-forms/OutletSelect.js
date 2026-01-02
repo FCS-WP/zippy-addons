@@ -192,17 +192,17 @@ const OutletSelect = ({
       return [];
     }
 
-    if (response.data?.pricing_rule && response.data?.pricing_rule?.total) {
+    if (response.data?.pricing_rule) {
       const confirm = await productPricingRule({
         handleConfirm: handleConfirmPricingRule,
         date: {
           from: format(
-            parseISO(response.data?.pricing_rule.from),
+            parseISO(response.data?.pricing_rule.price_book.start_date),
             "dd-MMM-yyyy"
           ),
-          to: format(parseISO(response.data?.pricing_rule.to), "dd-MMM-yyyy"),
+          to: format(parseISO(response.data?.pricing_rule.price_book.end_date), "dd-MMM-yyyy"),
         },
-        price: response.data?.pricing_rule?.total,
+        price: response.data?.pricing_rule?.new_price,
       });
     }
 
