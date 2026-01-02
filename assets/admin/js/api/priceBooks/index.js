@@ -99,4 +99,12 @@ export const priceBooksAPI = {
       "DELETE"
     );
   },
+
+   /**
+   * Bulk Import a specific PriceBook.
+   * @param {number} pricebookId - The ID of the parent Price Book.
+   */
+  async bulkImport(formData) {
+    return await makeRequest(`/price_books/rules/import`, formData, "POST");
+  },
 };

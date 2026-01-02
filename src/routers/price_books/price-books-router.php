@@ -114,6 +114,22 @@ class Price_Books_Router
       'args'                => [],
       'permission_callback' => $permission,
     ));
+
+    // Route: /price_books/rules/import
+    register_rest_route($namespace, '/price_books/rules/import', array(
+      'methods'             => WP_REST_Server::EDITABLE, // POST
+      'callback'            => [Zippy_Price_Books_Controller::class, 'bulk_import'],
+      'args'                => [],
+      'permission_callback' => $permission,
+    ));
+
+    // Route: /price_books/rules/import-template
+    register_rest_route($namespace, '/price-books/download-template', array(
+      'methods'             => WP_REST_Server::READABLE, // POST
+      'callback'            => [Zippy_Price_Books_Controller::class, 'download_template'],
+      'args'                => [],
+      'permission_callback' => [],
+    ));
   }
 
   public function zippy_price_book_product_init_api(): void

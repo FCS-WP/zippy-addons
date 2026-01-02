@@ -62,6 +62,12 @@ class Zippy_Admin_Settings
       'userID' => $current_user_id,
       'day_limited' => $day_limited
     ));
+
+    wp_localize_script('admin-booking-js', 'zippyConfig', [
+      'apiUrl' => rest_url('/zippy-addons/v1'),
+      'nonce'  => wp_create_nonce('wp_rest'),
+      'siteUrl' => get_site_url(),
+    ]);
   }
 
   public function zippy_booking_page()

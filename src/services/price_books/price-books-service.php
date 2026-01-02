@@ -309,4 +309,66 @@ class Price_Books_Service
     // $wpdb->delete returns the number of rows deleted (0 or 1) or false on error
     return $result !== false;
   }
+
+  /**
+   * Bulk import Product Rule.
+   */
+  public static function bulk_import_product_rules($pricebook_id, $file_path)
+  {
+    global $wpdb;
+    $table = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
+
+    if (!file_exists($file_path) || !is_readable($file_path)) {
+      return false;
+    }
+
+    $handle = fopen($file_path, 'r');
+    fgetcsv($handle); // Skip header
+
+    $imported = 0;
+    $skipped  = [];
+    $wpdb->query("START TRANSACTION");
+
+    try {
+      while (($row = fgetcsv($handle)) !== FALSE) {
+        $sku = sanitize_text_field($row[0]);
+        if (empty($sku)) continue;
+
+        $product_id = wc_get_product_id_by_sku($sku);
+
+        if (!$product_id) {
+          $skipped[] = $sku;
+          continue;
+        }
+
+        $wpdb->query($wpdb->prepare(
+          "INSERT INTO $table (pricebook_id, product_id, price_type, price_value, visibility)
+                 VALUES (%d, %d, %s, %f, %s)
+                 ON DUPLICATE KEY UPDATE 
+                    price_type = VALUES(price_type), 
+                    price_value = VALUES(price_value), 
+                    visibility = VALUES(visibility),
+                    deleted_at = NULL",
+          $pricebook_id,
+          $product_id,
+          sanitize_text_field($row[1]),
+          floatval($row[2]),
+          sanitize_text_field($row[3] ?? 'show')
+        ));
+        $imported++;
+      }
+      $wpdb->query("COMMIT");
+      fclose($handle);
+
+      return [
+        'imported' => $imported,
+        'skipped'  => $skipped,
+        'total'    => $imported + count($skipped)
+      ];
+    } catch (\Exception $e) {
+      $wpdb->query("ROLLBACK");
+      fclose($handle);
+      return false;
+    }
+  }
 }

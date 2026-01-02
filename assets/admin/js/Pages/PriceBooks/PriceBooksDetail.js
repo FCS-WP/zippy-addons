@@ -35,6 +35,7 @@ import { rulesColumns } from "./data";
 import Loading from "../../Components/Loading";
 import { NavLink } from "react-router";
 import { generalAPI } from "../../api/general";
+import BulkImportModal from "./Modals/BulkImportModal";
 
 const getPriceBookIdFromUrl = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -65,6 +66,7 @@ const PriceBookDetails = () => {
 
   const [rules, setRules] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [ruleToEdit, setRuleToEdit] = useState(null); // Data for editing
   const [loadingRules, setLoadingRules] = useState(isEditMode); // Loading rules initially
 
@@ -164,6 +166,14 @@ const PriceBookDetails = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setRuleToEdit(null);
+  };
+
+  const handleBulkImportCloseModal = () => {
+    setIsBulkModalOpen(false);
+  };
+
+  const handleOpenBulkImportModal = () => {
+    setIsBulkModalOpen(true);
   };
 
   const handleToggleChange = (e) => {
@@ -335,6 +345,10 @@ const PriceBookDetails = () => {
       setIsSaving(false);
       setEditInfo(false);
     }
+  };
+
+  const handleBulkImport = async () => {
+    await fetchRules(priceBookId);
   };
 
   return (
@@ -557,14 +571,26 @@ const PriceBookDetails = () => {
                   Manage individual product prices and visibility
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleOpenAddModal}
-                size="large"
-              >
-                Add Product
-              </Button>
+              <Box display={"flex"} gap={1}>
+                {/* Import */}
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenBulkImportModal}
+                  size="large"
+                >
+                  Bulk Import
+                </Button>
+                {/* Add */}
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenAddModal}
+                  size="large"
+                >
+                  Add Product
+                </Button>
+              </Box>
             </Box>
 
             <Divider />
@@ -603,10 +629,16 @@ const PriceBookDetails = () => {
       )}
 
       <ProductRuleFormModal
-        open={isModalOpen} // Consolidated state
-        handleClose={handleCloseModal} // Consolidated handler
+        open={isModalOpen}
+        handleClose={handleCloseModal}
         initialRuleData={ruleToEdit}
         onSave={handleSaveRule}
+      />
+      <BulkImportModal
+        open={isBulkModalOpen}
+        handleClose={handleBulkImportCloseModal}
+        priceBookId={priceBookId}
+        onComplete={handleBulkImport}
       />
     </Container>
   );

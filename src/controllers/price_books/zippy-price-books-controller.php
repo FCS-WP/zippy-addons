@@ -225,4 +225,70 @@ class Zippy_Price_Books_Controller
       return Zippy_Response_Handler::error('Failed to delete Product Rule.', 500);
     }
   }
+
+  /**
+   *
+   * Handles down load template for Bulk Import.
+   */
+
+  public static function download_template($request)
+  {
+    if (ob_get_contents()) ob_end_clean();
+
+    $filename = "pricebook_import_template_" . date('Y-m-d') . ".csv";
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=' . $filename);
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    $output = fopen('php://output', 'w');
+
+    fputcsv($output, [
+      'sku',
+      'price_type',
+      'price_value',
+      'visibility'
+    ]);
+
+    // Inside download_template method
+    fputcsv($output, ['SKU-001', 'percent_off', '10.5', 'show']);
+    fputcsv($output, ['SKU-002', 'percent_off', '10.5', 'show']);
+    fputcsv($output, ['SKU-003', 'fixed', '150.00', 'show']);
+    fputcsv($output, ['SKU-004', 'fixed_off', '5.00', 'hide']);
+
+    fclose($output);
+    exit;
+  }
+
+  /**
+   *
+   * Handles the Bulk Import.
+   */
+
+  public static function bulk_import(WP_REST_Request $request)
+  {
+    $price_book_id = (int) $request->get_param('pricebook_id');
+    if (empty($price_book_id)) {
+      return Zippy_Response_Handler::error('Price Book ID is required for import.', 400);
+    }
+
+    $files = $request->get_file_params();
+    if (empty($files['csv'])) {
+      return Zippy_Response_Handler::error('No CSV file was uploaded.', 400);
+    }
+
+    $file_path = $files['csv']['tmp_name'];
+
+    $imported_count = Price_Books_Service::bulk_import_product_rules($price_book_id, $file_path);
+
+    if ($imported_count !== false) {
+      return Zippy_Response_Handler::success([
+        'message' => 'Products imported successfully.',
+        'imported_count' => $imported_count
+      ]);
+    } else {
+      return Zippy_Response_Handler::error('Failed to import products. Please check the CSV format.', 500);
+    }
+  }
 }
