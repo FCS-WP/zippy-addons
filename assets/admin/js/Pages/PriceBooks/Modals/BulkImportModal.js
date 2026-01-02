@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Box,
@@ -36,17 +36,53 @@ const style = {
 const BulkImportModal = ({ open, handleClose, priceBookId, onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [file, setFile] = useState(null);
+  const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
 
   const steps = ["Select File", "Validate & Confirm", "Importing"];
 
+  const REQUIRED_HEADERS = ["sku", "price_type", "price_value", "visibility"];
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setActiveStep(1);
+    if (!selectedFile) return;
+
+    if (!selectedFile.name.endsWith(".csv")) {
+      setError("Please upload a valid CSV file.");
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.split(/\r?\n/);
+      if (lines.length < 2) {
+        setError("The CSV file appears to be empty.");
+        return;
+      }
+
+      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+      const hasAllHeaders = REQUIRED_HEADERS.every((rh) =>
+        headers.includes(rh)
+      );
+
+      if (!hasAllHeaders) {
+        setError(`Header mismatch! Required: ${REQUIRED_HEADERS.join(", ")}`);
+        return;
+      }
+
+      const firstRow = lines[1].split(",");
+      if (firstRow.length < headers.length) {
+        setError("Data format error in the first row.");
+        return;
+      }
+
+      setFile(selectedFile);
+      setError(null);
+      setActiveStep(1);
+    };
+    reader.readAsText(selectedFile);
   };
 
   const handleStartImport = async () => {
@@ -69,6 +105,12 @@ const BulkImportModal = ({ open, handleClose, priceBookId, onComplete }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseButoon = () => {
+    setActiveStep(0);
+
+    handleClose();
   };
 
   return (
@@ -104,13 +146,33 @@ const BulkImportModal = ({ open, handleClose, priceBookId, onComplete }) => {
               Download Sample CSV
             </Button>
 
+            {/* ERROR DISPLAY */}
+            {error && (
+              <Alert
+                severity="error"
+                variant="filled"
+                sx={{
+                  width: "100%",
+                  textAlign: "left",
+                  borderRadius: 2,
+                  mt: 2,
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight="bold">
+                  Invalid File Structure
+                </Typography>
+                <Typography variant="caption">{error}</Typography>
+              </Alert>
+            )}
+
             <Divider sx={{ my: 2 }}>OR</Divider>
             <Button
               variant="contained"
               component="label"
               startIcon={<FileUploadIcon />}
+              color={error ? "error" : "primary"}
             >
-              Choose CSV File
+              {error ? "Try Another File" : "Choose CSV File"}
               <input
                 type="file"
                 hidden
@@ -243,7 +305,7 @@ const BulkImportModal = ({ open, handleClose, priceBookId, onComplete }) => {
 
             <Button
               variant="contained"
-              onClick={handleClose}
+              onClick={handleCloseButoon}
               fullWidth
               size="large"
             >
