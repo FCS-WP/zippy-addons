@@ -25,8 +25,8 @@ class Price_Books_Woocommerce
 
     $user_id = get_current_user_id();
     $user = get_userdata($user_id);
-    if (empty($user->roles)) {
-      $current_role = '';
+    if (empty($user->roles) || $user->roles[0] == 'administrator') {
+      $current_role = 'customer';
     } else {
       $current_role_formated = array_values($user->roles);
 
