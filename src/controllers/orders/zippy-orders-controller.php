@@ -360,9 +360,11 @@ class Zippy_Orders_Controller
         $packing_instructions = sanitize_text_field($productData['packing_instructions'] ?? '');
 
         $product = wc_get_product($product_id);
+
         if (!$product) {
             return Zippy_Response_Handler::error('Product not found.');
         }
+
 
         $product_price = get_product_pricing_rules($product, 1, $user_id);
         if (is_null($product_price)) {
@@ -378,11 +380,22 @@ class Zippy_Orders_Controller
         if (empty($addons)) {
             return Zippy_Response_Handler::error('No addons found.');
         }
+        //Extra price
+        $extra_value = get_field('extra_price', $product_id);
+
+        if (!empty($extra_value)) {
+
+            $extra_price =  $extra_value * $quantity;
+
+            self::updateMetaData($order, $item_id, 'combo_extra_price', '$' . $extra_price);
+        }
+
 
         $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity, $user_id);
-        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
+        self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price, $extra_price);
 
         self::updateMetaData($order, $item_id, 'packing_instructions', $packing_instructions);
+
 
         return [
             'product_id' => $product_id,
@@ -405,7 +418,7 @@ class Zippy_Orders_Controller
         }
     }
 
-    private static function handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price)
+    private static function handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price,  $combo_extra_price = 0)
     {
         if (empty($item) || empty($addon_meta)) {
             return false;
@@ -635,8 +648,16 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('Order item not found.');
         }
 
+        $extra_value = $item->get_meta('combo_extra_price');
+
+        $extra_value = str_replace('$', '', $extra_value);
+        $extra_price = floatval($extra_value) * $quantity;
+
         // Set quantity
         $item->set_quantity($quantity, true);
+
+
+
 
         $product = $item->get_product();
         if (empty($product)) {
@@ -651,7 +672,7 @@ class Zippy_Orders_Controller
         $addon_meta = [];
         if (!empty($addons) && is_array($addons)) {
             $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity, $user_id);
-            self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price);
+            self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price, $extra_price);
         } else {
             // Set tax for simple product
             Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
@@ -815,11 +836,9 @@ class Zippy_Orders_Controller
         $products = [];
         $subtotal = 0;
         $taxTotal = 0;
-
         foreach ($items as $item_id => $item) {
             $akk_selected = maybe_unserialize($item->get_meta('akk_selected', true));
             $addons = [];
-
             if (!empty($akk_selected)) {
                 foreach ($akk_selected as $addon_id => $values) {
                     $addon_product = wc_get_product($addon_id);
@@ -830,7 +849,18 @@ class Zippy_Orders_Controller
                         'price'    => $values[1] ?? 0,
                     ];
                 }
+
+                $combo_extra_price = maybe_unserialize($item->get_meta('combo_extra_price', true));
+                if (!empty($combo_extra_price)) {
+                    $platter_plate  = [
+                        "name" => "Platter plate",
+                        "quantity" => $item->get_quantity(),
+                        "price" =>  $combo_extra_price
+                    ];
+                    $addons[] = $platter_plate;
+                }
             }
+
 
             $product = $item->get_product();
             $price_total = Zippy_Wc_Calculate_Helper::round_price_wc($item->get_subtotal());
