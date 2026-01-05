@@ -414,18 +414,18 @@ class Zippy_Orders_Controller
         $item->update_meta_data('akk_selected', $addon_meta);
 
         // Set tax for no composite product
-        if (!is_composite_product($product)) {
-            $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
-            $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total);
-            if ($tax === false) {
-                return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
-            }
-            return true;
+        // if (!is_composite_product($product)) {
+        $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
+        $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total);
+        if ($tax === false) {
+            return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
         }
+        return true;
+        // }
 
         // Set tax for composite product
-        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
-        return true;
+        // Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
+        // return true;
     }
 
     public static function get_order_info(WP_REST_Request $request)
