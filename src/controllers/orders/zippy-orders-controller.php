@@ -428,7 +428,7 @@ class Zippy_Orders_Controller
 
         // Set tax for no composite product
         // if (!is_composite_product($product)) {
-        $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
+        $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta, $combo_extra_price);
         $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total);
         if ($tax === false) {
             return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
@@ -648,11 +648,6 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('Order item not found.');
         }
 
-        $extra_value = $item->get_meta('combo_extra_price');
-
-        $extra_value = str_replace('$', '', $extra_value);
-        $extra_price = floatval($extra_value) * $quantity;
-
         // Set quantity
         $item->set_quantity($quantity, true);
 
@@ -667,6 +662,14 @@ class Zippy_Orders_Controller
         $product_price = get_product_pricing_rules($product, 1, $user_id);
         if (is_null($product_price)) {
             return Zippy_Response_Handler::error('Failed to get product pricing by user.');
+        }
+
+        //Extra price
+        $extra_value = get_field('extra_price', $product->get_id());
+
+        if (isset($extra_value) && !empty($extra_value)) {
+            $extra_price = floatval($extra_value) * $quantity;
+            $item->update_meta_data('combo_extra_price', '$' . $extra_price);
         }
 
         $addon_meta = [];
