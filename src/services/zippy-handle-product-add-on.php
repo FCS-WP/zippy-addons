@@ -82,10 +82,12 @@ class Zippy_Handle_Product_Add_On
     $data = [];
     if (!empty($addons) && is_array($addons)) {
       foreach ($addons as $key => $addon) {
-        if (empty($addon) || !is_array($addon)) {
+        if (empty($addon) || !is_array($addon) || !isset($addon['item_id'])) {
           continue;
         }
         $addon_id = intval($addon['item_id']);
+
+
         $qty = intval($addon['quantity'] * $quantity ?? 0);
 
         if ($qty > 0) {
@@ -99,7 +101,7 @@ class Zippy_Handle_Product_Add_On
     return $data;
   }
 
-  public static function calculate_addon_total($addons = [])
+  public static function calculate_addon_total($addons = [], $combo_extra_price = 0)
   {
     $total = 0;
     if (!empty($addons) && is_array($addons)) {
@@ -114,6 +116,7 @@ class Zippy_Handle_Product_Add_On
         $total += $quantity * $price;
       }
     }
+    $total += floatval($combo_extra_price);
 
     return $total;
   }
