@@ -13,9 +13,10 @@ class Zippy_Handle_Product_Add_On
   /**
    * Build addon rules (min/max for each sub product)
    */
-  public static function get_list_addons($list_sub_products, $is_composite_product = false, $grouped_addons = [])
+  public static function get_list_addons($list_sub_products, $is_composite_product = false, $grouped_addons = [], $product_parent = null)
   {
     $addons = [];
+    $category_can_not_change_quantity = ['combo-6'];
 
     if (!empty($list_sub_products)) {
       foreach ($list_sub_products as $sub_product) {
@@ -31,12 +32,22 @@ class Zippy_Handle_Product_Add_On
         $image_url = wp_get_attachment_image_url($prod->get_image_id(), 'thumbnail');
 
         $max_qty = $prod ? intval($prod->get_stock_quantity()) : 0;
-        // if ($is_composite_product) {
-        //   $max_qty = intval($grouped_addons['quantity_products_group'] ?? 0);
-        //   if (!in_array($sub_product_id, $grouped_addons['product_ids'] ?? [])) {
-        //     $max_qty = $min_qty;
-        //   }
-        // }
+
+        if ($is_composite_product && !empty($product_parent)) {
+          $categories = get_the_terms($product_parent->get_id(), 'product_cat');
+          if (!empty($categories)) {
+            foreach ($categories as $category) {
+              if (in_array($category->slug, $category_can_not_change_quantity)) {
+                $max_qty = $min_qty;
+                break;;
+              }
+            }
+          }
+          // $max_qty = intval($grouped_addons['quantity_products_group'] ?? 0);
+          // if (!in_array($sub_product_id, $grouped_addons['product_ids'] ?? [])) {
+          //   $max_qty = $min_qty;
+          // }
+        }
 
         $addons[] = [
           'id'    => $sub_product_id,

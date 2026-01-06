@@ -426,19 +426,30 @@ class Zippy_Orders_Controller
 
         $item->update_meta_data('akk_selected', $addon_meta);
 
+        $composite_categories_calculate_modifier = ['baby-shower'];
         // Set tax for no composite product
-        // if (!is_composite_product($product)) {
-        $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta, $combo_extra_price);
-        $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total);
-        if ($tax === false) {
-            return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
+        if (
+            !is_composite_product($product)
+            || (
+                is_composite_product($product)
+                && has_term(
+                    $composite_categories_calculate_modifier,
+                    'product_cat',
+                    $product->get_id()
+                )
+            )
+        ) {
+            $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
+            $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total);
+            if ($tax === false) {
+                return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');
+            }
+            return true;
         }
-        return true;
-        // }
 
         // Set tax for composite product
-        // Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
-        // return true;
+        Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $product_price, $quantity);
+        return true;
     }
 
     public static function get_order_info(WP_REST_Request $request)
@@ -997,10 +1008,6 @@ class Zippy_Orders_Controller
         }
 
         $admin_name = $order->get_meta('name_admin_created_order');
-        if (empty($admin_name)) {
-            return Zippy_Response_Handler::error('Admin name not found in order meta.');
-        }
-
         return Zippy_Response_Handler::success([
             'admin_name' => $admin_name,
         ]);
