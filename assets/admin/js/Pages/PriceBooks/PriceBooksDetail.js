@@ -36,6 +36,7 @@ import Loading from "../../Components/Loading";
 import { NavLink } from "react-router";
 import { generalAPI } from "../../api/general";
 import BulkImportModal from "./Modals/BulkImportModal";
+import { dateToSGT } from "../../utils/dateHelper";
 
 const getPriceBookIdFromUrl = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -51,9 +52,6 @@ const INITIAL_INFO = {
   status: "active",
 };
 
-const formatDateForAPI = (date) => {
-  return date ? format(date, "yyyy-MM-dd") : null;
-};
 
 const PriceBookDetails = () => {
   const priceBookId = getPriceBookIdFromUrl();
@@ -310,8 +308,8 @@ const PriceBookDetails = () => {
     try {
       const dataToSubmit = {
         ...info,
-        start_date: formatDateForAPI(info.start_date),
-        end_date: formatDateForAPI(info.end_date),
+        start_date: dateToSGT(info.start_date, "yyyy-MM-dd"),
+        end_date: dateToSGT(info.end_date, "yyyy-MM-dd"),
         role: info.role,
       };
 

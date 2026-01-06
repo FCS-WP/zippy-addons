@@ -21,7 +21,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PeopleIcon from "@mui/icons-material/People";
-
+import { dateToSGT } from "../../../utils/dateHelper";
+import { format } from "date-fns";
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -56,13 +57,15 @@ const AddPriceBookModal = ({ open, handleClose, onSave, ruleData }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const dataToSave = {
       ...formData,
       status: formData.status ? "active" : "inactive",
       is_exclusive: formData.is_exclusive ? 1 : 0,
-      start_date: formData.start_date?.toISOString() || null,
-      end_date: formData.end_date?.toISOString() || null,
+      start_date: dateToSGT(formData.start_date, "yyyy-MM-dd") || null,
+      end_date: dateToSGT(formData.end_date, "yyyy-MM-dd") || null,
     };
+
     onSave(dataToSave);
     setFormData({
       name: "",
