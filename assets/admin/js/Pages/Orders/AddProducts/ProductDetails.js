@@ -371,7 +371,7 @@ const ProductDetails = ({
               variant="contained"
               color="primary"
               onClick={handleAddAllAddons}
-              disabled={!data.some((row) => row.QUANTITY > 0) || !hasChanges}
+              disabled={!data.some((row) => row.QUANTITY > 0)}
             >
               Add All Add-ons
             </Button>
