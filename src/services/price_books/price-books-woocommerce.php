@@ -231,7 +231,7 @@ class Price_Books_Woocommerce
    * @param array $rule           The pricing rule array, including 'price_type' and 'rule_value'.
    * @return float The calculated new price.
    */
-  function calculate_discounted_price(float $original_price, array $rule): float
+  public function calculate_discounted_price(float $original_price, array $rule): float
   {
 
     $new_price = $original_price;
@@ -257,4 +257,24 @@ class Price_Books_Woocommerce
     }
     return max(0, $new_price);
   }
+
+  public function handle_flatsome_exclusive_visibility($is_visible, $product_id)
+  {
+    $helper = new Price_Books_Helper();
+
+    $rules = $helper->get_active_rules_for_current_user();
+    $is_exclusive_mode = $helper->is_exclusive_mode();
+
+    if ($is_exclusive_mode) {
+      return isset($rules[$product_id]);
+    }
+
+    // Check if the product belongs to a restricted category
+    if ($helper->is_product_restricted($product_id)) {
+      return false;
+    }
+
+    return $is_visible;
+  }
+
 }

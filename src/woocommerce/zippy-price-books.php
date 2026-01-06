@@ -38,5 +38,7 @@ class Zippy_Price_Books
     add_filter('woocommerce_product_is_visible', [$this->service, 'control_product_visibility'], 10, 2);
 
     add_filter('woocommerce_product_query_meta_query', [$this->service, 'filter_search_results'], 10, 2);
+
+    add_filter('woocommerce_product_is_visible', [$this->service, 'handle_flatsome_exclusive_visibility'], 10, 2);
   }
 }
