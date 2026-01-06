@@ -10,11 +10,11 @@ export const priceBooksColumns = [
 
 export const columnWidths = {
   NAME: "auto",
-  ROLE: "20%",
+  ROLE: "10%",
   "START DATE": "15%",
   "END DATE": "15%",
   STATUS: "10%",
-  "": "10%", // Action column
+  "": "15%", // Action column
 };
 
 export const rulesColumns = [
