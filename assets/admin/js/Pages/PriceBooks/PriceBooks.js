@@ -9,6 +9,7 @@ import {
   Paper,
   InputBase,
   Divider,
+  Alert,
   IconButton,
   Grid,
   Card,
@@ -22,7 +23,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import TableView from "../../Components/TableView";
 import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
 import { NavLink } from "react-router";
-import { format } from "date-fns";
+import { dateToSGT } from "../../utils/dateHelper";
 import { toast, ToastContainer } from "react-toastify";
 import Loading from "../../Components/Loading";
 
@@ -30,6 +31,7 @@ import AddPriceBookModal from "./Modals/AddPriceBookModal";
 import { priceBooksColumns, columnWidths } from "./data";
 import { priceBooksAPI } from "../../api/priceBooks";
 import { generalAPI } from "../../api/general";
+import DeletePriceBookAction from "./DeletePriceBook";
 
 const constructEditUrl = (id) => {
   const baseUrl = "?page=price_books";
@@ -84,25 +86,32 @@ const PriceBooks = () => {
       NAME: value.name,
       ROLE: getRoleDisplayName(value.role_id, currentRules),
       "START DATE": value.start_date
-        ? format(new Date(value.start_date), "MMM dd, yyyy")
+        ? dateToSGT(value.start_date, "MMM dd, yyyy")
         : "N/A",
       "END DATE": value.end_date
-        ? format(new Date(value.end_date), "MMM dd, yyyy")
+        ? dateToSGT(value.end_date, "MMM dd, yyyy")
         : "N/A",
       STATUS: <Chip size="small" {...getStatusChipProps(value.status_label)} />,
       EXCLUSIVE: (
         <Chip size="small" {...getExclusiveChipProps(value.is_exclusive)} />
       ),
       "": (
-        <NavLink to={constructEditUrl(value.id)}>
-          <Button startIcon={<ModeEditOutlineIcon />} size="small">
-            Edit
-          </Button>
-        </NavLink>
+        <>
+          <NavLink to={constructEditUrl(value.id)}>
+            <Button startIcon={<ModeEditOutlineIcon />} size="small">
+              Edit
+            </Button>
+          </NavLink>
+          <DeletePriceBookAction
+            priceBook={value}
+            onDeleteSuccess={handleDeletePriceBook}
+          />
+        </>
       ),
     }));
   };
 
+  const handleDeletePriceBook = async () => await initData();
   const getRoleDisplayName = (slug, currentRules) => {
     const roleList = currentRules.length > 0 ? currentRules : rules;
     if (slug == "all") return "All";

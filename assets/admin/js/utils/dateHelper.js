@@ -1,4 +1,5 @@
 import { format, parseISO, isValid } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 export const formatDate = (dateString, formatPattern = "MMMM d, yyyy") => {
   const date = parseISO(dateString); // Parse the string to a Date object
@@ -228,4 +229,13 @@ export const isCloseDate = (date, closedDays, closedDates) => {
   }
 
   return false;
+};
+
+export const dateToSGT = (value, format = "MMM dd, yyyy") => {
+  if (!value) return "";
+
+  const timeZone = "Asia/Singapore";
+  return formatInTimeZone(new Date(value), timeZone, format);
+
+  // return format(zonedDate, format);
 };

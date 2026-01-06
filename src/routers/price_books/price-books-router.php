@@ -83,6 +83,13 @@ class Price_Books_Router
       'args'                => [],
       'permission_callback' => $permission,
     ));
+    // Route: /price_books/{id}
+    register_rest_route($namespace, '/price_books/(?P<id>\d+)', array(
+      'methods'             => WP_REST_Server::DELETABLE, //DELETE
+      'callback'            => [Zippy_Price_Books_Controller::class, 'delete_pricebook'],
+      'args'                => [],
+      'permission_callback' => $permission,
+    ));
 
     // Route: /price_books/{pricebook_id}/rules
     register_rest_route($namespace, '/price_books/(?P<pricebook_id>\d+)/rules', array(

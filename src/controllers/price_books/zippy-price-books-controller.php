@@ -106,6 +106,27 @@ class Zippy_Price_Books_Controller
     }
   }
 
+  /**
+   * Handles the DELETE request to delete a single Price Book.
+   * @param WP_REST_Request $request
+   */
+  public static function delete_pricebook(WP_REST_Request $request)
+  {
+    $id = (int) $request->get_param('id');
+
+    if (empty($id)) {
+      return Zippy_Response_Handler::error('Price Book ID is required.', 400);
+    }
+
+    $success = Price_Books_Service::delete_pricebook($id);
+
+    if ($success) {
+      return Zippy_Response_Handler::success(['message' => 'Price Book deleted successfully.']);
+    } else {
+      return Zippy_Response_Handler::error('Failed to delete Price Book.', 500);
+    }
+  }
+
   public static function get_todays_active_pricebooks(WP_REST_Request $request)
   {
 

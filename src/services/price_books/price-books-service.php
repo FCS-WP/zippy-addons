@@ -141,6 +141,45 @@ class Price_Books_Service
   }
 
   /**
+   * Delete a pricebook
+   *
+   */
+  public static function delete_pricebook($id)
+  {
+    global $wpdb;
+    $container_table = $wpdb->prefix . PRICEBOOK_TABLE;
+    $relations_table = $wpdb->prefix . PRICEBOOK_PRODUCTS_TABLE;
+    $now = current_time('mysql');
+
+    $wpdb->query("START TRANSACTION");
+
+    try {
+      $wpdb->update(
+        $container_table,
+        ['deleted_at' => $now, 'status' => 'inactive'], // Also mark inactive for safety
+        ['id' => $id],
+        ['%s', '%s'],
+        ['%d']
+      );
+
+      // 2. Soft delete all related product rules
+      $wpdb->update(
+        $relations_table,
+        ['deleted_at' => $now],
+        ['pricebook_id' => $id],
+        ['%s'],
+        ['%d']
+      );
+
+      $wpdb->query("COMMIT");
+      return true;
+    } catch (Exception $e) {
+      $wpdb->query("ROLLBACK");
+      return false;
+    }
+  }
+
+  /**
    * Get pricebook Today
    *
    */

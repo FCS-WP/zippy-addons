@@ -170,4 +170,16 @@ class Price_Books_Helper
       'price_book' => self::$current_pricebook_data
     ];
   }
+
+  /**
+   * Check if a product belongs to a restricted category.
+   */
+  public function is_product_restricted($product_id)
+  {
+    $restricted_categories = ['combo-6', 'ala-carte-menu', 'festive-menu'];
+
+    return has_term($restricted_categories, 'product_cat', $product_id);
+  }
 }
+
+
