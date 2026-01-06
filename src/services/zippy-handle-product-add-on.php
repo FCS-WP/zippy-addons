@@ -16,7 +16,7 @@ class Zippy_Handle_Product_Add_On
   public static function get_list_addons($list_sub_products, $is_composite_product = false, $grouped_addons = [], $product_parent = null)
   {
     $addons = [];
-    $category_can_not_change_quantity = ['combo-6'];
+    $is_baby_shower = self::is_baby_shower_product($product_parent);
 
     if (!empty($list_sub_products)) {
       foreach ($list_sub_products as $sub_product) {
@@ -25,29 +25,22 @@ class Zippy_Handle_Product_Add_On
         }
 
         $sub_product_id = $sub_product['product']->ID;
-        // $min_qty        = intval($sub_product['minimum_quantity'] ?? 0);
-        $min_qty        = 0;
+
+        $min_qty        = $is_baby_shower ? 0 : intval($sub_product['minimum_quantity'] ?? 0);
+        // $min_qty        = 0;
 
         $prod      = wc_get_product($sub_product_id);
         $image_url = wp_get_attachment_image_url($prod->get_image_id(), 'thumbnail');
-
         $max_qty = $prod ? intval($prod->get_stock_quantity()) : 0;
 
-        if ($is_composite_product && !empty($product_parent)) {
-          $categories = get_the_terms($product_parent->get_id(), 'product_cat');
-          if (!empty($categories)) {
-            foreach ($categories as $category) {
-              if (in_array($category->slug, $category_can_not_change_quantity)) {
-                $max_qty = $min_qty;
-                break;;
-              }
-            }
-          }
+        if ($is_composite_product && !$is_baby_shower) {
+          $max_qty = $min_qty;
           // $max_qty = intval($grouped_addons['quantity_products_group'] ?? 0);
           // if (!in_array($sub_product_id, $grouped_addons['product_ids'] ?? [])) {
           //   $max_qty = $min_qty;
           // }
         }
+
 
         $addons[] = [
           'id'    => $sub_product_id,
@@ -63,6 +56,18 @@ class Zippy_Handle_Product_Add_On
     return $addons;
   }
 
+  public static function is_baby_shower_product($product)
+  {
+    $categories = get_the_terms($product->get_id(), 'product_cat');
+    if (!empty($categories)) {
+      foreach ($categories as $category) {
+        if ($category->slug === 'baby-shower') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   /**
    * Get grouped addon rules

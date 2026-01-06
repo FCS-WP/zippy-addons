@@ -425,18 +425,12 @@ class Zippy_Orders_Controller
         }
 
         $item->update_meta_data('akk_selected', $addon_meta);
-
-        $composite_categories_calculate_modifier = ['baby-shower'];
         // Set tax for no composite product
         if (
             !is_composite_product($product)
             || (
                 is_composite_product($product)
-                && has_term(
-                    $composite_categories_calculate_modifier,
-                    'product_cat',
-                    $product->get_id()
-                )
+                && Zippy_Handle_Product_Add_On::is_baby_shower_product($product)
             )
         ) {
             $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
