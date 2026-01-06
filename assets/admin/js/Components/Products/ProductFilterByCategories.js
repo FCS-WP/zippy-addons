@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { TextField, Box, MenuItem, Button, Grid2 } from "@mui/material";
 import { generalAPI } from "../../api/general";
 
-const ProductFilterbyCategories = ({ onFilter }) => {
+const ProductFilterbyCategories = ({ onFilter, className }) => {
   const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
     search: "",
@@ -40,7 +40,10 @@ const ProductFilterbyCategories = ({ onFilter }) => {
   };
 
   return (
-    <Box sx={{ mb: 2, p: 2, border: "1px solid #eee", borderRadius: 2 }}>
+    <Box
+      className={className}
+      sx={{ mb: 2, p: 2, border: "1px solid #eee", borderRadius: 2 }}
+    >
       <Grid2 container size={{ xs: 12, md: 12 }} spacing={2}>
         {/* Search by Name or SKU */}
         <Grid2 size={{ xs: 12, md: 6 }}>
