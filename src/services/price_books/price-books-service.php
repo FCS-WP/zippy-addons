@@ -16,7 +16,7 @@ class Price_Books_Service
     global $wpdb;
     $table_name = $wpdb->prefix . PRICEBOOK_TABLE;
 
-    $pricebooks = $wpdb->get_results("SELECT * FROM {$table_name} ORDER BY start_date DESC", ARRAY_A);
+    $pricebooks = $wpdb->get_results("SELECT * FROM {$table_name} WHERE deleted_at IS NULL ORDER BY start_date DESC", ARRAY_A);
 
     if ($pricebooks === null) {
       return [];
