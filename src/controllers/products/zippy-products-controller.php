@@ -270,7 +270,8 @@ class Zippy_Products_Controller
           : Zippy_Handle_Product_Add_On::get_list_addons(
             $list_sub_products,
             $is_composite_product,
-            $grouped_addons
+            $grouped_addons,
+            $product
           );
 
         $data[] = [
@@ -390,7 +391,7 @@ class Zippy_Products_Controller
       if ($results->get_type() == 'variable') {
         $addons_rules = self::get_variable_product($results);
       } else {
-        $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons);
+        $addons_rules = Zippy_Handle_Product_Add_On::get_list_addons($list_sub_products, $is_composite_product, $grouped_addons, $results);
       }
 
       $product_data = array(
