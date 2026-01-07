@@ -237,5 +237,4 @@ export const dateToSGT = (value, format = "MMM dd, yyyy") => {
   const timeZone = "Asia/Singapore";
   return formatInTimeZone(new Date(value), timeZone, format);
 
-  // return format(zonedDate, format);
 };
