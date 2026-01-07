@@ -656,9 +656,6 @@ class Zippy_Orders_Controller
         // Set quantity
         $item->set_quantity($quantity, true);
 
-
-
-
         $product = $item->get_product();
         if (empty($product)) {
             return Zippy_Response_Handler::error('Product not found.');
