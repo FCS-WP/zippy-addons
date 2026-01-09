@@ -383,6 +383,8 @@ class Zippy_Orders_Controller
         //Extra price
         $extra_value = get_field('extra_price', $product_id);
 
+        $extra_price = 0;
+
         if (!empty($extra_value)) {
 
             $extra_price =  $extra_value * $quantity;

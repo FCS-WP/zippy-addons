@@ -24,13 +24,23 @@ class Price_Books_Woocommerce
     }
 
     $user_id = get_current_user_id();
-    $user = get_userdata($user_id);
-    if (empty($user->roles) || $user->roles[0] == 'administrator') {
+    if (! $user_id) {
+      // Not logged in
       $current_role = 'customer';
     } else {
-      $current_role_formated = array_values($user->roles);
+      $user = get_userdata($user_id);
 
-      $current_role = $current_role_formated[0];
+      if (! empty($user->roles)) {
+        // Get first role
+        $current_role = array_values($user->roles)[0];
+        // If admin, treat as customer
+        if ($current_role === 'administrator') {
+          $current_role = 'customer';
+        }
+      } else {
+        // Fallback role
+        $current_role = 'customer';
+      }
     }
 
     $this->current_pricebook_data = $this->get_active_price_book_id_by_role($current_role);
@@ -276,5 +286,4 @@ class Price_Books_Woocommerce
 
     return $is_visible;
   }
-
 }
