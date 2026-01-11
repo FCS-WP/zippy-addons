@@ -9,7 +9,9 @@ export const makeRequest = async (
   const baseURL = "/wp-json";
   const api = axios.create({
     baseURL: baseURL,
+    withCredentials: true,
   });
+
   const headers = token
     ? { Authorization: `Bearer ${token}`, "X-WP-Nonce": admin_data.nonce }
     : {};

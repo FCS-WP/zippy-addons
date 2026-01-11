@@ -121,7 +121,8 @@ class Zippy_Admin_Settings
       'zippy-bookings_page_calendar',
       'zippy-add-ons_page_store',
       'zippy-bookings_page_customize',
-      'zippy-add-ons_page_price_books'
+      'zippy-add-ons_page_price_books',
+      'zippy-add-ons_page_shipping',
     ];
 
     if (in_array($handle, $apply_urls)) {

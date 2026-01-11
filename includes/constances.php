@@ -96,3 +96,7 @@ if (!defined('PRICEBOOK_TABLE')) {
 if (!defined('PRICEBOOK_PRODUCTS_TABLE')) {
   define('PRICEBOOK_PRODUCTS_TABLE', "pricebook_product_relations");
 }
+// Addons Shipping Role Config Table Name
+if (!defined('SHIPPING_ROLE_CONFIG_TABLE')) {
+  define('SHIPPING_ROLE_CONFIG_TABLE', "addons_shipping_role_config");
+}

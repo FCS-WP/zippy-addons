@@ -4,6 +4,7 @@ import ShippingConfigTable from "./ShippingConfigTable";
 import theme from "../../../theme/theme";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import MinimumOrderConfig from "./MinimumOrderConfig";
+import ShippingRoleConfig from "./ShippingRoleConfig";
 
 const TabPanelWrapper = ({
   tabIndex,
@@ -20,6 +21,7 @@ const TabPanelWrapper = ({
   handleDeleteRow,
   handleAddNewRow,
   minimumOrder,
+  setUpdateRoleConfig,
 }) => {
   return (
     <>
@@ -47,7 +49,7 @@ const TabPanelWrapper = ({
             <Box display="flex" alignItems="center" gap={1}>
               <LocalShippingIcon fontSize="small" />
               <Typography variant="body2" fontWeight="600">
-               Delivery Fee
+                Delivery Fee
               </Typography>
             </Box>
           }
@@ -78,6 +80,16 @@ const TabPanelWrapper = ({
               <LocalShippingIcon fontSize="small" />
               <Typography variant="body2" fontWeight="600">
                 Minimum Order Config
+              </Typography>
+            </Box>
+          }
+        />
+        <Tab
+          label={
+            <Box display="flex" alignItems="center" gap={1}>
+              <LocalShippingIcon fontSize="small" />
+              <Typography variant="body2" fontWeight="600">
+                Shipping Role Config
               </Typography>
             </Box>
           }
@@ -187,6 +199,13 @@ const TabPanelWrapper = ({
       )}
       {tabIndex === 3 && (
         <MinimumOrderConfig currentTab={tabIndex} minimumOrder={minimumOrder} />
+      )}
+      {tabIndex === 4 && (
+        <ShippingRoleConfig
+          currentTab={tabIndex}
+          setUpdateRoleConfig={setUpdateRoleConfig}
+          selectedStore={selectedStore}
+        />
       )}
     </>
   );

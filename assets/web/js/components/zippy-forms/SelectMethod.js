@@ -1,6 +1,8 @@
 import { Box, Typography, Button, styled } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { deliveryIcon, takeawayIcon } from "../../images";
+import { shippingRoleConfigAPI } from "../../../../admin/js/api/shipping-role-config";
+import { webApi } from "../../api";
 
 const CustomButton = styled(Button)(({ theme }) => ({
   padding: "16px",
@@ -16,6 +18,25 @@ const CustomButton = styled(Button)(({ theme }) => ({
 }));
 
 const SelectMethod = ({ onChangeMode }) => {
+  const [userConfig, setUserConfig] = useState(null);
+
+  const getShippingRoleConfigByUser = async () => {
+    try {
+      const { data } = await webApi.getShippingRoleConfigByUser();
+      if (data?.status === "success" && data?.data) {
+        setUserConfig(data.data);
+        return data.data;
+      }
+    } catch (error) {
+      console.error("Error fetching shipping role config by user:", error);
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    getShippingRoleConfigByUser();
+  }, []);
   return (
     <Box>
       <Typography

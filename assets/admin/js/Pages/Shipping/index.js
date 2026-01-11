@@ -5,6 +5,7 @@ import TabPanelWrapper from "../../Components/ShippingFee/TabPanelWrapper";
 import { toast, ToastContainer } from "react-toastify";
 import { Api } from "../../api";
 import { generalAPI } from "../../api/general";
+import { shippingRoleConfigAPI } from "../../api/shipping-role-config";
 
 const ShippingFeeCalculator = () => {
   const [stores, setStores] = useState([]);
@@ -15,6 +16,7 @@ const ShippingFeeCalculator = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [configMinimumOrder, setConfigMinimumOrder] = useState({});
+  const [updateRoleConfig, setUpdateRoleConfig] = useState({});
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -189,6 +191,7 @@ const ShippingFeeCalculator = () => {
       )
     );
   };
+
   const handleSaveConfig = async () => {
     setLoading(true);
 
@@ -209,6 +212,20 @@ const ShippingFeeCalculator = () => {
         setLoading(false);
       }
       return;
+    }
+
+    if (updateRoleConfig) {
+      try {
+        const response = await shippingRoleConfigAPI.updateShippingRoleConfig({
+          outlet_id: selectedStore,
+          configs: updateRoleConfig,
+        });
+
+        toast.success("Shipping Role configuration saved successfully!");
+      } catch (error) {
+        console.error("Error updating shipping role config:", error);
+        toast.error("Failed to update shipping role configuration.");
+      }
     }
 
     if (!selectedStore) {
@@ -309,6 +326,7 @@ const ShippingFeeCalculator = () => {
         handleDeleteRow={handleDeleteRow}
         handleAddNewRow={handleAddNewRow}
         minimumOrder={handleConfigMinimumOrder}
+        setUpdateRoleConfig={setUpdateRoleConfig}
       />
       <Button
         variant="contained"
