@@ -19,6 +19,7 @@ import {
 import Grid2 from "@mui/material/Grid2";
 import { generalAPI } from "../../api/general";
 import { shippingRoleConfigAPI } from "../../api/shipping-role-config";
+import CatalogCategoryManagement from "../CatalogCategory/CatalogCategoryManagement";
 
 const ShippingRoleConfig = ({
   currentTab,
@@ -542,6 +543,9 @@ const ShippingRoleConfig = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Render CatalogCategoryManagement component */}
+      <CatalogCategoryManagement />
     </div>
   );
 };

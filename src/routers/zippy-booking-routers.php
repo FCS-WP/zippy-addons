@@ -12,6 +12,7 @@ defined('ABSPATH') or die();
 
 use Zippy_Booking\Src\Routers\Bookings\Zippy_Booking_Router;
 use Zippy_Booking\Src\Routers\Bookings\Mail\Zippy_Booking_Mail_Route;
+use Zippy_Booking\Src\Routers\Catalog_Category\Zippy_Catalog_Category_Router;
 use Zippy_Booking\Src\Routers\General\Zippy_Booking_General_Router;
 use Zippy_Booking\Src\Routers\Menu\Zippy_Menu_Router;
 use Zippy_Booking\Src\Routers\Products\Zippy_Products_Router;
@@ -49,6 +50,7 @@ class Zippy_Booking_Routers
     Price_Books_Router::get_instance();
     Zippy_User_Router::get_instance();
     Zippy_Addons_Shipping_Role_Config_Router::get_instance();
+    Zippy_Catalog_Category_Router::get_instance();
     new Zippy_Booking_Mail_Route();
   }
 }

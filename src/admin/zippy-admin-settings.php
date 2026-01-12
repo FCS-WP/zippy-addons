@@ -78,6 +78,7 @@ class Zippy_Admin_Settings
     add_submenu_page('zippy-bookings', 'Menus', 'Menus', 'manage_options', 'menus', array($this, 'menus_render'));
     add_submenu_page('zippy-bookings', 'Settings', 'Settings', 'manage_options', 'settings', array($this, 'settings_render'));
     add_submenu_page('zippy-bookings', 'Price Books', 'Price Books', 'manage_options', 'price_books', array($this, 'price_books_render'));
+    add_submenu_page('zippy-bookings', 'Catalog Categories', 'Catalog Categories', 'manage_options', 'catalog-category-management', array($this, 'catalog_category_management_render'));
   }
 
   public function render()
@@ -123,6 +124,7 @@ class Zippy_Admin_Settings
       'zippy-bookings_page_customize',
       'zippy-add-ons_page_price_books',
       'zippy-add-ons_page_shipping',
+      'zippy-add-ons_page_catalog-category-management',
     ];
 
     if (in_array($handle, $apply_urls)) {
@@ -219,5 +221,10 @@ class Zippy_Admin_Settings
     }
 
     return '<div id="admin-table-order" data-order-id="' . esc_attr($order_id) . '" data-enable-edit="' . esc_attr($enable_edit) . '"></div>';
+  }
+
+  public function catalog_category_management_render()
+  {
+    echo Zippy_Utils_Core::get_template('catalog-category-management.php', [], dirname(__FILE__), '/templates');
   }
 }
