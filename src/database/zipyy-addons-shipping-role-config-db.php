@@ -8,7 +8,7 @@ defined('ABSPATH') or die();
 class Zipyy_Addons_Shipping_Role_Config_DB
 {
   protected static $_instance = null;
-  protected $version = '1.2';
+  protected $version = '1.0';
 
   public function __construct()
   {
