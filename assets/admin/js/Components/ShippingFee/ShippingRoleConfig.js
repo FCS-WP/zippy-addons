@@ -19,8 +19,6 @@ import {
 import Grid2 from "@mui/material/Grid2";
 import { generalAPI } from "../../api/general";
 import { shippingRoleConfigAPI } from "../../api/shipping-role-config";
-import { format, utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
-import { parseISO } from "date-fns";
 
 const ShippingRoleConfig = ({
   currentTab,
@@ -57,27 +55,18 @@ const ShippingRoleConfig = ({
   }, []);
 
   const handleAddRole = async () => {
+    console.log(newRole);
+
     if (!newRole.role_user) return;
 
-    const timeZone = "Asia/Singapore";
     const payload = {
       outlet_id: selectedStore,
       configs: {
         [newRole.role_user]: {
           delivery: newRole.delivery,
           take_away: newRole.take_away,
-          start_date: newRole.start_date
-            ? format(
-                zonedTimeToUtc(parseISO(newRole.start_date), timeZone),
-                "yyyy-MM-dd'T'HH:mm:ssXXX"
-              )
-            : null,
-          end_date: newRole.end_date
-            ? format(
-                zonedTimeToUtc(parseISO(newRole.end_date), timeZone),
-                "yyyy-MM-dd'T'HH:mm:ssXXX"
-              )
-            : null,
+          start_date: newRole.start_date || null,
+          end_date: newRole.end_date || null,
         },
       },
     };
