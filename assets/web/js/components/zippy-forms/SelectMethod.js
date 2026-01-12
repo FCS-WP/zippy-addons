@@ -37,6 +37,19 @@ const SelectMethod = ({ onChangeMode }) => {
   useEffect(() => {
     getShippingRoleConfigByUser();
   }, []);
+
+  const shippingConfig = userConfig?.config ?? null;
+
+  const showDelivery =
+    !shippingConfig || Object.keys(shippingConfig).length === 0
+      ? true
+      : shippingConfig.delivery?.visible === true;
+
+  const showTakeAway =
+    !shippingConfig || Object.keys(shippingConfig).length === 0
+      ? true
+      : shippingConfig.take_away?.visible === true;
+
   return (
     <Box>
       <Typography
@@ -47,34 +60,28 @@ const SelectMethod = ({ onChangeMode }) => {
       >
         Select Your Preference
       </Typography>
-      <Box display={"flex"} m={4} justifyContent={"space-around"}>
-        <Box>
-          <CustomButton onClick={() => onChangeMode("delivery")}>
-            <img src={deliveryIcon} alt="delivery" />
-          </CustomButton>
-          <Typography
-            textAlign={"center"}
-            variant="h6"
-            fontSize={16}
-            fontWeight={700}
-          >
-            Delivery
-          </Typography>
-        </Box>
+      <Box display="flex" m={4} justifyContent="space-around">
+        {showDelivery && (
+          <Box>
+            <CustomButton onClick={() => onChangeMode("delivery")}>
+              <img src={deliveryIcon} alt="delivery" />
+            </CustomButton>
+            <Typography textAlign="center" fontSize={16} fontWeight={700}>
+              Delivery
+            </Typography>
+          </Box>
+        )}
 
-        <Box>
-          <CustomButton onClick={() => onChangeMode("takeaway")}>
-            <img src={takeawayIcon} alt="takeaway" />
-          </CustomButton>
-          <Typography
-            textAlign={"center"}
-            variant="h6"
-            fontSize={16}
-            fontWeight={700}
-          >
-            Take Away
-          </Typography>
-        </Box>
+        {showTakeAway && (
+          <Box>
+            <CustomButton onClick={() => onChangeMode("takeaway")}>
+              <img src={takeawayIcon} alt="takeaway" />
+            </CustomButton>
+            <Typography textAlign="center" fontSize={16} fontWeight={700}>
+              Take Away
+            </Typography>
+          </Box>
+        )}
       </Box>
       <Button
         className="btn-close-lightbox"

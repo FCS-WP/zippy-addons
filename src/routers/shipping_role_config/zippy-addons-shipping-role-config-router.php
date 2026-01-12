@@ -7,6 +7,7 @@ use Zippy_Booking\Src\Controllers\Price_Books\Zippy_Price_Books_Controller;
 use Zippy_Booking\Src\Controllers\Price_Books\Zippy_Price_Book_Products_Controller;
 use Zippy_Booking\Src\Middleware\Admin\Zippy_Booking_Permission;
 use WP_REST_Server;
+use Zippy_Booking\Src\App\Models\Shipping_Role_Config\Zippy_Addons_Shipping_Role_Config_Model;
 use Zippy_Booking\Src\Controllers\Shipping_Role_Config\Zippy_Addons_Shipping_Role_Config_Controller;
 
 /**
@@ -42,22 +43,20 @@ class Zippy_Addons_Shipping_Role_Config_Router
   {
     $namespace = ZIPPY_BOOKING_API_NAMESPACE;
     $permission = array(Zippy_Booking_Permission::class, 'zippy_permission_callback');
-    // $model_args = Zippy_Price_Books_Model::get_args();
-    // $update_product_rule_model_args = Zippy_Price_Books_Model::update_product_rule_args();
 
 
     register_rest_route($namespace, '/shipping-role-config', array(
       'methods'             => WP_REST_Server::READABLE, // GET
       'callback'            => [Zippy_Addons_Shipping_Role_Config_Controller::class, 'all_shipping_role_configs'],
-      'args'                => [],
+      'args'                => Zippy_Addons_Shipping_Role_Config_Model::get_args(),
       'permission_callback' => $permission,
     ));
 
-    //Update
+    //Create or Update config by user role
     register_rest_route($namespace, '/shipping-role-config', array(
       'methods'             => WP_REST_Server::EDITABLE, // PUT
       'callback'            => [Zippy_Addons_Shipping_Role_Config_Controller::class, 'update_shipping_role_config'],
-      'args'                => [],
+      'args'                => Zippy_Addons_Shipping_Role_Config_Model::create_update_args(),
       'permission_callback' => $permission,
     ));
 
@@ -69,6 +68,14 @@ class Zippy_Addons_Shipping_Role_Config_Router
       'permission_callback' => function () {
         return is_user_logged_in();
       },
+    ));
+
+    //Delete config
+    register_rest_route($namespace, '/shipping-role-config', array(
+      'methods'             => WP_REST_Server::DELETABLE, // DELETE
+      'callback'            => [Zippy_Addons_Shipping_Role_Config_Controller::class, 'delete_shipping_role_config_by_role'],
+      'args'                => Zippy_Addons_Shipping_Role_Config_Model::delete_args(),
+      'permission_callback' => $permission,
     ));
   }
 }

@@ -19,7 +19,8 @@ import {
 import Grid2 from "@mui/material/Grid2";
 import { generalAPI } from "../../api/general";
 import { shippingRoleConfigAPI } from "../../api/shipping-role-config";
-import ShippingRoleConfigConst from "../../const/shipping-role-config/shipping-role-config-const";
+import { format, utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
+import { parseISO } from "date-fns";
 
 const ShippingRoleConfig = ({
   currentTab,
@@ -33,6 +34,8 @@ const ShippingRoleConfig = ({
     role_user: "",
     delivery: { visible: true, min_order: 0 },
     take_away: { visible: true, min_order: 0 },
+    start_date: "",
+    end_date: "",
   });
   const [rules, setRules] = useState([]);
   const fetchUserRole = async () => {
@@ -56,26 +59,39 @@ const ShippingRoleConfig = ({
   const handleAddRole = async () => {
     if (!newRole.role_user) return;
 
+    const timeZone = "Asia/Singapore";
     const payload = {
       outlet_id: selectedStore,
       configs: {
         [newRole.role_user]: {
           delivery: newRole.delivery,
           take_away: newRole.take_away,
+          start_date: newRole.start_date
+            ? format(
+                zonedTimeToUtc(parseISO(newRole.start_date), timeZone),
+                "yyyy-MM-dd'T'HH:mm:ssXXX"
+              )
+            : null,
+          end_date: newRole.end_date
+            ? format(
+                zonedTimeToUtc(parseISO(newRole.end_date), timeZone),
+                "yyyy-MM-dd'T'HH:mm:ssXXX"
+              )
+            : null,
         },
       },
     };
 
     try {
       await shippingRoleConfigAPI.createShippingRoleConfig(payload);
-
       await getShippingRoleConfigs();
 
-      // reset form
       setNewRole({
         role_user: "",
         delivery: { visible: true, min_order: 0 },
         take_away: { visible: true, min_order: 0 },
+        start_date: "",
+        end_date: "",
       });
 
       setOpen(false);
@@ -92,11 +108,23 @@ const ShippingRoleConfig = ({
 
       if (data?.status === "success" && data?.data) {
         const rolesArray = Object.entries(data.data).map(
-          ([role_user, services]) => ({
-            role_user,
-            delivery: services.delivery ?? { visible: false, min_order: 0 },
-            take_away: services.take_away ?? { visible: false, min_order: 0 },
-          })
+          ([role_user, services]) => {
+            const start_date =
+              services.delivery?.start_date ||
+              services.take_away?.start_date ||
+              "";
+
+            const end_date =
+              services.delivery?.end_date || services.take_away?.end_date || "";
+
+            return {
+              role_user,
+              start_date,
+              end_date,
+              delivery: services.delivery ?? { visible: false, min_order: 0 },
+              take_away: services.take_away ?? { visible: false, min_order: 0 },
+            };
+          }
         );
 
         setRoles(rolesArray);
@@ -111,29 +139,19 @@ const ShippingRoleConfig = ({
     }
   };
 
-  const transformApiDataToRoles = (apiData) => {
-    if (!apiData || typeof apiData !== "object") return [];
-
-    return Object.entries(apiData).map(([roleUser, services]) => {
-      const role = { role_user: roleUser };
-
-      Object.entries(ShippingRoleConfigConst.SERVICE_KEYS).forEach(
-        ([serviceType, serviceKey]) => {
-          role[serviceKey] = services[serviceType] ?? {
-            visible: false,
-            min_order: 0,
-          };
-        }
-      );
-
-      return role;
-    });
-  };
+  const toDateInput = (value) => (value ? value.slice(0, 10) : "");
 
   const updateRole = (roleIndex, serviceKey, field, value) => {
     setRoles((prev) =>
       prev.map((role, index) => {
         if (index !== roleIndex) return role;
+
+        if (!field) {
+          return {
+            ...role,
+            [serviceKey]: value,
+          };
+        }
 
         return {
           ...role,
@@ -151,17 +169,38 @@ const ShippingRoleConfig = ({
       ...prev,
       [roleUser]: {
         ...(prev[roleUser] || {}),
-        [serviceKey]: {
-          ...(prev[roleUser]?.[serviceKey] || {}),
-          [field]: value,
-        },
+        ...(field
+          ? {
+              [serviceKey]: {
+                ...(prev[roleUser]?.[serviceKey] || {}),
+                [field]: value,
+              },
+            }
+          : {
+              [serviceKey]: value,
+            }),
       },
     }));
   };
 
-  useEffect(() => {
-    console.log("ROLES UPDATED:", roles);
-  }, [roles]);
+  const handleDeleteRole = async (roleUser) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete shipping config for role "${roleUser}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await shippingRoleConfigAPI.deleteShippingRoleConfig({
+        outlet_id: selectedStore,
+        role_user: roleUser,
+      });
+
+      await getShippingRoleConfigs();
+    } catch (error) {
+      console.error("Delete role config failed", error);
+    }
+  };
 
   return (
     <div>
@@ -176,9 +215,23 @@ const ShippingRoleConfig = ({
           roles.map((role, roleIndex) => (
             <Grid2 xs={12} md={6} key={role.role_user}>
               <Card sx={{ p: 2 }}>
-                <Typography fontWeight="bold" mb={2}>
-                  {role.role_user.toUpperCase()}
-                </Typography>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Typography fontWeight="bold">
+                    {role.role_user.toUpperCase()}
+                  </Typography>
+
+                  <Button
+                    color="error"
+                    size="small"
+                    onClick={() => handleDeleteRole(role.role_user)}
+                  >
+                    Delete
+                  </Button>
+                </Box>
 
                 <Box mt={3}>
                   <Grid2 container alignItems="center" spacing={2}>
@@ -260,6 +313,65 @@ const ShippingRoleConfig = ({
                             "take_away",
                             "min_order",
                             Number(e.target.value)
+                          )
+                        }
+                      />
+                    </Grid2>
+                  </Grid2>
+                </Box>
+
+                {/* DATE FIELDS */}
+                <Box mt={3}>
+                  <Grid2 container spacing={2}>
+                    <Grid2 xs={6}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          mb: 0.5,
+                          display: "block",
+                        }}
+                      >
+                        Start date
+                      </Typography>
+                      <TextField
+                        size="small"
+                        type="date"
+                        fullWidth
+                        value={toDateInput(role.start_date)}
+                        onChange={(e) =>
+                          updateRole(
+                            roleIndex,
+                            "start_date",
+                            null,
+                            e.target.value
+                          )
+                        }
+                      />
+                    </Grid2>
+
+                    <Grid2 xs={6}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          mb: 0.5,
+                          display: "block",
+                        }}
+                      >
+                        End date
+                      </Typography>
+                      <TextField
+                        size="small"
+                        type="date"
+                        fullWidth
+                        value={toDateInput(role.end_date)}
+                        onChange={(e) =>
+                          updateRole(
+                            roleIndex,
+                            "end_date",
+                            null,
+                            e.target.value
                           )
                         }
                       />
@@ -391,6 +503,46 @@ const ShippingRoleConfig = ({
                 }
               />
             </Box>
+
+            <Grid2 container spacing={2}>
+              {/* Start Date */}
+              <Grid2 xs={6}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "text.secondary", mb: 0.5, display: "block" }}
+                >
+                  Start date
+                </Typography>
+                <TextField
+                  size="small"
+                  type="date"
+                  fullWidth
+                  value={newRole.start_date}
+                  onChange={(e) =>
+                    setNewRole({ ...newRole, start_date: e.target.value })
+                  }
+                />
+              </Grid2>
+
+              {/* End Date */}
+              <Grid2 xs={6}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "text.secondary", mb: 0.5, display: "block" }}
+                >
+                  End date
+                </Typography>
+                <TextField
+                  size="small"
+                  type="date"
+                  fullWidth
+                  value={newRole.end_date}
+                  onChange={(e) =>
+                    setNewRole({ ...newRole, end_date: e.target.value })
+                  }
+                />
+              </Grid2>
+            </Grid2>
           </Box>
         </DialogContent>
 

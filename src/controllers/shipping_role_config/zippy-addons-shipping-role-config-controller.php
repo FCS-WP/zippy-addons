@@ -13,10 +13,18 @@ class Zippy_Addons_Shipping_Role_Config_Controller
   public static function all_shipping_role_configs(WP_REST_Request $request)
   {
     $outlet_id = $request->get_param('outlet_id');
+
     global $wpdb;
     $table_name = $wpdb->prefix . SHIPPING_ROLE_CONFIG_TABLE;
+    $sql = $wpdb->prepare(
+      "SELECT * 
+         FROM {$table_name}
+         WHERE outlet_id = %d
+           AND deleted_at IS NULL",
+      $outlet_id
+    );
 
-    $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE outlet_id = %s", $outlet_id), ARRAY_A);
+    $rows = $wpdb->get_results($sql, ARRAY_A);
 
     $result = [];
 
@@ -29,8 +37,11 @@ class Zippy_Addons_Shipping_Role_Config_Controller
       }
 
       $result[$role][$service] = [
+        'id'      => (int) $row['id'],
         'visible'   => (bool) $row['visible'],
         'min_order' => (float) $row['min_order'],
+        'start_date' => $row['start_date'],
+        'end_date'   => $row['end_date'],
       ];
     }
 
@@ -42,72 +53,96 @@ class Zippy_Addons_Shipping_Role_Config_Controller
     global $wpdb;
     $table_name = $wpdb->prefix . SHIPPING_ROLE_CONFIG_TABLE;
 
-    $outlet_id = sanitize_text_field($request->get_param('outlet_id'));
+    $outlet_id = $request->get_param('outlet_id');
     $configs   = $request->get_param('configs');
 
-    if (empty($outlet_id) || empty($configs) || !is_array($configs)) {
-      return Zippy_Response_Handler::error('Invalid payload');
+    if (!$outlet_id || empty($configs) || !is_array($configs)) {
+      return Zippy_Response_Handler::error('Invalid payload', 400);
     }
 
     foreach ($configs as $role_user => $services) {
 
       $role_user = sanitize_text_field($role_user);
+      $now = current_time('mysql');
 
-      foreach ($services as $service_type => $config) {
+      $start_date = array_key_exists('start_date', $services)
+        ? gmdate('Y-m-d H:i:s', strtotime($services['start_date']))
+        : null;
 
-        // validate service
-        if (!in_array($service_type, ['delivery', 'take_away'], true)) {
+      $end_date = array_key_exists('end_date', $services)
+        ? gmdate('Y-m-d 23:59:59', strtotime($services['end_date']))
+        : null;
+
+      $has_service_config = isset($services['delivery']) || isset($services['take_away']);
+
+      foreach (['delivery', 'take_away'] as $service_type) {
+        if ($has_service_config && !isset($services[$service_type])) {
           continue;
         }
 
-        $visible   = isset($config['visible']) ? (int) (bool) $config['visible'] : 0;
-        $min_order = isset($config['min_order']) ? (float) $config['min_order'] : 0;
+        $config = $services[$service_type] ?? [];
 
-        // check exists
-        $exists = $wpdb->get_var(
+        $row = $wpdb->get_row(
           $wpdb->prepare(
-            "SELECT id FROM $table_name 
-                     WHERE outlet_id = %s AND role_user = %s AND service_type = %s",
+            "SELECT id FROM {$table_name}
+         WHERE outlet_id = %d
+           AND role_user = %s
+           AND service_type = %s
+         LIMIT 1",
             $outlet_id,
             $role_user,
             $service_type
-          )
+          ),
+          ARRAY_A
         );
 
-        if ($exists) {
-          // UPDATE
+        $data = [
+          'updated_at' => $now,
+          'deleted_at' => null,
+        ];
+
+        if ($start_date !== null) {
+          $data['start_date'] = $start_date;
+        }
+
+        if ($end_date !== null) {
+          $data['end_date'] = $end_date;
+        }
+
+        if (array_key_exists('visible', $config)) {
+          $data['visible'] = (int) (bool) $config['visible'];
+        }
+
+        if (array_key_exists('min_order', $config)) {
+          $data['min_order'] = (float) $config['min_order'];
+        }
+
+        if (count($data) <= 2) {
+          continue;
+        }
+
+        if ($row) {
           $wpdb->update(
             $table_name,
-            [
-              'visible'   => $visible,
-              'min_order' => $min_order,
-              'updated_at' => current_time('mysql'),
-            ],
-            ['id' => $exists],
-            ['%d', '%f', '%s'],
-            ['%d']
+            $data,
+            ['id' => (int) $row['id']]
           );
         } else {
-          // INSERT
           $wpdb->insert(
             $table_name,
-            [
-              'outlet_id'   => $outlet_id,
-              'role_user'   => $role_user,
+            array_merge($data, [
+              'outlet_id'    => $outlet_id,
+              'role_user'    => $role_user,
               'service_type' => $service_type,
-              'visible'     => $visible,
-              'min_order'   => $min_order,
-              'created_at'  => current_time('mysql'),
-              'updated_at'  => current_time('mysql'),
-            ],
-            ['%s', '%s', '%s', '%d', '%f', '%s', '%s']
+              'created_at'   => $now,
+            ])
           );
         }
       }
     }
 
     return Zippy_Response_Handler::success([
-      'message' => 'Shipping role config updated successfully'
+      'message' => 'Shipping role config updated successfully',
     ]);
   }
 
@@ -124,7 +159,7 @@ class Zippy_Addons_Shipping_Role_Config_Controller
     }
 
     $query = $wpdb->prepare(
-      "SELECT service_type, visible, min_order
+      "SELECT service_type, visible, min_order, start_date, end_date
          FROM {$table_name}
          WHERE role_user = %s",
       $role_slug
@@ -140,12 +175,56 @@ class Zippy_Addons_Shipping_Role_Config_Controller
       $result[$service] = [
         'visible'   => (bool) $row['visible'],
         'min_order' => (float) $row['min_order'],
+        'start_date' => $row['start_date'],
+        'end_date'   => $row['end_date'],
       ];
     }
 
     return Zippy_Response_Handler::success([
       'role'   => $role_slug,
       'config' => $result,
+    ]);
+  }
+
+  public static function delete_shipping_role_config_by_role(WP_REST_Request $request)
+  {
+    global $wpdb;
+
+    $outlet_id = $request->get_param('outlet_id');
+    $role_user = $request->get_param('role_user');
+
+    if (empty($role_user) || empty($outlet_id)) {
+      return Zippy_Response_Handler::error('Role and Outlet ID are required', 400);
+    }
+
+    $table = $wpdb->prefix . 'addons_shipping_role_config';
+    $deleted_at = current_time('mysql');
+
+    $sql = $wpdb->prepare(
+      "
+        UPDATE {$table}
+        SET deleted_at = %s, updated_at = %s
+        WHERE role_user = %s
+          AND outlet_id = %d
+          AND deleted_at IS NULL
+        ",
+      $deleted_at,
+      $deleted_at,
+      $role_user,
+      $outlet_id
+    );
+
+    $updated = $wpdb->query($sql);
+
+    if ($updated === false) {
+      return Zippy_Response_Handler::error('Delete failed', 500);
+    }
+
+    return Zippy_Response_Handler::success([
+      'role'         => $role_user,
+      'outlet_id'    => $outlet_id,
+      'deleted_rows' => $updated,
+      'deleted_at'   => $deleted_at,
     ]);
   }
 }

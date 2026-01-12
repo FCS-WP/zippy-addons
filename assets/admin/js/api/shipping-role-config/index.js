@@ -19,4 +19,7 @@ export const shippingRoleConfigAPI = {
       "GET"
     );
   },
+  async deleteShippingRoleConfig(params) {
+    return await makeRequest(`/shipping-role-config`, params, "DELETE");
+  },
 };

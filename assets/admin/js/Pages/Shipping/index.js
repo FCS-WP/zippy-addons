@@ -214,7 +214,7 @@ const ShippingFeeCalculator = () => {
       return;
     }
 
-    if (updateRoleConfig) {
+    if (Object.keys(updateRoleConfig).length > 0) {
       try {
         const response = await shippingRoleConfigAPI.updateShippingRoleConfig({
           outlet_id: selectedStore,
