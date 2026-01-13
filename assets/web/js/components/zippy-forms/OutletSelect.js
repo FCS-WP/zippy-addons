@@ -12,7 +12,7 @@ import React, { useContext, useEffect, useState } from "react";
 import OutletDate from "./OutletDate";
 import StoreIcon from "@mui/icons-material/Store";
 import WatchLaterIcon from "@mui/icons-material/WatchLater";
-import { format, parseISO, set } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { webApi } from "../../api";
 import { toast } from "react-toastify";
 import {
