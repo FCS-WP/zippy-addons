@@ -66,6 +66,7 @@ const DeliveryForm = ({ onChangeMode }) => {
       outlet_id: deliveryData.outlet,
       date: deliveryData.date,
       time: deliveryData.time,
+      hide: deliveryData.hide,
     };
 
     const { data: response } = await webApi.addToCart(params);

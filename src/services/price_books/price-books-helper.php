@@ -171,7 +171,8 @@ class Price_Books_Helper
     return [
       'old_price'  => wc_price($original_price),
       'new_price'  => wc_price($new_price),
-      'price_book' => self::$current_pricebook_data
+      'price_book' => self::$current_pricebook_data,
+      'is_hide' => isset($rules[$product_id]['visibility']) && $rules[$product_id]['visibility'] === 'hide'
     ];
   }
 
