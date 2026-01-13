@@ -95,7 +95,6 @@ class Price_Books_Helper
       $role_slug
     ), ARRAY_A);
 
-
     if (!$pricebook) {
       self::$user_rules_cache = [];
       return [];
@@ -182,7 +181,7 @@ class Price_Books_Helper
   public function is_product_can_view($product_id)
   {
     $user = wp_get_current_user();
-    $role_user = $current_user->roles[0] ?? '';
+    $role_user = $user->roles[0] ?? '';
     $categories_can_view = Catalog_Category_Services::get_category_by_role($role_user);
 
     return has_term($categories_can_view, 'product_cat', $product_id);

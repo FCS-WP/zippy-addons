@@ -5,6 +5,7 @@ namespace Zippy_Booking\Src\Controllers\Products;
 use WP_REST_Request;
 use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
+use Zippy_Booking\Src\Services\Catalog_Category\Catalog_Category_Services;
 use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 use Zippy_Booking\Src\Services\Zippy_Handle_Product_Add_On;
 
@@ -472,6 +473,40 @@ class Zippy_Products_Controller
       return empty($data)
         ? Zippy_Response_Handler::error($data, 500)
         : Zippy_Response_Handler::success($data, "Products categories retrieved successfully.");
+    } catch (\Exception $e) {
+      return Zippy_Response_Handler::error('Empty categories', 500);
+    }
+  }
+
+  public static function get_categories_in_catalog(WP_REST_Request $request)
+  {
+    try {
+      $role_user = $request['role_user'] ?? '';
+      if ($error = self::validate_request([
+        "category_id" => ["data_type" => "number", "required" => false],
+      ], $request)) {
+        return $error;
+      }
+
+      $args = self::sanitize_categories($request);
+
+      $results = get_categories($args);
+
+      if (empty($results) || is_wp_error($results)) {
+        return Zippy_Response_Handler::error('No categories found.', 500);
+      }
+
+      $data = [];
+
+      foreach ($results as $category) {
+        if (Catalog_Category_Services::is_category_in_catalog($category->slug, $role_user)) {
+          $data[] = $category;
+        }
+      }
+
+      return empty($data)
+        ? Zippy_Response_Handler::error($data, 500)
+        : Zippy_Response_Handler::success($data, "Products categories in catalog retrieved successfully.");
     } catch (\Exception $e) {
       return Zippy_Response_Handler::error('Empty categories', 500);
     }

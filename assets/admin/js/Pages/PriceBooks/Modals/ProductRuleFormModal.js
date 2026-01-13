@@ -52,6 +52,7 @@ const ProductRuleFormModal = ({
   handleClose,
   onSave,
   initialRuleData,
+  roleUser = null,
 }) => {
   const paramsSyncedRef = useRef(false);
 
@@ -68,6 +69,7 @@ const ProductRuleFormModal = ({
   const [params, setParams] = useState({
     category: "",
     search: "",
+    role_user: roleUser || "all",
   });
 
   const handleFilter = useCallback((filter) => {
@@ -78,6 +80,8 @@ const ProductRuleFormModal = ({
   }, []);
 
   const fetchProducts = useCallback(async () => {
+    console.log(params);
+
     setLoading(true);
     setError(null);
 
@@ -160,6 +164,7 @@ const ProductRuleFormModal = ({
       let newParams = {
         category: "",
         search: "",
+        role_user: roleUser || "all",
       };
 
       if (isEditing && initialRuleData.product_id) {
@@ -225,6 +230,7 @@ const ProductRuleFormModal = ({
             <ProductFilterbyCategories
               onFilter={handleFilter}
               className="price-book-search-product"
+              roleUser={roleUser}
             />
 
             {/* Display error or loading state */}

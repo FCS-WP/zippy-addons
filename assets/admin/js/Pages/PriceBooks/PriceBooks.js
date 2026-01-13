@@ -92,9 +92,6 @@ const PriceBooks = () => {
         ? dateToSGT(value.end_date, "MMM dd, yyyy")
         : "N/A",
       STATUS: <Chip size="small" {...getStatusChipProps(value.status_label)} />,
-      EXCLUSIVE: (
-        <Chip size="small" {...getExclusiveChipProps(value.is_exclusive)} />
-      ),
       "": (
         <>
           <NavLink to={constructEditUrl(value.id)}>

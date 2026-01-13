@@ -273,17 +273,16 @@ class Price_Books_Woocommerce
     $helper = new Price_Books_Helper();
 
     $rules = $helper->get_active_rules_for_current_user();
-    $is_exclusive_mode = $helper->is_exclusive_mode();
-
-    if ($is_exclusive_mode) {
-      return isset($rules[$product_id]);
-    }
 
     // Check if the product belongs to a restricted category
     if (!$helper->is_product_can_view($product_id)) {
       return false;
     }
 
-    return $is_visible;
+    if (!empty($rules) && isset($rules[$product_id]) && $rules[$product_id]['visibility'] == 'show') {
+      return $is_visible;
+    }
+
+    return false;
   }
 }
