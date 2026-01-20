@@ -357,6 +357,7 @@ class Zippy_Orders_Controller
         $product_id = intval($productData['parent_product_id'] ?? 0);
         $quantity   = max(1, intval($productData['quantity'] ?? 1));
         $addons     = $productData['addons'] ?? [];
+
         $packing_instructions = sanitize_text_field($productData['packing_instructions'] ?? '');
 
         $product = wc_get_product($product_id);
@@ -381,19 +382,23 @@ class Zippy_Orders_Controller
             return Zippy_Response_Handler::error('No addons found.');
         }
         //Extra price
-        $extra_value = get_field('extra_price', $product_id);
+        $min_max_options = get_field('min_max_options', $product_id);
 
         $extra_price = 0;
 
-        if (!empty($extra_value)) {
+        if (is_array($addons) && is_array($min_max_options)) {
+            $price_map = array_column($min_max_options, 'extra_price', 'value');
 
-            $extra_price =  $extra_value * $quantity;
+            $totalQuantity = array_sum(array_column($addons, 'quantity'));
+
+            $extra_price =  $price_map[$totalQuantity] * $quantity;
 
             self::updateMetaData($order, $item_id, 'combo_extra_price', '$' . $extra_price);
         }
 
 
         $addon_meta = Zippy_Handle_Product_Add_On::build_addon_data($addons, $quantity, $user_id);
+
         self::handleUpdateOrderAddons($item, $quantity, $product, $addon_meta, $product_price, $extra_price);
 
         self::updateMetaData($order, $item_id, 'packing_instructions', $packing_instructions);
@@ -435,7 +440,7 @@ class Zippy_Orders_Controller
                 && Zippy_Handle_Product_Add_On::is_baby_shower_product($product)
             )
         ) {
-            $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta);
+            $total = Zippy_Handle_Product_Add_On::calculate_addon_total($addon_meta, $combo_extra_price);
             $tax   = Zippy_Handle_Product_Tax::set_order_item_totals_with_wc_tax($item, $total);
             if ($tax === false) {
                 return Zippy_Response_Handler::error('Failed to calculate tax for the order item.');

@@ -386,7 +386,7 @@ class Zippy_Products_Controller
       $groups            = get_field('products_group', $results->get_id()) ?: [];
       $grouped_addons    = Zippy_Handle_Product_Add_On::get_grouped_addons($groups);
       $minMaxOptions     = get_field('min_max_options', $results->get_id());
-      $comboExtraPrice   = get_field('extra_price', $results->get_id());
+      // $comboExtraPrice   = get_field('extra_price', $results->get_id());
 
       if ($results->get_type() == 'variable') {
         $addons_rules = self::get_variable_product($results);
@@ -407,7 +407,7 @@ class Zippy_Products_Controller
         'grouped_addons' => $grouped_addons,
         'is_composite_product' => $is_composite_product,
         'min_max_options' => $minMaxOptions,
-        'combo_extra_price' => $comboExtraPrice
+        // 'combo_extra_price' => $comboExtraPrice
       );
 
 
