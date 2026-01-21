@@ -13,7 +13,12 @@ class Catalog_Category_Services
     public static function get_category_by_role($role)
     {
         $role_categories = self::get_role_categories();
-        return isset($role_categories[$role]) ? $role_categories[$role] : $role_categories['all'];
+
+        if (isset($role_categories[$role]) && is_array($role_categories[$role])) {
+            return $role_categories[$role];
+        }
+
+        return $role_categories['all'] ?? [];
     }
 
     public static function is_category_in_catalog($category_identifier, $role)
