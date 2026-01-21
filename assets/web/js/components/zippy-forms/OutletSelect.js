@@ -62,6 +62,7 @@ const OutletSelect = ({
   const [times, setTimes] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [isGetDistance, setIsGetDistance] = useState(false);
+  const [hide, setIsHide] = useState(false);
 
   const handleTimes = async () => {
     setIsLoading(true);
@@ -167,9 +168,10 @@ const OutletSelect = ({
         date: format(selectedDate, "yyyy-MM-dd"),
         time: selectedTime,
         mapRoute: mapRoute ?? "",
+        hide: hide,
       });
     }
-  }, [selectedOutlet, selectedDate, selectedTime]);
+  }, [selectedOutlet, selectedDate, selectedTime, hide]);
 
   useEffect(() => {
     if (selectedLocation && selectedOutlet) {
@@ -200,10 +202,15 @@ const OutletSelect = ({
             parseISO(response.data?.pricing_rule.price_book.start_date),
             "dd-MMM-yyyy"
           ),
-          to: format(parseISO(response.data?.pricing_rule.price_book.end_date), "dd-MMM-yyyy"),
+          to: format(
+            parseISO(response.data?.pricing_rule.price_book.end_date),
+            "dd-MMM-yyyy"
+          ),
         },
         price: response.data?.pricing_rule?.new_price,
       });
+
+      setIsHide(response.data?.pricing_rule.is_hide);
     }
 
     return response.data.time.time_slot;

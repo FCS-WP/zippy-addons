@@ -49,6 +49,7 @@ const TakeAwayForm = ({ onChangeMode }) => {
       outlet_id: takeawayData.outlet,
       time: takeawayData.time,
       date: takeawayData.date,
+      hide: takeawayData.hide,
     };
 
     const { data: response } = await webApi.addToCart(params);
