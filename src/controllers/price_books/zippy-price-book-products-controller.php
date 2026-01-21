@@ -6,6 +6,7 @@ use Zippy_Booking\Src\App\Zippy_Response_Handler;
 use Zippy_Booking\Src\App\Models\Zippy_Request_Validation;
 use Zippy_Booking\Src\Services\Zippy_Booking_Helper;
 use WP_REST_Request;
+use Zippy_Booking\Src\Services\Catalog_Category\Catalog_Category_Services;
 
 class Zippy_Price_Book_Products_Controller
 {
@@ -17,6 +18,7 @@ class Zippy_Price_Book_Products_Controller
       if ($error = self::validate_request([
         "search" => ["data_type" => "string", "required" => false],
         "category" => ["data_type" => "number", "required" => false],
+        "role_user" => ["data_type" => "string", "required" => false],
       ], $request)) {
         return $error;
       }
@@ -31,6 +33,12 @@ class Zippy_Price_Book_Products_Controller
       $data = [];
 
       foreach ($results as $product) {
+        $categories = wp_get_post_terms($product->get_id(), 'product_cat');
+        $category_slug = !empty($categories) ? $categories[0]->slug : 'uncategorized';
+
+        if (!Catalog_Category_Services::is_category_in_catalog($category_slug, $request['role_user'] ?? 'all')) {
+          continue;
+        }
 
         $data[] = [
           'id'    => $product->get_id(),

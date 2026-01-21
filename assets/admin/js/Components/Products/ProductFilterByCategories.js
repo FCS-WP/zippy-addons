@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { TextField, Box, MenuItem, Button, Grid2 } from "@mui/material";
 import { generalAPI } from "../../api/general";
 
-const ProductFilterbyCategories = ({ onFilter, className }) => {
+const ProductFilterbyCategories = ({
+  onFilter,
+  className,
+  roleUser = null,
+}) => {
   const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
     search: "",
@@ -14,7 +18,9 @@ const ProductFilterbyCategories = ({ onFilter, className }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const { data } = await generalAPI.categories();
+        const { data } = await generalAPI.categoriesInCatalog({
+          role_user: roleUser,
+        });
         if (data?.status === "success") {
           setCategories(data.data);
         }
@@ -71,9 +77,6 @@ const ProductFilterbyCategories = ({ onFilter, className }) => {
             onChange={handleChange}
             sx={{ fontSize: "14px" }}
           >
-            <MenuItem autoFocus={true} value="all" sx={{ fontSize: "14px" }}>
-              All Categories
-            </MenuItem>
             {categories.map((cat) => (
               <MenuItem
                 key={cat.term_id}

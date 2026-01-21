@@ -194,38 +194,6 @@ const AddPriceBookModal = ({ open, handleClose, onSave, ruleData }) => {
                     ))}
                   </Select>
                 </FormControl>
-
-                <Box sx={{ p: 2, bgcolor: "#f9f9f9", borderRadius: 2 }}>
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                  >
-                    <Box display="flex" direction="column">
-                      <Typography variant="body2" fontWeight="bold">
-                        Exclusive Catalog
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Hide all other products
-                      </Typography>
-                    </Box>
-                    <Switch
-                      name="is_exclusive"
-                      checked={formData.is_exclusive}
-                      onChange={handleToggleChange}
-                      color="secondary"
-                    />
-                  </Stack>
-                  {formData.is_exclusive && (
-                    <Alert
-                      severity="warning"
-                      icon={false}
-                      sx={{ mt: 1, fontSize: "0.75rem" }}
-                    >
-                      Users will <b>only</b> see products assigned to this book.
-                    </Alert>
-                  )}
-                </Box>
               </Stack>
             </Grid>
           </Grid>

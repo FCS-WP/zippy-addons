@@ -95,7 +95,6 @@ class Price_Books_Helper
       $role_slug
     ), ARRAY_A);
 
-
     if (!$pricebook) {
       self::$user_rules_cache = [];
       return [];

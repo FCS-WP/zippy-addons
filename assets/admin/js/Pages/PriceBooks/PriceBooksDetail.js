@@ -25,7 +25,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import styles
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { toast, ToastContainer } from "react-toastify";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 // Assuming these are available
@@ -52,7 +52,6 @@ const INITIAL_INFO = {
   status: "active",
 };
 
-
 const PriceBookDetails = () => {
   const priceBookId = getPriceBookIdFromUrl();
   const isEditMode = priceBookId !== "new";
@@ -67,6 +66,7 @@ const PriceBookDetails = () => {
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [ruleToEdit, setRuleToEdit] = useState(null); // Data for editing
   const [loadingRules, setLoadingRules] = useState(isEditMode); // Loading rules initially
+  const [roleUser, setRoleUser] = useState(null);
 
   const [role, setRole] = useState([]);
 
@@ -113,6 +113,7 @@ const PriceBookDetails = () => {
           // Fetch rules immediately after details load
           await fetchRules(priceBookId);
           await fetchUserRole();
+          setRoleUser(fetchedData.role_id);
         } else {
           toast.error("Price Book not found.");
         }
@@ -516,33 +517,6 @@ const PriceBookDetails = () => {
                   color="success"
                 />
               </Box>
-
-              <Divider />
-
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Box>
-                  <Typography variant="subtitle2">Exclusive Mode</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Restrict catalog to these rules
-                  </Typography>
-                </Box>
-                <Switch
-                  name="is_exclusive"
-                  checked={info.is_exclusive == 1}
-                  onChange={handleToggleChange}
-                  color="secondary"
-                />
-              </Box>
-
-              {info.is_exclusive === 1 && (
-                <Alert severity="info" sx={{ mt: 1 }}>
-                  Target users will ONLY see products listed in the table below.
-                </Alert>
-              )}
             </Stack>
           </Paper>
         </Grid>
@@ -631,6 +605,7 @@ const PriceBookDetails = () => {
         handleClose={handleCloseModal}
         initialRuleData={ruleToEdit}
         onSave={handleSaveRule}
+        roleUser={roleUser}
       />
       <BulkImportModal
         open={isBulkModalOpen}
