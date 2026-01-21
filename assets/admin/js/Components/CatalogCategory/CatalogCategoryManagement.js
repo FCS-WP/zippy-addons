@@ -113,16 +113,15 @@ const CatalogCategoryManagement = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ py: 3, px: 3, minHeight: "100vh" }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 3 }}>
         <Typography
-          variant="h4"
+          variant="h5"
           sx={{
-            fontWeight: 700,
-            color: "primary.main",
-            mb: 1,
-            letterSpacing: "-0.5px",
+            fontWeight: 600,
+            color: "#2c3e50",
+            mb: 0.5,
           }}
         >
           Catalog Category Management
@@ -132,60 +131,54 @@ const CatalogCategoryManagement = () => {
         </Typography>
       </Box>
 
-      {/* Add New Mapping Card */}
-      <Card
+      {/* Configuration Section */}
+      <Paper
         elevation={0}
         sx={{
-          mb: 4,
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 3,
-          overflow: "hidden",
+          mb: 3,
+          border: "1px solid #e0e0e0",
+          borderRadius: 1,
         }}
       >
         <Box
           sx={{
-            bgcolor: "primary.main",
+            bgcolor: "#fff",
             px: 3,
-            py: 2.5,
-            borderRadius: "10px",
+            py: 2,
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
           <Typography
-            variant="h6"
+            variant="subtitle1"
             sx={{
               fontWeight: 600,
-              color: "white",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
+              color: "#2c3e50",
             }}
           >
-            <AddIcon />
-            Add New Role-Category Mapping
+            1. Configuration
           </Typography>
         </Box>
 
-        <CardContent sx={{ p: 3 }}>
-          <Grid2 container spacing={3}>
+        <Box sx={{ p: 3 }}>
+          <Grid2 container spacing={2}>
             {/* Role Select */}
             <Grid2 size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth required>
-                <InputLabel>User Role</InputLabel>
+              <FormControl fullWidth size="small">
+                <InputLabel sx={{ fontSize: "0.875rem" }}>
+                  Applied User Role
+                </InputLabel>
                 <Select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
-                  label="User Role"
+                  label="Applied User Role"
                   sx={{
-                    borderRadius: 2,
+                    bgcolor: "white",
                     "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "divider",
+                      borderColor: "#d0d0d0",
                     },
                   }}
                 >
-                  <MenuItem value="all">
-                    <em>All Users</em>
-                  </MenuItem>
+                  <MenuItem value="all">All Roles</MenuItem>
                   {rules.map((role) => (
                     <MenuItem key={role.slug} value={role.slug}>
                       {role.name}
@@ -197,8 +190,10 @@ const CatalogCategoryManagement = () => {
 
             {/* Categories Multi-Select */}
             <Grid2 size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth required>
-                <InputLabel>Categories</InputLabel>
+              <FormControl fullWidth size="small">
+                <InputLabel sx={{ fontSize: "0.875rem" }}>
+                  Categories
+                </InputLabel>
                 <Select
                   multiple
                   value={newCategories}
@@ -206,7 +201,7 @@ const CatalogCategoryManagement = () => {
                     setNewCategories(
                       typeof e.target.value === "string"
                         ? e.target.value.split(",")
-                        : e.target.value
+                        : e.target.value,
                     )
                   }
                   renderValue={(selected) =>
@@ -216,15 +211,15 @@ const CatalogCategoryManagement = () => {
                         return catObj
                           ? catObj.name
                           : slug === "uncategorized"
-                          ? "Uncategorized"
-                          : slug;
+                            ? "Uncategorized"
+                            : slug;
                       })
                       .join(", ")
                   }
                   sx={{
-                    borderRadius: 2,
+                    bgcolor: "white",
                     "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "divider",
+                      borderColor: "#d0d0d0",
                     },
                   }}
                 >
@@ -233,10 +228,7 @@ const CatalogCategoryManagement = () => {
                       {cat.name}
                     </MenuItem>
                   ))}
-
-                  <MenuItem value="uncategorized">
-                    <em>Uncategorized</em>
-                  </MenuItem>
+                  <MenuItem value="uncategorized">Uncategorized</MenuItem>
                 </Select>
               </FormControl>
             </Grid2>
@@ -246,17 +238,16 @@ const CatalogCategoryManagement = () => {
               <Grid2 size={{ xs: 12 }}>
                 <Box
                   sx={{
-                    p: 2,
-                    bgcolor: "grey.50",
-                    borderRadius: 2,
-                    border: "1px dashed",
-                    borderColor: "grey.300",
+                    p: 1.5,
+                    bgcolor: "#f9f9f9",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 1,
                   }}
                 >
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    sx={{ mb: 1, display: "block", fontWeight: 600 }}
+                    sx={{ mb: 1, display: "block" }}
                   >
                     Selected Categories ({newCategories.length})
                   </Typography>
@@ -267,19 +258,16 @@ const CatalogCategoryManagement = () => {
                         label={cat}
                         onDelete={() =>
                           setNewCategories(
-                            newCategories.filter((c) => c !== cat)
+                            newCategories.filter((c) => c !== cat),
                           )
                         }
-                        deleteIcon={<CloseIcon />}
+                        size="small"
                         sx={{
-                          bgcolor: "primary.main",
-                          color: "white",
-                          fontWeight: 500,
+                          bgcolor: "#e3f2fd",
+                          color: "#1976d2",
                           "& .MuiChip-deleteIcon": {
-                            color: "white",
-                            "&:hover": {
-                              color: "grey.200",
-                            },
+                            color: "#1976d2",
+                            fontSize: "1rem",
                           },
                         }}
                       />
@@ -295,18 +283,14 @@ const CatalogCategoryManagement = () => {
                 variant="contained"
                 onClick={handleAddRoleCategory}
                 disabled={!newRole || !newCategories.length}
-                fullWidth
-                size="large"
+                size="medium"
                 startIcon={<AddIcon />}
                 sx={{
-                  borderRadius: 2,
-                  py: 1.5,
-                  fontWeight: 600,
                   textTransform: "none",
-                  fontSize: "1rem",
-                  boxShadow: 2,
+                  fontWeight: 500,
+                  boxShadow: "none",
                   "&:hover": {
-                    boxShadow: 4,
+                    boxShadow: "none",
                   },
                 }}
               >
@@ -314,147 +298,187 @@ const CatalogCategoryManagement = () => {
               </Button>
             </Grid2>
           </Grid2>
-        </CardContent>
-      </Card>
+        </Box>
+      </Paper>
 
-      {/* Existing Role-Category Mappings */}
-      <Card
+      {/* Role-Category Mappings Table */}
+      <Paper
         elevation={0}
         sx={{
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 3,
-          overflow: "hidden",
+          border: "1px solid #e0e0e0",
+          borderRadius: 1,
         }}
       >
         <Box
           sx={{
-            bgcolor: "grey.800",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            bgcolor: "#fff",
             px: 3,
-            py: 2.5,
-            borderRadius: "10px",
+            py: 2,
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
           <Typography
-            variant="h6"
+            variant="subtitle1"
             sx={{
               fontWeight: 600,
-              color: "white",
+              color: "#2c3e50",
             }}
           >
-            Active Role-Category Mappings
+            Role-Category Mappings
           </Typography>
         </Box>
 
-        <CardContent sx={{ p: 3 }}>
+        <Box sx={{ p: 3 }}>
           {Object.entries(roleCategories).length === 0 ? (
             <Box
               sx={{
                 textAlign: "center",
-                py: 6,
+                py: 4,
                 color: "text.secondary",
               }}
             >
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                No role-category mappings yet
-              </Typography>
-              <Typography variant="body2" color="text.disabled">
-                Add your first mapping above to get started
+              <Typography variant="body2">
+                No role-category mappings configured yet
               </Typography>
             </Box>
           ) : (
-            <Stack spacing={2}>
+            <Box
+              sx={{
+                border: "1px solid #e0e0e0",
+                borderRadius: 1,
+                overflow: "hidden",
+              }}
+            >
+              {/* Table Header */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "60px 1fr 80px",
+                  bgcolor: "#b8c5d9",
+                  borderBottom: "1px solid #e0e0e0",
+                }}
+              >
+                <Box sx={{ p: 1.5, textAlign: "center" }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, color: "#2c3e50" }}
+                  >
+                    NO
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 1.5 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, color: "#2c3e50" }}
+                  >
+                    ROLE & CATEGORIES
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 1.5, textAlign: "center" }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, color: "#2c3e50" }}
+                  >
+                    ACTIONS
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Table Body */}
               {Object.entries(roleCategories).map(([role, cats], index) => (
-                <Paper
+                <Box
                   key={role}
-                  elevation={0}
                   sx={{
-                    p: 3,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 2,
-                    bgcolor: "background.paper",
-                    transition: "all 0.2s",
+                    display: "grid",
+                    gridTemplateColumns: "60px 1fr 80px",
+                    borderBottom:
+                      index < Object.entries(roleCategories).length - 1
+                        ? "1px solid #e0e0e0"
+                        : "none",
+                    bgcolor: "#fff",
                     "&:hover": {
-                      boxShadow: 3,
-                      borderColor: "primary.main",
+                      bgcolor: "#f5f5f5",
                     },
                   }}
                 >
                   <Box
                     sx={{
+                      p: 1.5,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      mb: 2,
+                      justifyContent: "center",
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          bgcolor: "primary.main",
-                        }}
-                      />
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 700,
-                          fontSize: "1.1rem",
-                          color: "text.primary",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {role}
-                      </Typography>
-                    </Box>
+                    <Typography variant="body2">{index + 1}</Typography>
+                  </Box>
+                  <Box sx={{ p: 1.5 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 1,
+                        textTransform: "capitalize",
+                        color: "#2c3e50",
+                      }}
+                    >
+                      {role}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={0.5}
+                      flexWrap="wrap"
+                      useFlexGap
+                    >
+                      {cats.map((cat) => {
+                        const catObj = categories.find((c) => c.slug === cat);
+                        return (
+                          <Chip
+                            key={cat}
+                            label={catObj ? catObj.name : cat}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              fontSize: "0.75rem",
+                              height: "22px",
+                              borderColor: "#d0d0d0",
+                            }}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1,
+                    }}
+                  >
                     <IconButton
                       size="small"
-                      color="error"
                       onClick={() => handleDeleteRoleCategory(role)}
                       sx={{
-                        borderRadius: 1,
+                        color: "#d32f2f",
                         "&:hover": {
-                          bgcolor: "error.lighter",
+                          bgcolor: "#ffebee",
                         },
                       }}
                     >
-                      <DeleteOutlineIcon fontSize="small" />
+                      <DeleteOutlineIcon sx={{ fontSize: "1.2rem" }} />
                     </IconButton>
                   </Box>
-
-                  <Divider sx={{ mb: 2 }} />
-
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {cats.map((cat) => {
-                      const catObj = categories.find((c) => c.slug === cat);
-                      return (
-                        <Chip
-                          key={cat}
-                          label={catObj ? catObj.name : cat}
-                          size="medium"
-                          sx={{
-                            color: "primary.dark",
-                            fontWeight: 500,
-                            borderRadius: 1.5,
-                            px: 0.5,
-                            "& .MuiChip-label": {
-                              px: 2,
-                            },
-                          }}
-                        />
-                      );
-                    })}
-                  </Stack>
-                </Paper>
+                </Box>
               ))}
-            </Stack>
+            </Box>
           )}
-        </CardContent>
-      </Card>
-    </Container>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 
