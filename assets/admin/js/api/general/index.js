@@ -29,4 +29,13 @@ export const generalAPI = {
   async getAvailableRoles() {
     return await makeRequest("/user-roles", null, "GET");
   },
+  async getCatalogCategory() {
+    return await makeRequest("/catalog-category", null, "GET");
+  },
+  async updateCatalogCategory(params) {
+    return await makeRequest("/catalog-category", params, "POST");
+  },
+  async deleteCatalogCategory(params) {
+    return await makeRequest("/catalog-category", params, "DELETE");
+  },
 };

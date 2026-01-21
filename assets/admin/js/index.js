@@ -4,6 +4,7 @@ import Index from "./Pages/Bookings";
 import Dashboard from "./Pages/Dashboard";
 import Settings from "./Pages/Settings";
 import PriceBooks from "./Pages/PriceBooks";
+import CatalogCategory from "./Pages/CatalogCategory";
 // import ProductsBooking from "./Pages/ProductsBooking";
 // import Calendar from "./Pages/Calendar";
 import Store from "./Pages/Store";
@@ -29,6 +30,9 @@ function initializeApp() {
   const zippyShipping = document.getElementById("zippy_shipping");
   const zippyMenus = document.getElementById("zippy_menus");
   const zippyPriceBooks = document.getElementById("zippy_price_books");
+  const zippyCatalogCategory = document.getElementById(
+    "zippy_catalog_category"
+  );
   const zippyOrderFilter = document.getElementById("zippy_order_filter");
   const zippyCreateOrder = document.getElementById("admin_create_order");
   const zippyOrderTable = document.getElementById("admin-table-order");
@@ -113,6 +117,17 @@ function initializeApp() {
         <BrowserRouter>
           <CssBaseline />
           <PriceBooks />
+        </BrowserRouter>
+      </ThemeProvider>
+    );
+  }
+  if (zippyCatalogCategory) {
+    const root = ReactDOM.createRoot(zippyCatalogCategory);
+    root.render(
+      <ThemeProvider theme={theme}>
+        <BrowserRouter>
+          <CssBaseline />
+          <CatalogCategory />
         </BrowserRouter>
       </ThemeProvider>
     );

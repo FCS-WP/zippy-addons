@@ -50,6 +50,8 @@ class Zippy_Databases
     register_activation_hook(ZIPPY_ADDONS_BASENAME, array($this, 'create_holiday_config_table'));
 
     new Zipyy_Pricebooks_Db;
+
+    new Zipyy_Addons_Shipping_Role_Config_DB;
   }
 
 

@@ -6,6 +6,7 @@ use Zippy_Booking\Src\Services\Zippy_Datetime_Helper;
 use Zippy_Booking\Src\Woocommerce\Admin\Zippy_Woo_Manual_Order;
 use DateTimeZone;
 use DateTime;
+use Zippy_Booking\Src\Services\Catalog_Category\Catalog_Category_Services;
 
 /**
  * Price_Books_Helper
@@ -179,10 +180,12 @@ class Price_Books_Helper
   /**
    * Check if a product belongs to a restricted category.
    */
-  public function is_product_restricted($product_id)
+  public function is_product_can_view($product_id)
   {
-    $restricted_categories = ['combo-6', 'ala-carte', 'festive'];
+    $current_user = wp_get_current_user();
+    $role_user = $current_user->roles[0] ?? '';
+    $categories_can_view = Catalog_Category_Services::get_category_by_role($role_user);
 
-    return has_term($restricted_categories, 'product_cat', $product_id);
+    return has_term($categories_can_view, 'product_cat', $product_id);
   }
 }

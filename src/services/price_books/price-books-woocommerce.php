@@ -280,7 +280,7 @@ class Price_Books_Woocommerce
     }
 
     // Check if the product belongs to a restricted category
-    if ($helper->is_product_restricted($product_id)) {
+    if (!$helper->is_product_can_view($product_id)) {
       return false;
     }
 

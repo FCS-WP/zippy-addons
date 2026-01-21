@@ -14,24 +14,31 @@ export const webApi = {
     return await makeRequest("/distance", params);
   },
   async addToCart(params) {
-    return await makeRequest("/add-to-cart", params, 'POST');
+    return await makeRequest("/add-to-cart", params, "POST");
   },
   async checkProduct(params) {
-    return await makeRequest('/product-checking', params);
+    return await makeRequest("/product-checking", params);
   },
   async registerAccount(params) {
-    return await makeRequest('/zippy-register', params, 'POST');
+    return await makeRequest("/zippy-register", params, "POST");
   },
   async login(params) {
-    return await makeRequest('/zippy-signin', params, 'POST');
+    return await makeRequest("/zippy-signin", params, "POST");
   },
   async checkSlotDelivery(params) {
-    return await makeRequest('/slot', params);
+    return await makeRequest("/slot", params);
   },
   async getDeliveryConfig(params) {
-    return await makeRequest('/delivery', params);
+    return await makeRequest("/delivery", params);
   },
   async getHolidayConfig(params) {
-    return await makeRequest('/holiday', params);
-  }
+    return await makeRequest("/holiday", params);
+  },
+  async getShippingRoleConfigByUser(params) {
+    return await makeRequest(
+      "/get-shipping-role-config-by-user",
+      params,
+      "GET"
+    );
+  },
 };
