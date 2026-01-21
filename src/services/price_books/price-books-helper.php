@@ -172,7 +172,8 @@ class Price_Books_Helper
     return [
       'old_price'  => wc_price($original_price),
       'new_price'  => wc_price($new_price),
-      'price_book' => self::$current_pricebook_data
+      'price_book' => self::$current_pricebook_data,
+      'is_hide' => isset($rules[$product_id]['visibility']) && $rules[$product_id]['visibility'] === 'hide'
     ];
   }
 
@@ -181,7 +182,7 @@ class Price_Books_Helper
    */
   public function is_product_can_view($product_id)
   {
-    $user = wp_get_current_user();
+    $current_user = wp_get_current_user();
     $role_user = $current_user->roles[0] ?? '';
     $categories_can_view = Catalog_Category_Services::get_category_by_role($role_user);
 

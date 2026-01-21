@@ -10,6 +10,7 @@ use Zippy_Booking\Src\Services\One_Map_Api;
 use Zippy_Booking\Utils\Zippy_Session_Handler;
 use Zippy_Booking\Utils\Zippy_Cart_Handler;
 use Zippy_Booking\Src\Services\Zippy_Handle_Shipping;
+use Zippy_Booking\Src\Services\Price_Books\Price_Books_Helper;
 
 defined('ABSPATH') or die();
 
@@ -67,7 +68,8 @@ class Zippy_Admin_Booking_Product_Controller
             $min_qty = $min_qty ? intval($min_qty) : 1;
             $stock_quantity = $_product->get_stock_quantity();
             $qty_add_to_cart = $stock_quantity < $min_qty ? $stock_quantity : $min_qty;
-            if (floatval($_product->get_price()) > 0 && $_product->get_type() !=  'composite') {
+            $is_hide = $request['hide'];
+            if (floatval($_product->get_price()) > 0 && $_product->get_type() !=  'composite' && $is_hide == 'false') {
                 $cart_item_key = $cart->add_to_cart($_product->get_id(), $qty_add_to_cart);
                 if ($cart_item_key) {
                     return Zippy_Response_Handler::success($session_data, "Product added to cart");
@@ -184,5 +186,14 @@ class Zippy_Admin_Booking_Product_Controller
             $session->set($key, $value);
         }
         $session->set('status_popup', true);
+    }
+
+    private static function product_checking_pricing_rule($product_id, $billing_date)
+    {
+        $helper = new Price_Books_Helper();
+
+        $info = $helper->get_preorder_price_info($product_id, $billing_date);
+
+        return $info;
     }
 }
