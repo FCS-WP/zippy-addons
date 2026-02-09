@@ -182,7 +182,7 @@ class Price_Books_Helper
   public function is_product_can_view($product_id)
   {
     $current_user = wp_get_current_user();
-    $role_user = $current_user->roles[0] ?? '';
+    $role_user = array_values($current_user->roles)[0] ?? '';
 
     $categories_can_view = Catalog_Category_Services::get_category_by_role($role_user);
 
