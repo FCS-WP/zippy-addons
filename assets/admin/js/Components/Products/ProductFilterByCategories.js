@@ -19,7 +19,7 @@ const ProductFilterbyCategories = ({
     const fetchCategories = async () => {
       try {
         const { data } = await generalAPI.categoriesInCatalog({
-          role_user: roleUser,
+          role_user: roleUser || "all",
         });
         if (data?.status === "success") {
           setCategories(data.data);
@@ -29,7 +29,7 @@ const ProductFilterbyCategories = ({
       }
     };
     fetchCategories();
-  }, []);
+  }, [roleUser]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
