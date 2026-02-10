@@ -283,6 +283,6 @@ class Price_Books_Woocommerce
       return $is_visible;
     }
 
-    return false;
+    return $is_visible;
   }
 }
