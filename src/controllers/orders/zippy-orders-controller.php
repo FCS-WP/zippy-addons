@@ -493,6 +493,14 @@ class Zippy_Orders_Controller
             'total'      => $totalCalculated,
         ];
 
+        $user_id = $order->get_user_id();
+        $user    = $user_id ? get_user_by('id', $user_id) : null;
+        $roles = $user ? array_values($user->roles) : [];
+
+        $result['customer_info'] = [
+            'role' => $user ? $roles[0] : [],
+        ];
+
         return Zippy_Response_Handler::success($result);
     }
 

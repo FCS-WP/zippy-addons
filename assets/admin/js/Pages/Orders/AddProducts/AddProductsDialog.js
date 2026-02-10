@@ -19,6 +19,7 @@ import {
 
 import ProductFilterbyCategories from "../../../Components/Products/ProductFilterByCategories";
 import { toast } from "react-toastify";
+import { Api } from "../../../api";
 
 const AddProductsDialog = ({ onClose, open, orderID }) => {
   const [data, setData] = useState([]);
@@ -39,6 +40,7 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
 
   const [simpleProduct, setSimpleProduct] = useState({});
   const [addedProducts, setAddedProducts] = useState([]);
+  const [orderInfo, setOrderInfo] = useState(null);
   /**
    * Fetch products with API call
    */
@@ -65,6 +67,24 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
       setLoading(false);
     }
   }, [params]);
+
+  useEffect(() => {
+    if (orderID) {
+      getOrderInfo();
+    }
+  }, [orderID]);
+
+  const getOrderInfo = async () => {
+    try {
+      setLoading(true);
+      const { data: res } = await Api.getOrderInfo({ order_id: orderID });
+      if (res.status === "success") setOrderInfo(res.data);
+    } catch (error) {
+      console.error("Error fetching order info:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const callAddProductsToOrder = async (payload) => {
     try {
@@ -260,7 +280,10 @@ const AddProductsDialog = ({ onClose, open, orderID }) => {
       <DialogTitle>Add Products to Order</DialogTitle>
       <DialogContent>
         <Box display="flex" flexDirection="column" gap={2}>
-          <ProductFilterbyCategories onFilter={handleFilter} />
+          <ProductFilterbyCategories
+            onFilter={handleFilter}
+            roleUser={orderInfo?.customer_info?.role}
+          />
 
           {loading ? (
             <Box display="flex" justifyContent="center" py={3}>
