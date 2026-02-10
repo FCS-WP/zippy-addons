@@ -18,9 +18,15 @@ const ProductFilterbyCategories = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const { data } = await generalAPI.categoriesInCatalog({
-          role_user: roleUser || "all",
-        });
+        let data = null;
+        if (roleUser) {
+          ({ data } = await generalAPI.categoriesInCatalog({
+            role_user: roleUser || "all",
+          }));
+        } else {
+          ({ data } = await generalAPI.categories());
+        }
+
         if (data?.status === "success") {
           setCategories(data.data);
         }
@@ -29,7 +35,7 @@ const ProductFilterbyCategories = ({
       }
     };
     fetchCategories();
-  }, [roleUser]);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
