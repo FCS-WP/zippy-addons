@@ -89,7 +89,9 @@ class Price_Books_Woocommerce
     }
 
     $rule = $rules[$product_id];
-    $original_price = floatval($product->get_regular_price());
+    // $original_price = floatval($product->get_regular_price());
+    $original_price = floatval($price);
+
 
     $new_price = $this->calculate_discounted_price($original_price, $rule);
 
@@ -241,10 +243,11 @@ class Price_Books_Woocommerce
    * @param array $rule           The pricing rule array, including 'price_type' and 'rule_value'.
    * @return float The calculated new price.
    */
-  public function calculate_discounted_price(float $original_price, array $rule): float
+  public function calculate_discounted_price($original_price, array $rule): float
   {
 
     $new_price = $original_price;
+
     $rule_value = (float) $rule['price_value'];
 
     switch ($rule['price_type']) {
@@ -265,6 +268,7 @@ class Price_Books_Woocommerce
         // Handle unknown type or no discount
         break;
     }
+
     return max(0, $new_price);
   }
 
